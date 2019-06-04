@@ -150,13 +150,23 @@ function compilation() {
 	end1=$SECONDS
 }
 
-# Check if compilation is successful
+# Check if compilation is successful and abort if not
 function compilationreport() {
-	imagelogic1=$HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb
-	imagelogic2=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
-		if [ -d "$outfolder1" ] &&  [ -n "$imagelogic1" ] || [ -f "${inline1}" ] && [ -n "${imagelogic2}" ]; then
+	image1=$HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb
+	image2=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+		if [ -z "$out" ] && [ -f "$image1" ]; then
+			printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
+		elif [ -z "$out" ] && [ -z "$image1" ]; then
 			printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
-			exit 1;
+			kill $$
+			exit 1
+		fi
+		if [ -n "$out" ] && [ -f "$image2" ]; then
+			printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
+		elif [ -n "$out" ] && [ -z "$image2" ]; then
+			printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
+			kill $$
+			exit 1
 		fi
 }
 
@@ -165,9 +175,9 @@ function zipbuilder() {
 	start2=$SECONDS
 	kernel_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
 	FILE_NAME="${AK_ZIP_KERNEL_NAME}-v${kernel_version}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
-		if [ -d "$outfolder1" ]; then
+		if [ -z "$out" ]; then
 			cp $HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb $HOME/${AK_DIR_NAME}/zImage
-		elif [ -f "$inline1" ]; then
+		elif [ -n "$out" ]; then
 			cp $HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb $HOME/${AK_DIR_NAME}/zImage
 		fi
 	printf "\n ${white}> Packing ${cyan}${KERNEL_NAME} $kernel_version ${white}kernel...${darkwhite}\n\n"
