@@ -97,8 +97,8 @@ function choices() {
 			select yn in "Yes" "No"; do
 				case $yn in
 					Yes )
-						find $HOME/${AK_DIR_NAME} -name "*$KERNEL_NAME*" -type f -exec rm -f {} \;
-						find $HOME/${AK_DIR_NAME} -name "zImage" -type f -exec rm -f {} \; ; break;;
+						find $HOME/${AK_DIR_NAME} -name "*$KERNEL_NAME*" -type f -exec rm -fv {} \;
+						find $HOME/${AK_DIR_NAME} -name "zImage" -type f -exec rm -fv {} \; ; break;;
 					No ) break;;
 				esac
 			done
