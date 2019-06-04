@@ -72,27 +72,15 @@ function cloning() {
 
 # Give choice depending on situation
 function choices() {
-	# Clean build for out compilation
-	outfolder1=$HOME/${KERNEL_OUT_DIR}
-		if [ -d "$outfolder1" ]; then
-			printf "\n${white}Make clean (out) build?${darkwhite}\n"
+	# Clean build
+	clb1=$HOME/${KERNEL_OUT_DIR}
+	clb2=$HOME/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
+		if [ -d "$clb1" ] || [ -f "$clb2" ]; then
+			printf "\n${white}Make clean build?${darkwhite}\n"
 			select yn in "Yes" "No"; do
 				case $yn in
 					Yes )
 						rm -rf $HOME/${KERNEL_OUT_DIR}
-						rm -rf $HOME/.ccache/* ; break;;
-					No ) break;;
-				esac
-			done
-		fi
-
-	# Clean build for inline/standalone compilation
-	inline1=$HOME/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
-		if [ -f "$inline1" ]; then
-			printf "\n${white}Make clean (inline/standalone) build?${darkwhite}\n"
-			select yn in "Yes" "No"; do
-				case $yn in
-					Yes )
 						rm -rf $HOME/.ccache/*
 						cd $HOME/${KERNEL_DIR}
 						make clean
