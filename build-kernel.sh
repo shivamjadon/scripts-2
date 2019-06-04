@@ -80,7 +80,7 @@ function choices() {
 				case $yn in
 					Yes )
 						rm -rf $HOME/${KERNEL_OUT_DIR}
-						rm -rf $HOME/.ccache ; break;;
+						rm -rf $HOME/.ccache/* ; break;;
 					No ) break;;
 				esac
 			done
@@ -93,7 +93,7 @@ function choices() {
 			select yn in "Yes" "No"; do
 				case $yn in
 					Yes )
-						rm -rf $HOME/.ccache
+						rm -rf $HOME/.ccache/*
 						cd $HOME/${KERNEL_DIR}
 						make clean
 						make mrproper ; break;;
