@@ -172,7 +172,6 @@ function compilationreport() {
 
 # Build kernel zip
 function zipbuilder() {
-	start2=$SECONDS
 	kernel_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
 	FILE_NAME="${AK_ZIP_KERNEL_NAME}-v${kernel_version}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
 		if [ -z "$out" ]; then
@@ -180,23 +179,17 @@ function zipbuilder() {
 		elif [ -n "$out" ]; then
 			cp $HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb $HOME/${AK_DIR_NAME}/zImage
 		fi
-	printf "\n ${white}> Packing ${cyan}${KERNEL_NAME} $kernel_version ${white}kernel...${darkwhite}\n\n"
+		printf "\n ${white}> Packing ${cyan}${KERNEL_NAME} $kernel_version ${white}kernel...${darkwhite}\n\n"
 		pushd $HOME/${AK_DIR_NAME}
 			zip -r9 ${FILE_NAME} * -x .git README.md
 		popd
-	end2=$SECONDS
 }
 
-# Print statistics
+# Print compilation time
 function stats() {
 	echo
-		printf " ${white}> File location: ${green}$HOME/${AK_DIR_NAME}/$FILE_NAME\n"
-		printf "\n ${darkcyan}> Compiling the kernel was completed in ${white}$((end1-start1))${darkcyan} seconds.${darkwhite}"
-		if [ "$((end2-start2))" = "1" ]; then
-			printf "\n ${darkcyan}> Packing the kernel was completed in ${white}$((end2-start2))${darkcyan} second.${darkwhite}\n"
-		else
-			printf "\n ${darkcyan}> Packing the kernel was completed in ${white}$((end2-start2))${darkcyan} seconds.${darkwhite}\n"
-		fi
+	printf " ${white}> File location: ${green}$HOME/${AK_DIR_NAME}/$FILE_NAME\n"
+	printf " ${darkcyan}> Compiling the kernel was completed in ${white}$((end1-start1))${darkcyan} seconds.${darkwhite}"
 }
 
 variables
