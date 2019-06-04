@@ -183,7 +183,7 @@ function stats() {
 		printf " ${white}> File location: ${green}$HOME/${AK_DIR_NAME}/$FILE_NAME\n"
 		printf "\n ${darkcyan}> Compiling the kernel was completed in ${white}$((end1-start1))${darkcyan} seconds.${darkwhite}"
 		if [ "$((end2-start2))" = "1" ]; then
-			printf "\n ${darkcyan}> Packing the kernel was completed in ${white}$((end2-start2))${darkcyan} second.${darkwhite}"
+			printf "\n ${darkcyan}> Packing the kernel was completed in ${white}$((end2-start2))${darkcyan} second.${darkwhite}\n"
 		else
 			printf "\n ${darkcyan}> Packing the kernel was completed in ${white}$((end2-start2))${darkcyan} seconds.${darkwhite}\n"
 		fi
