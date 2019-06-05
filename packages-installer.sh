@@ -189,7 +189,7 @@ function packages() {
 # Print statistics
 function stats() {
 		if [ "$((end1-start1))" = "0" ] || [ "$((end1-start1))" = "1" ]; then
-			printf "\n > ${green}The packages are already installed.${darkwhite}"
+			printf "\n > ${green}All packages are already installed!${darkwhite}"
 		else
 			printf "\n ${darkcyan}> Installing the packages was completed in ${white}$((end1-start1))${darkcyan} seconds.${darkwhite}"
 		fi
