@@ -145,7 +145,7 @@ function compilation() {
 			export ARCH=${KERNEL_ARCH} && export SUBARCH=${KERNEL_SUBARCH} && make ${KERNEL_DEFCONFIG}
 
 			# Build
-			CROSS_COMPILE=$CROSS_COMPILE make -j$( nproc --all )
+			CROSS_COMPILE=$CROSS_COMPILE make -j$(nproc --all)
 		fi
 	end1=$SECONDS
 }
@@ -172,24 +172,24 @@ function compilationreport() {
 
 # Build kernel zip
 function zipbuilder() {
-	kernel_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
-	FILE_NAME="${AK_ZIP_KERNEL_NAME}-v${kernel_version}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
+	kernel_ver=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
+	file_name="${AK_ZIP_KERNEL_NAME}-v${kernel_ver}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
 		if [ -z "$out" ]; then
 			cp $HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb $HOME/${AK_DIR_NAME}/zImage
 		elif [ -n "$out" ]; then
 			cp $HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb $HOME/${AK_DIR_NAME}/zImage
 		fi
-		printf "\n ${white}> Packing ${cyan}${KERNEL_NAME} $kernel_version ${white}kernel...${darkwhite}\n\n"
+		printf "\n ${white}> Packing ${cyan}${KERNEL_NAME} ${kernel_ver} ${white}kernel...${darkwhite}\n\n"
 		pushd $HOME/${AK_DIR_NAME}
-			zip -r9 ${FILE_NAME} * -x .git README.md
+			zip -r9 ${file_name} * -x .git README.md
 		popd
 }
 
 # Print compilation time
 function stats() {
 	echo
-	printf " ${white}> File location: ${green}$HOME/${AK_DIR_NAME}/$FILE_NAME\n"
-	printf " ${darkcyan}> Compiling the kernel was completed in ${white}$((end1-start1))${darkcyan} seconds.${darkwhite}"
+	printf " ${white}> File location: ${green}$HOME/${AK_DIR_NAME}/${file_name}\n"
+	printf " ${darkcyan}> Compiling the kernel was completed in ${white}$((end1-start1))${darkcyan} seconds.${darkwhite}\n"
 }
 
 variables
