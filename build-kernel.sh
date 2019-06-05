@@ -15,6 +15,7 @@ notice
 
 # Variables that have to be defined by the user
 function variables() {
+		### Essential variables
 		TOOLCHAIN_REPO=
 		TOOLCHAIN_BRANCH=
 		TOOLCHAIN_DIR_NAME=
@@ -29,16 +30,17 @@ function variables() {
 		KERNEL_DIR=
 		KERNEL_NAME=
 		KERNEL_DEFCONFIG=
-		KERNEL_ANDROID_BASE_VER=
-		### AK additional variables
-		AK_ZIP_KERNEL_NAME=
-		### Kernel additional variables
-		KERNEL_OUT_DIR=
-		### Variables for out compilation
-		KERNEL_BUILD_USER=
-		KERNEL_BUILD_HOST=
 		KERNEL_ARCH=
 		KERNEL_SUBARCH=
+		KERNEL_ANDROID_BASE_VER=
+
+		### AK additional variables
+		KERNEL_NAME_FOR_AK_ZIP=
+
+		### Variables for out compilation
+		KERNEL_OUT_DIR=
+		KERNEL_BUILD_USER=
+		KERNEL_BUILD_HOST=
 }
 
 # Setting up additional variables
@@ -173,7 +175,7 @@ function compilationreport() {
 # Build kernel zip
 function zipbuilder() {
 	kernel_ver=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
-	file_name="${AK_ZIP_KERNEL_NAME}-v${kernel_ver}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
+	file_name="${KERNEL_NAME_FOR_AK_ZIP}-v${kernel_ver}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
 		if [ -z "$out" ]; then
 			cp $HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb $HOME/${AK_DIR_NAME}/zImage
 		elif [ -n "$out" ]; then
