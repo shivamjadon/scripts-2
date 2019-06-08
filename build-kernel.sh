@@ -153,19 +153,23 @@ function compilation() {
 function compilationreport() {
 	image1=$HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb
 	image2=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
-		if [ -z "$out" ] && [ -f "$image1" ]; then
-			printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
-		elif [ -z "$out" ] && [ -z "$image1" ]; then
-			printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
-			kill $$
-			exit 1
+		if [ -z "$out" ]; then
+			if [ -f "$image1" ]; then
+				printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
+			else
+				printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
+				kill $$
+				exit 1
+			fi
 		fi
-		if [ -n "$out" ] && [ -f "$image2" ]; then
-			printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
-		elif [ -n "$out" ] && [ -z "$image2" ]; then
-			printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
-			kill $$
-			exit 1
+		if [ -n "$out" ]; then
+			if [ -f "$image2" ]; then
+				printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
+			else
+				printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
+				kill $$
+				exit 1
+			fi
 		fi
 }
 
