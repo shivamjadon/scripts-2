@@ -15,7 +15,7 @@ notice
 
 # Variables that have to be defined by the user
 function variables() {
-		### Essential variables
+		# Essential variables
 		TOOLCHAIN_REPO=
 		TOOLCHAIN_BRANCH=
 		TOOLCHAIN_DIR_NAME=
@@ -34,16 +34,15 @@ function variables() {
 		KERNEL_SUBARCH=
 		KERNEL_ANDROID_BASE_VER=
 
-		### AK additional variables
+		# AK additional variables
 		KERNEL_NAME_FOR_AK_ZIP=
 
-		### Variables for out compilation
+		# Out compilation variables
 		KERNEL_OUT_DIR=
 		KERNEL_BUILD_USER=
 		KERNEL_BUILD_HOST=
 }
 
-# Setting up additional variables
 function addvars() {
 	red='\033[1;31m'
 	green='\033[1;32m'
@@ -52,27 +51,27 @@ function addvars() {
 	darkcyan='\033[0;36m'
 	darkwhite='\033[0;37m'
 	sleep_value_after_clone=0.2
+	toolchain_clone_depth=1
+	kernel_clone_depth=10
 	current_date=$(date +'%Y%m%d')
 }
 
-# Shallow clone sources and tools
 function cloning() {
-	# Kernel
-	printf "\n>>> Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
-	git clone --branch ${KERNEL_BRANCH} --depth 1 ${KERNEL_REPO} $HOME/${KERNEL_DIR}
-	sleep ${sleep_value_after_clone}
-
-	# Toolchain
-	printf "\n>>> Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite}...\n"
-	git clone --branch ${TOOLCHAIN_BRANCH} --depth 1 ${TOOLCHAIN_REPO} $HOME/${TOOLCHAIN_DIR_NAME}
-	sleep ${sleep_value_after_clone}
-
 	# AK
 	printf "\n>>> Cloning ${cyan}${AK_NAME}${darkwhite}...\n"
 	git clone ${AK_REPO} -b ${AK_BRANCH} $HOME/${AK_DIR_NAME}
+	
+	# Toolchain
+	printf "\n>>> Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite}...\n"
+	git clone --branch ${TOOLCHAIN_BRANCH} --depth ${kernel_clone_depth} ${TOOLCHAIN_REPO} $HOME/${TOOLCHAIN_DIR_NAME}
+	sleep ${sleep_value_after_clone}
+
+	# Kernel
+	printf "\n>>> Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
+	git clone --branch ${KERNEL_BRANCH} --depth ${toolchain_clone_depth} ${KERNEL_REPO} $HOME/${KERNEL_DIR}
+	sleep ${sleep_value_after_clone}
 }
 
-# Give choice depending on situation
 function choices() {
 	# Clean build
 	clb1=$HOME/${KERNEL_OUT_DIR}
@@ -92,7 +91,7 @@ function choices() {
 			done
 		fi
 
-	# Clean the AK directory
+	# Clean AK
 	zImage1=$HOME/${AK_DIR_NAME}/zImage
 		if [ -f "$zImage1" ]; then
 			printf "\n${white}Clean ${AK_DIR_NAME} folder?${darkwhite}\n"
@@ -118,7 +117,6 @@ function choices() {
 	echo
 }
 
-# Compile the kernel
 function compilation() {
 	start1=$SECONDS
 		if [ -z "$out" ]; then
@@ -152,7 +150,6 @@ function compilation() {
 	end1=$SECONDS
 }
 
-# Check if compilation is successful and abort if not
 function compilationreport() {
 	image1=$HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb
 	image2=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
@@ -172,7 +169,6 @@ function compilationreport() {
 		fi
 }
 
-# Build kernel zip
 function zipbuilder() {
 	kernel_ver=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
 	file_name="${KERNEL_NAME_FOR_AK_ZIP}-v${kernel_ver}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
@@ -187,7 +183,6 @@ function zipbuilder() {
 		popd
 }
 
-# Print compilation time
 function stats() {
 	echo
 	printf " ${white}> File location: ${green}$HOME/${AK_DIR_NAME}/${file_name}\n"
