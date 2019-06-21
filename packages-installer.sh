@@ -12,7 +12,6 @@
  *
 notice
 
-# Set colors
 function colors() {
 	red='\033[1;31m'
 	green='\033[1;32m'
@@ -21,7 +20,6 @@ function colors() {
 	darkwhite='\033[0;37m'
 }
 
-# Install the packages
 function packages() {
 	start1=$SECONDS
 	printf "\n${darkcyan}===========================================${darkwhite}"
@@ -186,10 +184,9 @@ function packages() {
 	end1=$SECONDS
 }
 
-# Print statistics
 function stats() {
 		if [ "$((end1-start1))" = "0" ] || [ "$((end1-start1))" = "1" ]; then
-			printf "\n > ${green}All packages are already installed!${darkwhite}"
+			printf "\n > ${green}The packages were already installed!${darkwhite}"
 		else
 			printf "\n ${darkcyan}> Installing the packages was completed in ${white}$((end1-start1))${darkcyan} seconds.${darkwhite}"
 		fi
