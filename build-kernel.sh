@@ -258,35 +258,37 @@ function compilation() {
 		fi
 	fi
 
-	if [ "$ASK_FOR_COMPILATION_METHOD" = 0 ]; then
-		cd "$HOME"/${KERNEL_DIR}
+	if [ -z "$CLANG_DIR_NAME" ]; then
+		if [ "$ASK_FOR_COMPILATION_METHOD" = 0 ]; then
+			cd "$HOME"/${KERNEL_DIR}
 
-		if [ -n "$KERNEL_BUILD_USER" ]; then
-			export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
-		else
-			export KBUILD_BUILD_USER=$(whoami)
-		fi
-		if [ -n "$KERNEL_BUILD_HOST" ]; then
-			export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
-		else
-			export KBUILD_BUILD_HOST=$(uname -n)
-		fi
-		export ARCH=${KERNEL_ARCH}
-		export SUBARCH=${KERNEL_SUBARCH}
-		if [ "$USE_CCACHE" = 1 ]; then
-			export CROSS_COMPILE="ccache $HOME/${TOOLCHAIN_DIR_NAME}/bin/${TOOLCHAIN_DIR_PREFIX}"
-		else
-			export CROSS_COMPILE="$HOME/${TOOLCHAIN_DIR_NAME}/bin/${TOOLCHAIN_DIR_PREFIX}"
-		fi
+			if [ -n "$KERNEL_BUILD_USER" ]; then
+				export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
+			else
+				export KBUILD_BUILD_USER=$(whoami)
+			fi
+			if [ -n "$KERNEL_BUILD_HOST" ]; then
+				export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
+			else
+				export KBUILD_BUILD_HOST=$(uname -n)
+			fi
+			export ARCH=${KERNEL_ARCH}
+			export SUBARCH=${KERNEL_SUBARCH}
+			if [ "$USE_CCACHE" = 1 ]; then
+				export CROSS_COMPILE="ccache $HOME/${TOOLCHAIN_DIR_NAME}/bin/${TOOLCHAIN_DIR_PREFIX}"
+			else
+				export CROSS_COMPILE="$HOME/${TOOLCHAIN_DIR_NAME}/bin/${TOOLCHAIN_DIR_PREFIX}"
+			fi
 
-		make O="$HOME"/${KERNEL_OUT_DIR} \
-			ARCH=${KERNEL_ARCH} \
-			SUBARCH=${KERNEL_SUBARCH} \
-			${KERNEL_DEFCONFIG}
+			make O="$HOME"/${KERNEL_OUT_DIR} \
+				ARCH=${KERNEL_ARCH} \
+				SUBARCH=${KERNEL_SUBARCH} \
+				${KERNEL_DEFCONFIG}
 
-		make O="$HOME"/${KERNEL_OUT_DIR} \
-			ARCH=${KERNEL_ARCH} \
-			-j$(nproc --all)
+			make O="$HOME"/${KERNEL_OUT_DIR} \
+				ARCH=${KERNEL_ARCH} \
+				-j$(nproc --all)
+		fi
 	fi
 
 	if [ "$ASK_FOR_COMPILATION_METHOD" = 1 ]; then
@@ -353,13 +355,15 @@ function compilationrep() {
 		fi
 	fi
 
-	if [ "$ASK_FOR_COMPILATION_METHOD" = 0 ]; then
-		if [ -f "$image1" ]; then
-			printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
-		else
-			printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
-			kill $$
-			exit 1
+	if [ -z "$CLANG_DIR_NAME" ]; then
+		if [ "$ASK_FOR_COMPILATION_METHOD" = 0 ]; then
+			if [ -f "$image1" ]; then
+				printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
+			else
+				printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
+				kill $$
+				exit 1
+			fi
 		fi
 	fi
 
@@ -399,8 +403,10 @@ function zipbuilder() {
 		cp "$HOME"/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
 	fi
 
-	if [ "$ASK_FOR_COMPILATION_METHOD" = 0 ]; then
-		cp "$HOME"/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
+	if [ -z "$CLANG_DIR_NAME" ]; then
+		if [ "$ASK_FOR_COMPILATION_METHOD" = 0 ]; then
+			cp "$HOME"/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
+		fi
 	fi
 
 	if [ -z "$out" ]; then
@@ -445,11 +451,13 @@ function stats() {
 		fi
 	fi
 
-	if [ "$ASK_FOR_COMPILATION_METHOD" = 0 ]; then
-		if [ "$USE_CCACHE" = 1 ]; then
-			printf " ${white}> Compilation details: out-gcc-ccache\n\n"
-		else
-			printf " ${white}> Compilation details: out-gcc\n\n"
+	if [ -z "$CLANG_DIR_NAME" ]; then
+		if [ "$ASK_FOR_COMPILATION_METHOD" = 0 ]; then
+			if [ "$USE_CCACHE" = 1 ]; then
+				printf " ${white}> Compilation details: out-gcc-ccache\n\n"
+			else
+				printf " ${white}> Compilation details: out-gcc\n\n"
+			fi
 		fi
 	fi
 
