@@ -64,6 +64,7 @@ function variables() {
     RECURSIVE_KERNEL_CLONE=0 # You need to enable this if your kernel has git submodules.
     STANDALONE_COMPILATION=0 # Standalone compilation = compilation without output folder. DO NOT enable with Clang!
     ALWAYS_DELETE_AND_CLONE_KERNEL=0 # Recommended enabled if you use server to compile.
+    ALWAYS_DELETE_AND_CLONE_AK=0 # Recommended enabled if you use server to compile.
 
 <<EXAMPLEandSYNTAX
   TOOLCHAIN_REPO=https://github.com/mscalindt/aarch64-linux-android-4.9.git
@@ -111,6 +112,11 @@ function addvars() {
 
 function cloning() {
     if [ -n "$AK_REPO" ] && [ -n "$AK_BRANCH" ]; then
+        if [ "ALWAYS_DELETE_AND_CLONE_AK" = 1 ]; then
+            if [ -d "$HOME/$AK_DIR_NAME" ]; then
+                rm -rf "$HOME"/${AK_DIR_NAME}
+            fi
+        fi
         if [ ! -d "$HOME/$AK_DIR_NAME" ]; then
             printf "\n>>> ${white}Cloning ${cyan}${AK_NAME}${darkwhite}...\n"
             git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "$HOME"/${AK_DIR_NAME}
@@ -137,14 +143,14 @@ function cloning() {
     fi
 
     if [ -n "$KERNEL_REPO" ] && [ -n "$KERNEL_BRANCH" ]; then
+        if [ "$ALWAYS_DELETE_AND_CLONE_KERNEL" = 1 ]; then
+            if [ -d "$HOME/$KERNEL_DIR" ]; then
+                rm -rf "$HOME"/${KERNEL_DIR}
+                rm -rf "$HOME"/${KERNEL_OUT_DIR}
+            fi
+        fi
         if [ ! -d "$HOME/$KERNEL_DIR" ]; then
             printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
-            if [ "$ALWAYS_DELETE_AND_CLONE_KERNEL" = 1 ]; then
-                if [ -d "$HOME/$KERNEL_DIR" ]; then
-                    rm -rf "$HOME"/${KERNEL_DIR}
-                    rm -rf "$HOME"/${KERNEL_OUT_DIR}
-                fi
-            fi
             if [ "$RECURSIVE_KERNEL_CLONE" = 0 ]; then
                 git clone --branch ${KERNEL_BRANCH} --depth ${kernel_clone_depth} ${KERNEL_REPO} "$HOME"/${KERNEL_DIR}
             else
