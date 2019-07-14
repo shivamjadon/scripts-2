@@ -12,49 +12,65 @@
  *
 notice
 
-# Variables that have to be defined by the user
+#################################################
+# Variables that have to be defined by the user #
+#################################################
 function variables() {
-    # Essential variables
+    #######################
+    # Essential variables #
+    #######################
     # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-).
-    # NOTE: Leave REPO/BRANCH variables empty if you have them locally and not on Github or any similar host service. You can as well define and forget them, they will activate in case any source/tool is missing!
-    TOOLCHAIN_REPO=
-    TOOLCHAIN_BRANCH=
+    AK_DIR_NAME=
     TOOLCHAIN_DIR_NAME=
     TOOLCHAIN_DIR_PREFIX=
-    TOOLCHAIN_NAME=
-    AK_REPO=
-    AK_BRANCH=
-    AK_DIR_NAME=
-    AK_NAME=
-    KERNEL_REPO=
-    KERNEL_BRANCH=
     KERNEL_DIR=
     KERNEL_OUT_DIR=
-    KERNEL_NAME=
     KERNEL_DEFCONFIG=
-    KERNEL_ANDROID_BASE_VER=
 
-    # Optional variables
-    KERNEL_BUILD_USER=
-    KERNEL_BUILD_HOST=
-    KERNEL_NAME_FOR_AK_ZIP=
+    ###############################
+    # File host service variables #
+    ###############################
+    # NOTE: You can leave them empty if you have the sources locally. You can still define and forget them, they will activate in case any source is missing!
+    AK_REPO=
+    AK_BRANCH=
+    TOOLCHAIN_REPO=
+    TOOLCHAIN_BRANCH=
+    KERNEL_REPO=
+    KERNEL_BRANCH=
 
-    # Clang toolchain variables
-    # NOTE: Do NOT touch any clang variables if you do NOT compile with Clang.
-    # NOTE: If you are compiling with Clang, I recommend to use AOSP's GCC 4.9 to avoid both script configuration and kernel problems.
+    #############################
+    # Clang toolchain variables #
+    #############################
+    # NOTE: Do NOT touch if you do NOT compile with Clang.
     CLANG_REPO=
     CLANG_BRANCH=
     CLANG_DIR_NAME=
-    CLANG_NAME=
 
-    # Predefined variables
+    ######################
+    # Optional variables #
+    ######################
+    # NOTE: You can define variable even if you do not have/use it, .e.g. clang name.
+    AK_NAME=
+    TOOLCHAIN_NAME=
+    CLANG_NAME=
+    KERNEL_NAME=
+    KERNEL_BUILD_USER=
+    KERNEL_BUILD_HOST=
+    KERNEL_NAME_FOR_AK_ZIP=
+    KERNEL_ANDROID_BASE_VER=
+
+    ########################
+    # Predefined variables #
+    ########################
     # NOTE: You **probably** do NOT have to touch those, even if you are compiling or not compiling with Clang.
     KERNEL_ARCH=arm64
     KERNEL_SUBARCH=arm64
     CLANG_BIN=clang
     CLANG_DIR_PREFIX=aarch64-linux-gnu-
 
-    # Script control variables
+    ############################
+    # Script control variables #
+    ############################
     # NOTE: 1 means enabled. Anything else means disabled.
     STATS=1
     USE_CCACHE=1
@@ -63,30 +79,8 @@ function variables() {
     ASK_FOR_AK_CLEANING=1 # If this is disabled, the script will NOT clean previous-compilation-created files in your AK folder.
     RECURSIVE_KERNEL_CLONE=0 # You need to enable this if your kernel has git submodules.
     STANDALONE_COMPILATION=0 # Standalone compilation = compilation without output folder. DO NOT enable with Clang!
-    ALWAYS_DELETE_AND_CLONE_KERNEL=0 # Recommended enabled if you use server to compile.
     ALWAYS_DELETE_AND_CLONE_AK=0 # Recommended enabled if you use server to compile.
-
-<<EXAMPLEandSYNTAX
-  TOOLCHAIN_REPO=https://github.com/mscalindt/aarch64-linux-android-4.9.git
-  TOOLCHAIN_BRANCH=master
-  TOOLCHAIN_DIR_NAME=aarch64-linux-android-4.9
-  TOOLCHAIN_DIR_PREFIX=aarch64-linux-android-
-  TOOLCHAIN_NAME=AOSP-GCC-4.9
-  KERNEL_DIR=android/mykernel
-  KERNEL_OUT_DIR=android/mykernelout
-  KERNEL_NAME=MyKernel
-  KERNEL_ARCH=arm64
-  KERNEL_SUBARCH=arm64
-  KERNEL_ANDROID_BASE_VER=PIE
-  KERNEL_NAME_FOR_AK_ZIP=Example.Kernel
-  KERNEL_BUILD_USER=myusername
-  KERNEL_BUILD_HOST=MyLinuxDistribution
-  CLANG_DIR_NAME=clang-4691093
-  CLANG_NAME=Clang-6.0
-  USE_CCACHE=0
-  or
-  USE_CCACHE=hahanopls
-EXAMPLEandSYNTAX
+    ALWAYS_DELETE_AND_CLONE_KERNEL=0 # Recommended enabled if you use server to compile.
 }
 
 function addvars() {
@@ -103,22 +97,29 @@ function addvars() {
     toolchain_clone_depth=1
     kernel_clone_depth=10
     current_date=$(date +'%Y%m%d')
-    clb1=$HOME/${KERNEL_OUT_DIR}
-    clb2=$HOME/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
-    image1=$HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb
-    image2=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
-    zImage1=$HOME/${AK_DIR_NAME}/zImage
+    idkme=$(whoami)
+    idkmy=$(uname -n)
+    ocd=$HOME/${KERNEL_OUT_DIR}
+    scd=$HOME/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
+    oci=$HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb
+    sci=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+    cir=$HOME/${AK_DIR_NAME}/zImage
 }
 
+# OOF, this firstly simple function is now complex AF, LOL...
 function cloning() {
     if [ -n "$AK_REPO" ] && [ -n "$AK_BRANCH" ]; then
-        if [ "ALWAYS_DELETE_AND_CLONE_AK" = 1 ]; then
+        if [ "$ALWAYS_DELETE_AND_CLONE_AK" = 1 ]; then
             if [ -d "$HOME/$AK_DIR_NAME" ]; then
                 rm -rf "$HOME"/${AK_DIR_NAME}
             fi
         fi
         if [ ! -d "$HOME/$AK_DIR_NAME" ]; then
-            printf "\n>>> ${white}Cloning ${cyan}${AK_NAME}${darkwhite}...\n"
+            if [ -n "$AK_NAME" ]; then
+                printf "\n>>> ${white}Cloning ${cyan}${AK_NAME}${darkwhite}...\n"
+            elif [ -z "$AK_NAME" ]; then
+                printf "\n>>> ${white}Cloning AnyKernel${darkwhite}...\n"
+            fi
             git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "$HOME"/${AK_DIR_NAME}
         fi
     fi
@@ -126,17 +127,33 @@ function cloning() {
     if [ -n "$TOOLCHAIN_REPO" ] && [ -n "$TOOLCHAIN_BRANCH" ]; then
         if [ -n "$CLANG_TC_REPO" ] && [ -n "$CLANG_TC_BRANCH" ]; then
             if [ ! -d "$HOME/$TOOLCHAIN_DIR_NAME" ] && [ ! -d "$HOME/$CLANG_DIR_NAME" ]; then
-                printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite} ${white}+ ${cyan}${CLANG_NAME}${darkwhite}...\n"
+                if [ -n "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
+                    printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME} ${white}+ ${cyan}${CLANG_NAME}${darkwhite}...\n"
+                elif [ -n "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
+                    printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME} ${white}+ Clang${darkwhite}...\n"
+                elif [ -z "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
+                    printf "\n>>> ${white}Cloning toolchain + ${cyan}${CLANG_NAME}${darkwhite}...\n"
+                elif [ -z "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
+                    printf "\n>>> ${white}Cloning the toolchains${darkwhite}...\n"
+                fi
                 git clone --branch ${TOOLCHAIN_BRANCH} --depth ${toolchain_clone_depth} ${TOOLCHAIN_REPO} "$HOME"/${TOOLCHAIN_DIR_NAME}
                 git clone --branch ${CLANG_BRANCH} --depth ${toolchain_clone_depth} ${CLANG_REPO} "$HOME"/${CLANG_DIR_NAME}
                 sleep ${sleep_value_after_clone}
             elif [ ! -d "$HOME/$CLANG_DIR_NAME" ]; then
-                printf "\n>>> ${white}Cloning ${cyan}${CLANG_NAME}${darkwhite}...\n"
+                if [ -n "$CLANG_NAME" ]; then
+                    printf "\n>>> ${white}Cloning ${cyan}${CLANG_NAME}${darkwhite}...\n"
+                elif [ -z "$CLANG_NAME" ]; then
+                    printf "\n>>> ${white}Cloning Clang${darkwhite}...\n"
+                fi
                 git clone --branch ${CLANG_BRANCH} --depth ${toolchain_clone_depth} ${CLANG_REPO} "$HOME"/${CLANG_DIR_NAME}
                 sleep ${sleep_value_after_clone}
             fi
         elif [ ! -d "$HOME/$TOOLCHAIN_DIR_NAME" ]; then
-            printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite}...\n"
+            if [ -n "$TOOLCHAIN_NAME" ]; then
+                printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite}...\n"
+            elif [ -z "$TOOLCHAIN_NAME" ]; then
+                printf "\n>>> ${white}Cloning the toolchain${darkwhite}...\n"
+            fi
             git clone --branch ${TOOLCHAIN_BRANCH} --depth ${toolchain_clone_depth} ${TOOLCHAIN_REPO} "$HOME"/${TOOLCHAIN_DIR_NAME}
             sleep ${sleep_value_after_clone}
         fi
@@ -150,7 +167,11 @@ function cloning() {
             fi
         fi
         if [ ! -d "$HOME/$KERNEL_DIR" ]; then
-            printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
+            if [ -n "$KERNEL_NAME" ]; then
+                printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
+            elif [ -z "$KERNEL_NAME" ]; then
+                printf "\n>>> ${white}Cloning the kernel${darkwhite}...\n"
+            fi
             if [ "$RECURSIVE_KERNEL_CLONE" = 0 ]; then
                 git clone --branch ${KERNEL_BRANCH} --depth ${kernel_clone_depth} ${KERNEL_REPO} "$HOME"/${KERNEL_DIR}
             else
@@ -164,7 +185,7 @@ function cloning() {
 function choices() {
     if [ "$ALWAYS_DELETE_AND_CLONE_KERNEL" = 0 ]; then
         if [ "$ASK_FOR_CLEAN_BUILD" = 1 ]; then
-            if [ -d "$clb1" ]; then
+            if [ -d "$ocd" ]; then
                 printf "\n${white}Clean from previous out build?${darkwhite}\n"
                 select yn1 in "Yes" "No"; do
                     case $yn1 in
@@ -174,7 +195,7 @@ function choices() {
                         No ) break;;
                     esac
                 done
-            elif [ -f "$clb2" ]; then
+            elif [ -f "$scd" ]; then
                 printf "\n${white}Clean from previous standalone build?${darkwhite}\n"
                 select yn1 in "Yes" "No"; do
                     case $yn1 in
@@ -191,7 +212,7 @@ function choices() {
     fi
 
     if [ "$ASK_FOR_AK_CLEANING" = 1 ]; then
-        if [ -f "$zImage1" ]; then
+        if [ -f "$cir" ]; then
             printf "\n${white}Clean ${AK_DIR_NAME} folder?${darkwhite}\n"
             select yn2 in "Yes" "No"; do
                 case $yn2 in
@@ -230,12 +251,12 @@ function compilation() {
         if [ -n "$KERNEL_BUILD_USER" ]; then
             export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
         else
-            export KBUILD_BUILD_USER=$(whoami)
+            export KBUILD_BUILD_USER=${idkme}
         fi
         if [ -n "$KERNEL_BUILD_HOST" ]; then
             export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
         else
-            export KBUILD_BUILD_HOST=$(uname -n)
+            export KBUILD_BUILD_HOST=${idkmy}
         fi
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${KERNEL_SUBARCH}
@@ -267,12 +288,12 @@ function compilation() {
         if [ -n "$KERNEL_BUILD_USER" ]; then
             export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
         else
-            export KBUILD_BUILD_USER=$(whoami)
+            export KBUILD_BUILD_USER=${idkme}
         fi
         if [ -n "$KERNEL_BUILD_HOST" ]; then
             export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
         else
-            export KBUILD_BUILD_HOST=$(uname -n)
+            export KBUILD_BUILD_HOST=${idkmy}
         fi
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${KERNEL_SUBARCH}
@@ -309,7 +330,7 @@ function compilation() {
 
 function compilationrep() {
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-        if [ -f "$image1" ]; then
+        if [ -f "$oci" ]; then
             printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
         else
             printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
@@ -317,7 +338,7 @@ function compilationrep() {
             exit 1
         fi
     elif [ "$sde" = 1 ]; then
-        if [ -f "$image2" ]; then
+        if [ -f "$sci" ]; then
             printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
         else
             printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
@@ -335,7 +356,7 @@ function zipbuilder() {
     elif [ -n "$KERNEL_NAME" ] && [ -n "$KERNEL_ANDROID_BASE_VER" ]; then
         file_name="${KERNEL_NAME}-v${kernel_ver}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
     else
-        file_name="$(whoami)'s.Kernel-v${kernel_ver}-${current_date}.zip"
+        file_name="${idkme}.Kernel-v${kernel_ver}-${current_date}.zip"
     fi
 
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
@@ -357,13 +378,13 @@ function stats() {
     if [ -n "$KERNEL_BUILD_USER" ]; then
         printf " ${white}> User: ${KERNEL_BUILD_USER}\n"
     else
-        printf " ${white}> User: $(whoami)\n"
+        printf " ${white}> User: ${idkme}\n"
     fi
 
     if [ -n "$KERNEL_BUILD_HOST" ]; then
         printf " ${white}> Host: ${KERNEL_BUILD_HOST}\n"
     else
-        printf " ${white}> Host: $(uname -n)\n"
+        printf " ${white}> Host: ${idkmy}\n"
     fi
 
     printf " ${white}> File location: $HOME/${AK_DIR_NAME}/${file_name}\n"
