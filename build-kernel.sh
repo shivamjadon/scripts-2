@@ -181,7 +181,7 @@ function choices() {
                 select yn1 in "Yes" "No"; do
                     case $yn1 in
                         Yes )
-                            rm -rf "$HOME"/${KERNEL_OUT_DIR}
+                            rm -rf "${ocd}"
                             break;;
                         No ) break;;
                     esac
@@ -208,6 +208,7 @@ function choices() {
             select yn2 in "Yes" "No"; do
                 case $yn2 in
                     Yes )
+                        rm -fv "${cir}"
                         if [ -n "$CUSTOM_AK_ZIP_NAME" ]; then
                             find "$HOME"/${AK_DIR_NAME} -name "$CUSTOM_AK_ZIP_NAME" -type f -exec rm -fv {} \;
                         elif [ -n "$KERNEL_NAME" ]; then
@@ -215,10 +216,9 @@ function choices() {
                         else
                             find "$HOME"/${AK_DIR_NAME} -name "*$idkme*" -type f -exec rm -fv {} \;
                         fi
-                        find "$HOME"/${AK_DIR_NAME} -name "zImage" -type f -exec rm -fv {} \;
                         if [ "$WLAN_KO_PACKER" = 1 ]; then
                             if [ -f "$wlan_ko_destination_dir/wlan.ko" ]; then
-                                find "$HOME"/${AK_DIR_NAME} -name "wlan.ko" -type f -exec rm -fv {} \;
+                                rm -fv "${wlan_ko_destination_dir}/wlan.ko"
                             fi
                         fi
                         break;;
@@ -231,18 +231,16 @@ function choices() {
     if [ -n "$CLANG_DIR_NAME" ]; then
         clg=1
         printf "\n${white}${CLANG_NAME} detected, starting compilation.${darkwhite}\n"
-        echo
     elif [ "$STANDALONE_COMPILATION" = 0 ]; then
         if [ -z "$CLANG_DIR_NAME" ]; then
             out=1
             printf "\n${white}Starting output folder compilation.${darkwhite}\n"
-            echo
         fi
     elif [ "$STANDALONE_COMPILATION" = 1 ]; then
         sde=1
         printf "\n${white}Starting standalone compilation.${darkwhite}\n"
-        echo
     fi
+    echo
 }
 
 function compilation() {
@@ -325,7 +323,7 @@ function compilation() {
         fi
         make ${KERNEL_DEFCONFIG}
 
-        CROSS_COMPILE=$CROSS_COMPILE make -j"$(nproc --all)"
+        CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
     fi
     end1=$SECONDS
 }
@@ -352,57 +350,35 @@ function compilation_report() {
 
 function zip_builder() {
     kernel_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
-    auto_detection_of_wlan_ko=1
 
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
         cp "$HOME"/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
-        if [ "$WLAN_KO_PACKER" = 1 ]; then 
-            printf "${green}Image.gz-dtb copied.${darkwhite}\n"
-        else
-            printf "${green}Image.gz-dtb copied.${darkwhite}\n\n"
-        fi
     elif [ "$sde" = 1 ]; then
         cp "$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
-        if [ "$WLAN_KO_PACKER" = 1 ]; then 
-            printf "${green}Image.gz-dtb copied.${darkwhite}\n"
-        else
-            printf "${green}Image.gz-dtb copied.${darkwhite}\n\n"
-        fi
+    fi
+    if [ "$WLAN_KO_PACKER" = 1 ]; then 
+        printf "${green}Image.gz-dtb copied.${darkwhite}\n"
+    else
+        printf "${green}Image.gz-dtb copied.${darkwhite}\n\n"
     fi
 
     if [ "$WLAN_KO_PACKER" = 1 ]; then
         if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-            if [ "$auto_detection_of_wlan_ko" = 1 ]; then
-                cd "$(find "$HOME"/${KERNEL_OUT_DIR} -type d -name "CORE")"
-                cd ..
-                if [ -f "wlan.ko" ]; then
-                    if [ -d "$wlan_ko_destination_dir" ]; then
-                        cp wlan.ko "${wlan_ko_destination_dir}"
-                        printf "${green}wlan.ko copied.${darkwhite}\n\n"
-                    else
-                        cp wlan.ko "$HOME"/${AK_DIR_NAME}
-                        printf "${red}The destination folder for wlan.ko doesn't exist. ${green}The file is copied to root of ${AK_DIR_NAME} instead!"
-                    fi
-                else
-                    printf "${red}wlan.ko could not be detected. ${white}Continuing without it...${darkwhite}\n\n"
-                fi
-            fi
+            cd "$(find "$HOME"/${KERNEL_OUT_DIR} -type d -name "CORE")"
         elif [ "$sde" = 1 ]; then
-            if [ "$auto_detection_of_wlan_ko" = 1 ]; then
-                cd "$(find "$HOME"/${KERNEL_DIR} -type d -name "CORE")"
-                cd ..
-                if [ -f "wlan.ko" ]; then
-                    if [ -d "$wlan_ko_destination_dir" ]; then
-                        cp wlan.ko "${wlan_ko_destination_dir}"
-                        printf "${green}wlan.ko copied.${darkwhite}\n\n"
-                    else
-                        cp wlan.ko "$HOME"/${AK_DIR_NAME}
-                        printf "${red}The destination folder for wlan.ko doesn't exist. ${green}The file is copied to root of ${AK_DIR_NAME} instead!"
-                    fi
-                else
-                    printf "${red}wlan.ko could not be detected. ${white}Continuing without it...${darkwhite}\n\n"
-                fi
+            cd "$(find "$HOME"/${KERNEL_DIR} -type d -name "CORE")"
+        fi
+        cd ..
+        if [ -f "wlan.ko" ]; then
+            if [ -d "$wlan_ko_destination_dir" ]; then
+                cp wlan.ko "${wlan_ko_destination_dir}"
+                printf "${green}wlan.ko copied.${darkwhite}\n\n"
+            else
+                cp wlan.ko "$HOME"/${AK_DIR_NAME}
+                printf "${red}The destination folder for wlan.ko doesn't exist. ${green}The file is copied to root of ${AK_DIR_NAME} instead!"
             fi
+        else
+            printf "${red}wlan.ko could not be detected. ${white}Continuing without it...${darkwhite}\n\n"
         fi
     fi
 
