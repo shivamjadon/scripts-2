@@ -12,10 +12,11 @@
  *
 notice
 
-# Variables that have to be defined by the user
+# NOTE: 1 means enabled. Anything else means disabled.
+# NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-), and NEVER end variables with slash (/).
+# NOTE: You can leave REPO/BRANCH variables empty. You can still define and forget them, they will activate in case any source is missing!
 function variables() {
     # Essential variables
-    # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-), and NEVER end variables with slash (/).
     AK_DIR_NAME=
     TOOLCHAIN_DIR_NAME=
     TOOLCHAIN_DIR_PREFIX=
@@ -24,7 +25,6 @@ function variables() {
     KERNEL_DEFCONFIG=
 
     # File host service variables
-    # NOTE: You can leave them empty if you have the sources locally. You can still define and forget them, they will activate in case any source is missing!
     AK_REPO=
     AK_BRANCH=
     TOOLCHAIN_REPO=
@@ -46,8 +46,10 @@ function variables() {
     KERNEL_NAME=
     KERNEL_BUILD_USER=
     KERNEL_BUILD_HOST=
-    KERNEL_ANDROID_BASE_VER=
-    CUSTOM_AK_ZIP_NAME=
+    # AnyKernel:
+    KERNEL_VERSION_IN_ZIP_NAME=1
+    KERNEL_ANDROID_BASE_VERSION=
+    CUSTOM_ZIP_NAME=
 
     # Predefined variables
     # NOTE: You **probably** do NOT have to touch those, even if you are compiling or not compiling with Clang.
@@ -58,20 +60,16 @@ function variables() {
     CCACHE_LOCATION=/usr/bin/ccache
 
     # Script control variables
-    # NOTE: 1 means enabled. Anything else means disabled.
     STATS=1
     USE_CCACHE=1
     ZIP_BUILDER=1
+    WLAN_KO_PACKER=0 # Automatically detects wlan.ko file and copies it to the root of your AK folder. Destination can be changed in function "additional_variables".
     ASK_FOR_CLEAN_BUILD=1 # If this is disabled, the script will NOT clean from previous compilation at all.
     ASK_FOR_AK_CLEANING=1 # If this is disabled, the script will NOT clean the kernel image, zip, and miscellaneous files in your AK folder.
     RECURSIVE_KERNEL_CLONE=0 # You need to enable this if your kernel has git submodules.
     STANDALONE_COMPILATION=0 # Standalone compilation = compilation without output folder. Do NOT enable with Clang!
     ALWAYS_DELETE_AND_CLONE_AK=0 # Recommended enabled if you use server to compile (you will not have to clean AnyKernel folder and/or miss new commits).
     ALWAYS_DELETE_AND_CLONE_KERNEL=0 # Recommended enabled if you use server to compile (you will not have to clean the kernel and/or miss new commits).
-    
-    # Experimental script control variables
-    # NOTE: May not work as intended! Enable on your own risk.
-    WLAN_KO_PACKER=0 # Automatically detects wlan.ko file and copies it to the root of your AK folder. Destination can be changed in function "additional_variables".
 }
 
 function additional_variables() {
@@ -209,8 +207,8 @@ function choices() {
                 case $yn2 in
                     Yes )
                         rm -fv "${cir}"
-                        if [ -n "$CUSTOM_AK_ZIP_NAME" ]; then
-                            find "$HOME"/${AK_DIR_NAME} -name "$CUSTOM_AK_ZIP_NAME" -type f -exec rm -fv {} \;
+                        if [ -n "$CUSTOM_ZIP_NAME" ]; then
+                            find "$HOME"/${AK_DIR_NAME} -name "$CUSTOM_ZIP_NAME" -type f -exec rm -fv {} \;
                         elif [ -n "$KERNEL_NAME" ]; then
                         	find "$HOME"/${AK_DIR_NAME} -name "*$KERNEL_NAME*" -type f -exec rm -fv {} \;
                         else
@@ -219,6 +217,8 @@ function choices() {
                         if [ "$WLAN_KO_PACKER" = 1 ]; then
                             if [ -f "$wlan_ko_destination_dir/wlan.ko" ]; then
                                 rm -fv "${wlan_ko_destination_dir}/wlan.ko"
+                            elif [ -f "$HOME/${AK_DIR_NAME}/wlan.ko" ]; then
+                                rm -fv "$HOME/${AK_DIR_NAME}/wlan.ko"
                             fi
                         fi
                         break;;
@@ -364,35 +364,79 @@ function zip_builder() {
 
     if [ "$WLAN_KO_PACKER" = 1 ]; then
         if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-            cd "$(find "$HOME"/${KERNEL_OUT_DIR} -type d -name "CORE")"
+            cd "$(find "$HOME"/${KERNEL_OUT_DIR} -type d -name "HDD")"
+            cd ../..
+            if [ -f "wlan.ko" ]; then
+                wlan_ko_found1=1
+            else
+                wlan_ko_found1=0
+            fi
         elif [ "$sde" = 1 ]; then
-            cd "$(find "$HOME"/${KERNEL_DIR} -type d -name "CORE")"
+            cd "$(find "$HOME"/${KERNEL_DIR} -type d -name "HDD")"
+            cd ../..
+            if [ -f "wlan.ko" ]; then
+                wlan_ko_found1=1
+            else
+                wlan_ko_found1=0
+            fi
         fi
-        cd ..
-        if [ -f "wlan.ko" ]; then
+
+        if [ "$wlan_ko_found1" = 0 ]; then
+            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
+                cd "$(find "$HOME"/${KERNEL_OUT_DIR} -type d -name "hdd")"
+                cd ../..
+                if [ -f "wlan.ko" ]; then
+                    wlan_ko_found2=1
+                else
+                    wlan_ko_found2=0
+                fi
+            elif [ "$sde" = 1 ]; then
+                cd "$(find "$HOME"/${KERNEL_DIR} -type d -name "hdd")"
+                cd ../..
+                if [ -f "wlan.ko" ]; then
+                    wlan_ko_found2=1
+                else
+                    wlan_ko_found2=0
+                fi
+            fi
+        fi
+
+        if [ "$wlan_ko_found1" = 1 ] || [ "$wlan_ko_found2" = 1 ]; then
             if [ -d "$wlan_ko_destination_dir" ]; then
                 cp wlan.ko "${wlan_ko_destination_dir}"
                 printf "${green}wlan.ko copied.${darkwhite}\n\n"
             else
                 cp wlan.ko "$HOME"/${AK_DIR_NAME}
-                printf "${red}The destination folder for wlan.ko doesn't exist. ${green}The file is copied to root of ${AK_DIR_NAME} instead!"
+                printf "${red}The destination folder for wlan.ko does not exist. ${green}The file is copied to root of ${AK_DIR_NAME} instead!"
             fi
         else
             printf "${red}wlan.ko could not be detected. ${white}Continuing without it...${darkwhite}\n\n"
         fi
     fi
 
-    if [ -n "$CUSTOM_AK_ZIP_NAME" ]; then
-        file_name="${CUSTOM_AK_ZIP_NAME}.zip"
+    if [ -n "$CUSTOM_ZIP_NAME" ]; then
+        file_name="${CUSTOM_ZIP_NAME}.zip"
     elif [ -n "$KERNEL_NAME" ] && [ -n "$KERNEL_ANDROID_BASE_VER" ]; then
-        file_name="${KERNEL_NAME}-v${kernel_version}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
+        if [ "$KERNEL_VERSION_IN_ZIP_NAME" = 1 ]; then
+            file_name="${KERNEL_NAME}-${kernel_version}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
+        else
+            file_name="${KERNEL_NAME}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
+        fi
     elif [ -n "$KERNEL_NAME" ]; then
-        file_name="${KERNEL_NAME}-v${kernel_version}-${current_date}.zip"
+        if [ "$KERNEL_VERSION_IN_ZIP_NAME" = 1 ]; then
+            file_name="${KERNEL_NAME}-${kernel_version}-${current_date}.zip"
+        else
+            file_name="${KERNEL_NAME}-${current_date}.zip"
+        fi
     else
-        file_name="${idkme}.Kernel-v${kernel_version}-${current_date}.zip"
+        file_name="${idkme}.Kernel-${current_date}.zip"
     fi
 
-    printf "${white}> Packing ${cyan}${KERNEL_NAME} ${kernel_version} ${white}kernel...${darkwhite}\n\n"
+    if [ "$KERNEL_VERSION_IN_ZIP_NAME" = 1 ]; then
+        printf "${white}> Packing ${cyan}${KERNEL_NAME} ${kernel_version} ${white}kernel...${darkwhite}\n\n"
+    else
+        printf "${white}> Packing ${cyan}${KERNEL_NAME} ${white}kernel...${darkwhite}\n\n"
+    fi
     pushd "$HOME"/${AK_DIR_NAME}
         zip -r9 "${file_name}" * -x .git README.md
     popd
