@@ -21,7 +21,7 @@ function variables() {
     TOOLCHAIN_DIR_NAME=
     TOOLCHAIN_DIR_PREFIX=
     KERNEL_DIR=
-    KERNEL_OUT_DIR=
+    KERNEL_OUTPUT_DIR=
     KERNEL_DEFCONFIG=
 
     # File host service variables
@@ -39,7 +39,7 @@ function variables() {
     CLANG_DIR_NAME=
 
     # Optional variables
-    # NOTE: You can define variable even if you do not have/use it, .e.g. clang name.
+    # NOTE: You can define variable even if you do not use it, e.g. clang name.
     AK_NAME=
     TOOLCHAIN_NAME=
     CLANG_NAME=
@@ -67,7 +67,7 @@ function variables() {
     ASK_FOR_CLEAN_BUILD=1 # If this is disabled, the script will NOT clean from previous compilation at all.
     ASK_FOR_AK_CLEANING=1 # If this is disabled, the script will NOT clean the kernel image, zip, and miscellaneous files in your AK folder.
     RECURSIVE_KERNEL_CLONE=0 # You need to enable this if your kernel has git submodules.
-    STANDALONE_COMPILATION=0 # Standalone compilation = compilation without output folder. Do NOT enable with Clang!
+    STANDALONE_COMPILATION=0 # Standalone compilation = compilation without output folder, i.e. compilation happens in the source folder. Do NOT enable with Clang!
     ALWAYS_DELETE_AND_CLONE_AK=0 # Recommended enabled if you use server to compile (you will not have to clean AnyKernel folder and/or miss new commits).
     ALWAYS_DELETE_AND_CLONE_KERNEL=0 # Recommended enabled if you use server to compile (you will not have to clean the kernel and/or miss new commits).
 }
@@ -88,9 +88,9 @@ function additional_variables() {
     current_date=$(date +'%Y%m%d')
     idkme=$(whoami)
     idkmy=$(uname -n)
-    ocd=$HOME/${KERNEL_OUT_DIR}
+    ocd=$HOME/${KERNEL_OUTPUT_DIR}
     scd=$HOME/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
-    oci=$HOME/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb
+    oci=$HOME/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
     sci=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
     cir=$HOME/${AK_DIR_NAME}/zImage
     wlan_ko_destination_dir="$HOME"/${AK_DIR_NAME}
@@ -152,7 +152,7 @@ function cloning() {
         if [ "$ALWAYS_DELETE_AND_CLONE_KERNEL" = 1 ]; then
             if [ -d "$HOME/$KERNEL_DIR" ]; then
                 rm -rf "$HOME"/${KERNEL_DIR}
-                rm -rf "$HOME"/${KERNEL_OUT_DIR}
+                rm -rf "$HOME"/${KERNEL_OUTPUT_DIR}
             fi
         fi
         if [ ! -d "$HOME/$KERNEL_DIR" ]; then
@@ -230,7 +230,11 @@ function choices() {
 
     if [ -n "$CLANG_DIR_NAME" ]; then
         clg=1
-        printf "\n${white}${CLANG_NAME} detected, starting compilation.${darkwhite}\n"
+        if [ -n "$CLANG_NAME" ]; then
+            printf "\n${white}${CLANG_NAME} detected, starting compilation.${darkwhite}\n"
+        else
+            printf "\n${white}Clang detected, starting compilation.${darkwhite}\n"
+        fi
     elif [ "$STANDALONE_COMPILATION" = 0 ]; then
         if [ -z "$CLANG_DIR_NAME" ]; then
             out=1
@@ -261,13 +265,13 @@ function compilation() {
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${KERNEL_SUBARCH}
 
-        make O="$HOME"/${KERNEL_OUT_DIR} \
+        make O="$HOME"/${KERNEL_OUTPUT_DIR} \
             ARCH=${KERNEL_ARCH} \
             ${KERNEL_DEFCONFIG}
 
         if [ "$USE_CCACHE" = 1 ]; then
             cs="${CCACHE_LOCATION} $HOME/${CLANG_DIR_NAME}/bin:$HOME/${TOOLCHAIN_DIR_NAME}/bin:${cs}" \
-            make O="$HOME"/${KERNEL_OUT_DIR} \
+            make O="$HOME"/${KERNEL_OUTPUT_DIR} \
             ARCH=${KERNEL_ARCH} \
             CC="$HOME"/${CLANG_DIR_NAME}/bin/${CLANG_BIN} \
             CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
@@ -275,7 +279,7 @@ function compilation() {
             -j"$(nproc --all)"
         else
             cs="$HOME/${CLANG_DIR_NAME}/bin:$HOME/${TOOLCHAIN_DIR_NAME}/bin:${cs}" \
-            make O="$HOME"/${KERNEL_OUT_DIR} \
+            make O="$HOME"/${KERNEL_OUTPUT_DIR} \
             ARCH=${KERNEL_ARCH} \
             CC="$HOME"/${CLANG_DIR_NAME}/bin/${CLANG_BIN} \
             CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
@@ -303,11 +307,11 @@ function compilation() {
             export CROSS_COMPILE="$HOME/${TOOLCHAIN_DIR_NAME}/bin/${TOOLCHAIN_DIR_PREFIX}"
         fi
 
-        make O="$HOME"/${KERNEL_OUT_DIR} \
+        make O="$HOME"/${KERNEL_OUTPUT_DIR} \
             ARCH=${KERNEL_ARCH} \
             ${KERNEL_DEFCONFIG}
 
-        make O="$HOME"/${KERNEL_OUT_DIR} \
+        make O="$HOME"/${KERNEL_OUTPUT_DIR} \
             ARCH=${KERNEL_ARCH} \
             -j"$(nproc --all)"
     elif [ "$sde" = 1 ]; then
@@ -352,7 +356,7 @@ function zip_builder() {
     kernel_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
 
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-        cp "$HOME"/${KERNEL_OUT_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
+        cp "$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
     elif [ "$sde" = 1 ]; then
         cp "$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
     fi
@@ -364,7 +368,7 @@ function zip_builder() {
 
     if [ "$WLAN_KO_PACKER" = 1 ]; then
         if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-            cd "$(find "$HOME"/${KERNEL_OUT_DIR} -type d -name "HDD")"
+            cd "$(find "$HOME"/${KERNEL_OUTPUT_DIR} -type d -name "HDD")"
             cd ../..
             if [ -f "wlan.ko" ]; then
                 wlan_ko_found1=1
@@ -383,7 +387,7 @@ function zip_builder() {
 
         if [ "$wlan_ko_found1" = 0 ]; then
             if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                cd "$(find "$HOME"/${KERNEL_OUT_DIR} -type d -name "hdd")"
+                cd "$(find "$HOME"/${KERNEL_OUTPUT_DIR} -type d -name "hdd")"
                 cd ../..
                 if [ -f "wlan.ko" ]; then
                     wlan_ko_found2=1
