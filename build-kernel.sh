@@ -3,7 +3,7 @@
 <<notice
  *
  * Script information:
- * Noob friendly kernel building script.
+ * Universal script for Android kernel building.
  * Indentation space is 4 and is space characters.
  *
  * SPDX-License-Identifier: GPL-3.0
@@ -12,88 +12,131 @@
  *
 notice
 
-# NOTE: 1 means enabled. Anything else means disabled.
-# NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-), and NEVER end variables with slash (/).
-# NOTE: You can leave REPO/BRANCH variables empty. You can still define and forget them, they will activate in case any source is missing!
-function variables() {
-    # Essential variables
-    AK_DIR_NAME=
-    TOOLCHAIN_DIR_NAME=
-    TOOLCHAIN_DIR_PREFIX=
-    KERNEL_DIR=
-    KERNEL_OUTPUT_DIR=
-    KERNEL_DEFCONFIG=
+function info() {
+    # NOTE: Read all the text in the current function, or save yourself 1 hour by trial and error.
+    # NOTE: You only have to configure the function "variables" and its nested functions.
+    # NOTE: 1 means enabled. Anything else means disabled.
+    # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-), and NEVER end variables with slash (/).
+    # NOTE: You can leave REPO/BRANCH variables empty. If defined, they activate only if any source is missing!
+    # WARNING: Configuring this script incorrectly might result in unexpected behaviour.
 
-    # File host service variables
-    AK_REPO=
-    AK_BRANCH=
-    TOOLCHAIN_REPO=
-    TOOLCHAIN_BRANCH=
-    KERNEL_REPO=
-    KERNEL_BRANCH=
+    Functions:
+    # essential - all required.
+    # remote - required if sources not present locally.
+    # clang - required if toolchain is clang.
+    # optional - not required but might be preferred.
+    # predefined - most of the times modifications are not required.
+    # script - control how the script behaves and what it does.
+    # misc - have a look, but do not touch unless you want to break or fix something.
 
-    # Clang toolchain variables
-    # NOTE: Do NOT touch if you do NOT compile with Clang.
-    CLANG_REPO=
-    CLANG_BRANCH=
-    CLANG_DIR_NAME=
+    Variables:
+    # KERNEL_BUILD_USER - your nickname.
+    # KERNEL_BUILD_HOST - your Linux distribution's abbreviation.
+    # CUSTOM_ZIP_NAME - what you write here will be used as the kernel's zip name.
+    # STATS - script-only stats (zip file location, compilation time, etc.).
+    # ZIP_BUILDER - makes flashable zip for the kernel.
+    # WLAN_KO_PACKER - automatically detects wlan.ko in your kernel dir and includes it in the zip.
+    # ASK_FOR_CLEAN_BUILD - if enabled, the script asks you "yes" or "no" for kernel cleaning.
+    # ASK_FOR_AK_CLEANING - if enabled, the script asks you "yes" or "no" for AK dir cleaning.
+    # RECURSIVE_KERNEL_CLONE - enable if your kernel has git (sub)modules.
+    # STANDALONE_COMPILATION - compilation without output to external dir. Not for usage with Clang.
+    # ALWAYS_DELETE_AND_CLONE_AK - on script start AK dir gets deleted everytime.
+    # ALWAYS_DELETE_AND_CLONE_KERNEL - on script start the kernel dir gets deleted everytime.
 
-    # Optional variables
-    # NOTE: You can define variable even if you do not use it, e.g. clang name.
-    AK_NAME=
-    TOOLCHAIN_NAME=
-    CLANG_NAME=
-    KERNEL_NAME=
-    KERNEL_BUILD_USER=
-    KERNEL_BUILD_HOST=
-    # AnyKernel:
-    KERNEL_VERSION_IN_ZIP_NAME=1
-    KERNEL_ANDROID_BASE_VERSION=
-    CUSTOM_ZIP_NAME=
-
-    # Predefined variables
-    # NOTE: You **probably** do NOT have to touch those, even if you are compiling or not compiling with Clang.
-    KERNEL_ARCH=arm64
-    KERNEL_SUBARCH=arm64
-    CLANG_BIN=clang
-    CLANG_DIR_PREFIX=aarch64-linux-gnu-
-    CCACHE_LOCATION=/usr/bin/ccache
-
-    # Script control variables
-    STATS=1
-    USE_CCACHE=1
-    ZIP_BUILDER=1
-    WLAN_KO_PACKER=0 # Automatically detects wlan.ko file and copies it to the root of your AK folder. Destination can be changed in function "additional_variables".
-    ASK_FOR_CLEAN_BUILD=1 # If this is disabled, the script will NOT clean from previous compilation at all.
-    ASK_FOR_AK_CLEANING=1 # If this is disabled, the script will NOT clean the kernel image, zip, and miscellaneous files in your AK folder.
-    RECURSIVE_KERNEL_CLONE=0 # You need to enable this if your kernel has git submodules.
-    STANDALONE_COMPILATION=0 # Standalone compilation = compilation without output folder, i.e. compilation happens in the source folder. Do NOT enable with Clang!
-    ALWAYS_DELETE_AND_CLONE_AK=0 # Recommended enabled if you use server to compile (you will not have to clean AnyKernel folder and/or miss new commits).
-    ALWAYS_DELETE_AND_CLONE_KERNEL=0 # Recommended enabled if you use server to compile (you will not have to clean the kernel and/or miss new commits).
+    Additional help or info:
+    # @mscalindt on Telegram and Twitter.
 }
 
-function additional_variables() {
-    clg=bad
-    out=and
-    sde=boujee
-    red='\033[1;31m'
-    green='\033[1;32m'
-    white='\033[1;37m'
-    cyan='\033[1;36m'
-    darkwhite='\033[0;37m'
-    sleep_value_after_clone=0.1
-    ak_clone_depth=1
-    toolchain_clone_depth=1
-    kernel_clone_depth=10
-    current_date=$(date +'%Y%m%d')
-    idkme=$(whoami)
-    idkmy=$(uname -n)
-    ocd=$HOME/${KERNEL_OUTPUT_DIR}
-    scd=$HOME/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
-    oci=$HOME/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
-    sci=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
-    cir=$HOME/${AK_DIR_NAME}/zImage
-    wlan_ko_destination_dir="$HOME"/${AK_DIR_NAME}
+function variables() {
+
+    function essential() {
+        AK_DIR_NAME=
+        TOOLCHAIN_DIR_NAME=
+        TOOLCHAIN_DIR_PREFIX=
+        KERNEL_DIR=
+        KERNEL_OUTPUT_DIR=
+        KERNEL_DEFCONFIG=
+    }
+
+    function remote() {
+        AK_REPO=
+        AK_BRANCH=
+        TOOLCHAIN_REPO=
+        TOOLCHAIN_BRANCH=
+        KERNEL_REPO=
+        KERNEL_BRANCH=
+    }
+
+    function clang() {
+        CLANG_REPO=
+        CLANG_BRANCH=
+        CLANG_DIR_NAME=
+    }
+
+    function optional() {
+        AK_NAME=
+        TOOLCHAIN_NAME=
+        CLANG_NAME=
+        KERNEL_NAME=
+        KERNEL_BUILD_USER=
+        KERNEL_BUILD_HOST=
+        KERNEL_VERSION_IN_ZIP_NAME=1
+        KERNEL_ANDROID_BASE_VERSION=
+        CUSTOM_ZIP_NAME=
+    }
+
+    function script() {
+        STATS=1
+        USE_CCACHE=1
+        ZIP_BUILDER=1
+        WLAN_KO_PACKER=0
+        ASK_FOR_CLEAN_BUILD=1
+        ASK_FOR_AK_CLEANING=1
+        RECURSIVE_KERNEL_CLONE=0
+        STANDALONE_COMPILATION=0
+        ALWAYS_DELETE_AND_CLONE_AK=0
+        ALWAYS_DELETE_AND_CLONE_KERNEL=0
+    }
+
+    function predefined() {
+        KERNEL_ARCH=arm64
+        KERNEL_SUBARCH=arm64
+        CLANG_BIN=clang
+        CLANG_DIR_PREFIX=aarch64-linux-gnu-
+        CCACHE_LOCATION=/usr/bin/ccache
+    }
+
+    function misc() {
+        red='\033[1;31m'
+        green='\033[1;32m'
+        white='\033[1;37m'
+        cyan='\033[1;36m'
+        darkwhite='\033[0;37m'
+        sleep_value=0.1
+        ak_clone_depth=1
+        toolchain_clone_depth=1
+        kernel_clone_depth=10
+        current_date=$(date +'%Y%m%d')
+        wlan_ko_destination_dir="$HOME"/${AK_DIR_NAME}
+        idkme=$(whoami)
+        idkmy=$(uname -n)
+        clg=bad
+        out=and
+        sde=boujee
+        ocd=$HOME/${KERNEL_OUTPUT_DIR}
+        scd=$HOME/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
+        oci=$HOME/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
+        sci=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+        cir=$HOME/${AK_DIR_NAME}/zImage
+    }
+
+essential
+remote
+clang
+optional
+script
+predefined
+misc
 }
 
 function cloning() {
@@ -106,7 +149,7 @@ function cloning() {
         if [ ! -d "$HOME/$AK_DIR_NAME" ]; then
             if [ -n "$AK_NAME" ]; then
                 printf "\n>>> ${white}Cloning ${cyan}${AK_NAME}${darkwhite}...\n"
-            elif [ -z "$AK_NAME" ]; then
+            else
                 printf "\n>>> ${white}Cloning AnyKernel${darkwhite}...\n"
             fi
             git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "$HOME"/${AK_DIR_NAME}
@@ -127,24 +170,24 @@ function cloning() {
                 fi
                 git clone --branch ${TOOLCHAIN_BRANCH} --depth ${toolchain_clone_depth} ${TOOLCHAIN_REPO} "$HOME"/${TOOLCHAIN_DIR_NAME}
                 git clone --branch ${CLANG_BRANCH} --depth ${toolchain_clone_depth} ${CLANG_REPO} "$HOME"/${CLANG_DIR_NAME}
-                sleep ${sleep_value_after_clone}
+                sleep ${sleep_value}
             elif [ ! -d "$HOME/$CLANG_DIR_NAME" ]; then
                 if [ -n "$CLANG_NAME" ]; then
                     printf "\n>>> ${white}Cloning ${cyan}${CLANG_NAME}${darkwhite}...\n"
-                elif [ -z "$CLANG_NAME" ]; then
+                else
                     printf "\n>>> ${white}Cloning Clang${darkwhite}...\n"
                 fi
                 git clone --branch ${CLANG_BRANCH} --depth ${toolchain_clone_depth} ${CLANG_REPO} "$HOME"/${CLANG_DIR_NAME}
-                sleep ${sleep_value_after_clone}
+                sleep ${sleep_value}
             fi
         elif [ ! -d "$HOME/$TOOLCHAIN_DIR_NAME" ]; then
             if [ -n "$TOOLCHAIN_NAME" ]; then
                 printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite}...\n"
-            elif [ -z "$TOOLCHAIN_NAME" ]; then
+            else
                 printf "\n>>> ${white}Cloning the toolchain${darkwhite}...\n"
             fi
             git clone --branch ${TOOLCHAIN_BRANCH} --depth ${toolchain_clone_depth} ${TOOLCHAIN_REPO} "$HOME"/${TOOLCHAIN_DIR_NAME}
-            sleep ${sleep_value_after_clone}
+            sleep ${sleep_value}
         fi
     fi
 
@@ -158,7 +201,7 @@ function cloning() {
         if [ ! -d "$HOME/$KERNEL_DIR" ]; then
             if [ -n "$KERNEL_NAME" ]; then
                 printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
-            elif [ -z "$KERNEL_NAME" ]; then
+            else
                 printf "\n>>> ${white}Cloning the kernel${darkwhite}...\n"
             fi
             if [ "$RECURSIVE_KERNEL_CLONE" = 0 ]; then
@@ -166,7 +209,7 @@ function cloning() {
             else
                 git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kernel_clone_depth} ${KERNEL_REPO} "$HOME"/${KERNEL_DIR}
             fi
-            sleep ${sleep_value_after_clone}
+            sleep ${sleep_value}
         fi
     fi
 }
@@ -236,11 +279,9 @@ function choices() {
             printf "\n${white}Clang detected, starting compilation.${darkwhite}\n"
         fi
     elif [ "$STANDALONE_COMPILATION" = 0 ]; then
-        if [ -z "$CLANG_DIR_NAME" ]; then
-            out=1
-            printf "\n${white}Starting output folder compilation.${darkwhite}\n"
-        fi
-    elif [ "$STANDALONE_COMPILATION" = 1 ]; then
+        out=1
+        printf "\n${white}Starting output folder compilation.${darkwhite}\n"
+    else
         sde=1
         printf "\n${white}Starting standalone compilation.${darkwhite}\n"
     fi
@@ -420,11 +461,11 @@ function zip_builder() {
 
     if [ -n "$CUSTOM_ZIP_NAME" ]; then
         file_name="${CUSTOM_ZIP_NAME}.zip"
-    elif [ -n "$KERNEL_NAME" ] && [ -n "$KERNEL_ANDROID_BASE_VER" ]; then
+    elif [ -n "$KERNEL_NAME" ] && [ -n "$KERNEL_ANDROID_BASE_VERSION" ]; then
         if [ "$KERNEL_VERSION_IN_ZIP_NAME" = 1 ]; then
-            file_name="${KERNEL_NAME}-${kernel_version}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
+            file_name="${KERNEL_NAME}-${kernel_version}-${KERNEL_ANDROID_BASE_VERSION}-${current_date}.zip"
         else
-            file_name="${KERNEL_NAME}-${KERNEL_ANDROID_BASE_VER}-${current_date}.zip"
+            file_name="${KERNEL_NAME}-${KERNEL_ANDROID_BASE_VERSION}-${current_date}.zip"
         fi
     elif [ -n "$KERNEL_NAME" ]; then
         if [ "$KERNEL_VERSION_IN_ZIP_NAME" = 1 ]; then
@@ -488,7 +529,6 @@ function stats() {
 }
 
 variables
-additional_variables
 cloning
 choices
 compilation
