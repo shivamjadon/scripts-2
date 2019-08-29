@@ -35,7 +35,7 @@ function info() {
     # CUSTOM_ZIP_NAME - what you write here will be used as the kernel's zip name.
     # STATS - script-only stats (zip file location, compilation time, etc.).
     # ZIP_BUILDER - makes flashable zip for the kernel.
-    # WLAN_KO_PACKER - automatically detects wlan.ko in your kernel dir and includes it in the zip.
+    # WLAN_KO_PACKER - automatically detects wlan.ko in your kernel dir and copies it to root of AK dir.
     # ASK_FOR_CLEAN_BUILD - if enabled, the script asks you "yes" or "no" for kernel cleaning.
     # ASK_FOR_AK_CLEANING - if enabled, the script asks you "yes" or "no" for AK dir cleaning.
     # RECURSIVE_KERNEL_CLONE - enable if your kernel has git (sub)modules.
@@ -50,8 +50,8 @@ function info() {
 function variables() {
 
     function essential() {
-        AK_DIR_NAME=
-        TOOLCHAIN_DIR_NAME=
+        AK_DIR=
+        TOOLCHAIN_DIR=
         TOOLCHAIN_DIR_PREFIX=
         KERNEL_DIR=
         KERNEL_OUTPUT_DIR=
@@ -70,7 +70,7 @@ function variables() {
     function clang() {
         CLANG_REPO=
         CLANG_BRANCH=
-        CLANG_DIR_NAME=
+        CLANG_DIR=
     }
 
     function optional() {
@@ -112,22 +112,26 @@ function variables() {
         white='\033[1;37m'
         cyan='\033[1;36m'
         darkwhite='\033[0;37m'
-        sleep_value=0.1
         ak_clone_depth=1
-        toolchain_clone_depth=1
-        kernel_clone_depth=10
+        tc_clone_depth=1
+        kl_clone_depth=10
         current_date=$(date +'%Y%m%d')
-        wlan_ko_destination_dir="$HOME"/${AK_DIR_NAME}
         idkme=$(whoami)
         idkmy=$(uname -n)
         clg=bad
         out=and
         sde=boujee
-        ocd=$HOME/${KERNEL_OUTPUT_DIR}
-        scd=$HOME/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
-        oci=$HOME/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
-        sci=$HOME/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
-        cir=$HOME/${AK_DIR_NAME}/zImage
+        ak_dir="$HOME"/${AK_DIR}
+        tc_dir="$HOME"/${TOOLCHAIN_DIR}
+        cg_dir="$HOME"/${CLANG_DIR}
+        kl_dir="$HOME"/${KERNEL_DIR}
+        out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
+        sde_file="$HOME"/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
+        sde_file_2="$HOME"/${KERNEL_DIR}/arch/arm64/kernel/built-in.o
+        ak_kl_img="$HOME"/${AK_DIR}/zImage
+        wl_file="$HOME"/${AK_DIR}/wlan.ko
+        out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
+        sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
     }
 
 essential
@@ -142,23 +146,23 @@ misc
 function cloning() {
     if [ -n "$AK_REPO" ] && [ -n "$AK_BRANCH" ]; then
         if [ "$ALWAYS_DELETE_AND_CLONE_AK" = 1 ]; then
-            if [ -d "$HOME/$AK_DIR_NAME" ]; then
-                rm -rf "$HOME"/${AK_DIR_NAME}
+            if [ -d "$ak_dir" ]; then
+                rm -rf "${ak_dir}"
             fi
         fi
-        if [ ! -d "$HOME/$AK_DIR_NAME" ]; then
+        if [ ! -d "$ak_dir" ]; then
             if [ -n "$AK_NAME" ]; then
                 printf "\n>>> ${white}Cloning ${cyan}${AK_NAME}${darkwhite}...\n"
             else
                 printf "\n>>> ${white}Cloning AnyKernel${darkwhite}...\n"
             fi
-            git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "$HOME"/${AK_DIR_NAME}
+            git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "${ak_dir}"
         fi
     fi
 
     if [ -n "$TOOLCHAIN_REPO" ] && [ -n "$TOOLCHAIN_BRANCH" ]; then
-        if [ -n "$CLANG_TC_REPO" ] && [ -n "$CLANG_TC_BRANCH" ]; then
-            if [ ! -d "$HOME/$TOOLCHAIN_DIR_NAME" ] && [ ! -d "$HOME/$CLANG_DIR_NAME" ]; then
+        if [ -n "$CLANG_REPO" ] && [ -n "$CLANG_BRANCH" ]; then
+            if [ ! -d "$tc_dir" ] && [ ! -d "$cg_dir" ]; then
                 if [ -n "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
                     printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME} ${white}+ ${cyan}${CLANG_NAME}${darkwhite}...\n"
                 elif [ -n "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
@@ -168,100 +172,92 @@ function cloning() {
                 elif [ -z "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
                     printf "\n>>> ${white}Cloning the toolchains${darkwhite}...\n"
                 fi
-                git clone --branch ${TOOLCHAIN_BRANCH} --depth ${toolchain_clone_depth} ${TOOLCHAIN_REPO} "$HOME"/${TOOLCHAIN_DIR_NAME}
-                git clone --branch ${CLANG_BRANCH} --depth ${toolchain_clone_depth} ${CLANG_REPO} "$HOME"/${CLANG_DIR_NAME}
-                sleep ${sleep_value}
-            elif [ ! -d "$HOME/$CLANG_DIR_NAME" ]; then
+                git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
+                git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
+            elif [ ! -d "$cg_dir" ]; then
                 if [ -n "$CLANG_NAME" ]; then
                     printf "\n>>> ${white}Cloning ${cyan}${CLANG_NAME}${darkwhite}...\n"
                 else
                     printf "\n>>> ${white}Cloning Clang${darkwhite}...\n"
                 fi
-                git clone --branch ${CLANG_BRANCH} --depth ${toolchain_clone_depth} ${CLANG_REPO} "$HOME"/${CLANG_DIR_NAME}
-                sleep ${sleep_value}
+                git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
             fi
-        elif [ ! -d "$HOME/$TOOLCHAIN_DIR_NAME" ]; then
+        elif [ ! -d "$tc_dir" ]; then
             if [ -n "$TOOLCHAIN_NAME" ]; then
                 printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite}...\n"
             else
                 printf "\n>>> ${white}Cloning the toolchain${darkwhite}...\n"
             fi
-            git clone --branch ${TOOLCHAIN_BRANCH} --depth ${toolchain_clone_depth} ${TOOLCHAIN_REPO} "$HOME"/${TOOLCHAIN_DIR_NAME}
-            sleep ${sleep_value}
+            git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
         fi
     fi
 
     if [ -n "$KERNEL_REPO" ] && [ -n "$KERNEL_BRANCH" ]; then
         if [ "$ALWAYS_DELETE_AND_CLONE_KERNEL" = 1 ]; then
-            if [ -d "$HOME/$KERNEL_DIR" ]; then
-                rm -rf "$HOME"/${KERNEL_DIR}
-                rm -rf "$HOME"/${KERNEL_OUTPUT_DIR}
+            if [ -d "$kl_dir" ]; then
+                rm -rf "${kl_dir}"
+                rm -rf "${out_dir}"
             fi
         fi
-        if [ ! -d "$HOME/$KERNEL_DIR" ]; then
+        if [ ! -d "$kl_dir" ]; then
             if [ -n "$KERNEL_NAME" ]; then
                 printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
             else
                 printf "\n>>> ${white}Cloning the kernel${darkwhite}...\n"
             fi
             if [ "$RECURSIVE_KERNEL_CLONE" = 0 ]; then
-                git clone --branch ${KERNEL_BRANCH} --depth ${kernel_clone_depth} ${KERNEL_REPO} "$HOME"/${KERNEL_DIR}
+                git clone --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
             else
-                git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kernel_clone_depth} ${KERNEL_REPO} "$HOME"/${KERNEL_DIR}
+                git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${out_dir}"
             fi
-            sleep ${sleep_value}
         fi
     fi
 }
 
 function choices() {
-    if [ "$ALWAYS_DELETE_AND_CLONE_KERNEL" = 0 ]; then
-        if [ "$ASK_FOR_CLEAN_BUILD" = 1 ]; then
-            if [ -d "$ocd" ]; then
-                printf "\n${white}Clean from previous out build?${darkwhite}\n"
-                select yn1 in "Yes" "No"; do
-                    case $yn1 in
-                        Yes )
-                            rm -rf "${ocd}"
-                            break;;
-                        No ) break;;
-                    esac
-                done
-            elif [ -f "$scd" ]; then
-                printf "\n${white}Clean from previous standalone build?${darkwhite}\n"
-                select yn1 in "Yes" "No"; do
-                    case $yn1 in
-                        Yes )
-                            cd "$HOME"/${KERNEL_DIR}
-                            make clean
-                            make mrproper
-                            break;;
-                        No ) break;;
-                    esac
-                done
-            fi
+    if [ "$ASK_FOR_CLEAN_BUILD" = 1 ]; then
+        if [ -d "$out_dir" ]; then
+            printf "\n${white}Clean from previous output build?${darkwhite}\n"
+            select yn1 in "Yes" "No"; do
+                case $yn1 in
+                    Yes )
+                        rm -rf "${out_dir}"
+                        break;;
+                    No ) break;;
+                esac
+            done
+        elif [ -f "$sde_file" ] || [ -f "$sde_file_2" ]; then
+            printf "\n${white}Clean from previous standalone build?${darkwhite}\n"
+            select yn1 in "Yes" "No"; do
+                case $yn1 in
+                    Yes )
+                        cd "${kl_dir}"
+                        make clean
+                        make mrproper
+                        break;;
+                    No ) break;;
+                esac
+            done
         fi
     fi
 
     if [ "$ASK_FOR_AK_CLEANING" = 1 ]; then
-        if [ -f "$cir" ]; then
-            printf "\n${white}Clean ${AK_DIR_NAME} folder?${darkwhite}\n"
+        if [ -f "$ak_kl_img" ]; then
+            printf "\n${white}Clean ${AK_DIR} folder?${darkwhite}\n"
             select yn2 in "Yes" "No"; do
                 case $yn2 in
                     Yes )
-                        rm -fv "${cir}"
+                        rm -fv "${ak_kl_img}"
                         if [ -n "$CUSTOM_ZIP_NAME" ]; then
-                            find "$HOME"/${AK_DIR_NAME} -name "$CUSTOM_ZIP_NAME" -type f -exec rm -fv {} \;
+                            find "${ak_dir}" -name "$CUSTOM_ZIP_NAME" -type f -exec rm -fv {} \;
                         elif [ -n "$KERNEL_NAME" ]; then
-                        	find "$HOME"/${AK_DIR_NAME} -name "*$KERNEL_NAME*" -type f -exec rm -fv {} \;
+                        	find "${ak_dir}" -name "*$KERNEL_NAME*" -type f -exec rm -fv {} \;
                         else
-                            find "$HOME"/${AK_DIR_NAME} -name "*$idkme*" -type f -exec rm -fv {} \;
+                            find "${ak_dir}" -name "*$idkme*" -type f -exec rm -fv {} \;
                         fi
                         if [ "$WLAN_KO_PACKER" = 1 ]; then
-                            if [ -f "$wlan_ko_destination_dir/wlan.ko" ]; then
-                                rm -fv "${wlan_ko_destination_dir}/wlan.ko"
-                            elif [ -f "$HOME/${AK_DIR_NAME}/wlan.ko" ]; then
-                                rm -fv "$HOME/${AK_DIR_NAME}/wlan.ko"
+                            if [ -f "$wl_file" ]; then
+                                rm -fv "${wl_file}"
                             fi
                         fi
                         break;;
@@ -271,7 +267,7 @@ function choices() {
         fi
     fi
 
-    if [ -n "$CLANG_DIR_NAME" ]; then
+    if [ -n "$CLANG_DIR" ]; then
         clg=1
         if [ -n "$CLANG_NAME" ]; then
             printf "\n${white}${CLANG_NAME} detected, starting compilation.${darkwhite}\n"
@@ -291,7 +287,7 @@ function choices() {
 function compilation() {
     start1=$SECONDS
     if [ "$clg" = 1 ]; then
-        cd "$HOME"/${KERNEL_DIR}
+        cd "${kl_dir}"
 
         if [ -n "$KERNEL_BUILD_USER" ]; then
             export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
@@ -306,29 +302,29 @@ function compilation() {
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${KERNEL_SUBARCH}
 
-        make O="$HOME"/${KERNEL_OUTPUT_DIR} \
+        make O="${out_dir}" \
             ARCH=${KERNEL_ARCH} \
             ${KERNEL_DEFCONFIG}
 
         if [ "$USE_CCACHE" = 1 ]; then
-            cs="${CCACHE_LOCATION} $HOME/${CLANG_DIR_NAME}/bin:$HOME/${TOOLCHAIN_DIR_NAME}/bin:${cs}" \
-            make O="$HOME"/${KERNEL_OUTPUT_DIR} \
+            cs="${CCACHE_LOCATION} ${cg_dir}/bin:${tc_dir}/bin:${cs}" \
+            make O="${out_dir}" \
             ARCH=${KERNEL_ARCH} \
-            CC="$HOME"/${CLANG_DIR_NAME}/bin/${CLANG_BIN} \
+            CC="${cg_dir}"/bin/${CLANG_BIN} \
             CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
             CROSS_COMPILE=${TOOLCHAIN_DIR_PREFIX} \
             -j"$(nproc --all)"
         else
-            cs="$HOME/${CLANG_DIR_NAME}/bin:$HOME/${TOOLCHAIN_DIR_NAME}/bin:${cs}" \
-            make O="$HOME"/${KERNEL_OUTPUT_DIR} \
+            cs="${cg_dir}/bin:${tc_dir}/bin:${cs}" \
+            make O="${out_dir}" \
             ARCH=${KERNEL_ARCH} \
-            CC="$HOME"/${CLANG_DIR_NAME}/bin/${CLANG_BIN} \
+            CC="${cg_dir}"/bin/${CLANG_BIN} \
             CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
             CROSS_COMPILE=${TOOLCHAIN_DIR_PREFIX} \
             -j"$(nproc --all)"
         fi
     elif [ "$out" = 1 ]; then
-        cd "$HOME"/${KERNEL_DIR}
+        cd "${kl_dir}"
 
         if [ -n "$KERNEL_BUILD_USER" ]; then
             export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
@@ -343,29 +339,29 @@ function compilation() {
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${KERNEL_SUBARCH}
         if [ "$USE_CCACHE" = 1 ]; then
-            export CROSS_COMPILE="${CCACHE_LOCATION} $HOME/${TOOLCHAIN_DIR_NAME}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            export CROSS_COMPILE="${CCACHE_LOCATION} ${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
         else
-            export CROSS_COMPILE="$HOME/${TOOLCHAIN_DIR_NAME}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            export CROSS_COMPILE="${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
         fi
 
-        make O="$HOME"/${KERNEL_OUTPUT_DIR} \
+        make O="${out_dir}" \
             ARCH=${KERNEL_ARCH} \
             ${KERNEL_DEFCONFIG}
 
-        make O="$HOME"/${KERNEL_OUTPUT_DIR} \
+        make O="${out_dir}" \
             ARCH=${KERNEL_ARCH} \
             -j"$(nproc --all)"
     elif [ "$sde" = 1 ]; then
-        cd "$HOME"/${KERNEL_DIR}
+        cd "${kl_dir}"
 
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${KERNEL_SUBARCH}
-
         if [ "$USE_CCACHE" = 1 ]; then
-            CROSS_COMPILE="${CCACHE_LOCATION} $HOME/${TOOLCHAIN_DIR_NAME}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            CROSS_COMPILE="${CCACHE_LOCATION} ${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
         else
-            CROSS_COMPILE="$HOME/${TOOLCHAIN_DIR_NAME}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            CROSS_COMPILE="${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
         fi
+
         make ${KERNEL_DEFCONFIG}
 
         CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
@@ -375,7 +371,7 @@ function compilation() {
 
 function compilation_report() {
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-        if [ -f "$oci" ]; then
+        if [ -f "$out_kl_img" ]; then
             printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
         else
             printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
@@ -383,7 +379,7 @@ function compilation_report() {
             exit 1
         fi
     elif [ "$sde" = 1 ]; then
-        if [ -f "$sci" ]; then
+        if [ -f "$sde_kl_img" ]; then
             printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
         else
             printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
@@ -397,9 +393,9 @@ function zip_builder() {
     kernel_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
 
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-        cp "$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
+        cp "${out_kl_img}" "${ak_kl_img}"
     elif [ "$sde" = 1 ]; then
-        cp "$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb "$HOME"/${AK_DIR_NAME}/zImage
+        cp "${sde_kl_img}" "${ak_kl_img}"
     fi
     if [ "$WLAN_KO_PACKER" = 1 ]; then 
         printf "${green}Image.gz-dtb copied.${darkwhite}\n"
@@ -409,7 +405,7 @@ function zip_builder() {
 
     if [ "$WLAN_KO_PACKER" = 1 ]; then
         if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-            cd "$(find "$HOME"/${KERNEL_OUTPUT_DIR} -type d -name "HDD")"
+            cd "$(find "${out_dir}" -type d -name "HDD")"
             cd ../..
             if [ -f "wlan.ko" ]; then
                 wlan_ko_found1=1
@@ -417,7 +413,7 @@ function zip_builder() {
                 wlan_ko_found1=0
             fi
         elif [ "$sde" = 1 ]; then
-            cd "$(find "$HOME"/${KERNEL_DIR} -type d -name "HDD")"
+            cd "$(find "${kl_dir}" -type d -name "HDD")"
             cd ../..
             if [ -f "wlan.ko" ]; then
                 wlan_ko_found1=1
@@ -428,7 +424,7 @@ function zip_builder() {
 
         if [ "$wlan_ko_found1" = 0 ]; then
             if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                cd "$(find "$HOME"/${KERNEL_OUTPUT_DIR} -type d -name "hdd")"
+                cd "$(find "${out_dir}" -type d -name "hdd")"
                 cd ../..
                 if [ -f "wlan.ko" ]; then
                     wlan_ko_found2=1
@@ -436,7 +432,7 @@ function zip_builder() {
                     wlan_ko_found2=0
                 fi
             elif [ "$sde" = 1 ]; then
-                cd "$(find "$HOME"/${KERNEL_DIR} -type d -name "hdd")"
+                cd "$(find "${kl_dir}" -type d -name "hdd")"
                 cd ../..
                 if [ -f "wlan.ko" ]; then
                     wlan_ko_found2=1
@@ -447,13 +443,8 @@ function zip_builder() {
         fi
 
         if [ "$wlan_ko_found1" = 1 ] || [ "$wlan_ko_found2" = 1 ]; then
-            if [ -d "$wlan_ko_destination_dir" ]; then
-                cp wlan.ko "${wlan_ko_destination_dir}"
-                printf "${green}wlan.ko copied.${darkwhite}\n\n"
-            else
-                cp wlan.ko "$HOME"/${AK_DIR_NAME}
-                printf "${red}The destination folder for wlan.ko does not exist. ${green}The file is copied to root of ${AK_DIR_NAME} instead!"
-            fi
+            cp wlan.ko "${ak_dir}"
+            printf "${green}wlan.ko copied.${darkwhite}\n\n"
         else
             printf "${red}wlan.ko could not be detected. ${white}Continuing without it...${darkwhite}\n\n"
         fi
@@ -482,13 +473,13 @@ function zip_builder() {
     else
         printf "${white}> Packing ${cyan}${KERNEL_NAME} ${white}kernel...${darkwhite}\n\n"
     fi
-    pushd "$HOME"/${AK_DIR_NAME}
+    pushd "${ak_dir}"
         zip -r9 "${file_name}" * -x .git README.md
     popd
 }
 
 function stats() {
-    size=$(ls -lah "$HOME"/${AK_DIR_NAME}/"${file_name}" | awk '{print $5}')
+    size=$(ls -lah "${ak_dir}"/"${file_name}" | awk '{print $5}')
     echo
 
     if [ -n "$KERNEL_BUILD_USER" ]; then
@@ -503,7 +494,7 @@ function stats() {
         printf " ${white}> Host: ${idkmy}\n"
     fi
 
-    printf " ${white}> File location: $HOME/${AK_DIR_NAME}/${file_name}\n"
+    printf " ${white}> File location: ${ak_dir}/${file_name}\n"
     printf " ${white}> File size: ${size}B\n"
     printf " ${white}> Compilation took: $((end1-start1)) seconds${darkwhite}\n"
 
