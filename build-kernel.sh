@@ -208,7 +208,7 @@ function cloning() {
             if [ "$RECURSIVE_KERNEL_CLONE" = 0 ]; then
                 git clone --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
             else
-                git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${out_dir}"
+                git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
             fi
         fi
     fi
