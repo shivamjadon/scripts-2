@@ -3,7 +3,7 @@
 <<notice
  *
  * Script information:
- * Universal script for Android kernel building.
+ * Universal and advanced script for Android kernel building.
  * Indentation space is 4 and is space characters.
  *
  * SPDX-License-Identifier: GPL-3.0
@@ -18,7 +18,7 @@ function info() {
     # NOTE: 1 means enabled. Anything else means disabled.
     # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-), and NEVER end variables with slash (/).
     # NOTE: You can leave REPO/BRANCH variables empty. If defined, they activate only if any source is missing!
-    # WARNING: Configuring this script incorrectly might result in unexpected behaviour.
+    # WARNING: Although rare, configuring this script incorrectly might result in unexpected behaviour.
 
     Functions:
     # essential - all required.
@@ -30,15 +30,19 @@ function info() {
     # misc - have a look, but do not touch unless you want to break or fix something.
 
     Variables:
+    # CURRENT_DATE_IN_NAME - if enabled, appends the current date to the kernel zip.
+    # KERNEL_LINUX_VERSION_IN_NAME - if enabled, the script appends kernel makefile version variables to the kernel zip.
+    # KERNEL_VERSION - your own kernel version.
+    # KERNEL_ANDROID_BASE_VERSION_IN_NAME - your kernel Android name/version target.
+    # CUSTOM_ZIP_NAME - what you write here will be used as filename for the kernel zip (this discards all zip attributes set).
     # KERNEL_BUILD_USER - your nickname.
     # KERNEL_BUILD_HOST - your Linux distribution's abbreviation.
-    # CUSTOM_ZIP_NAME - what you write here will be used as the kernel's zip name.
     # STATS - script-only stats (zip file location, compilation time, etc.).
     # ZIP_BUILDER - makes flashable zip for the kernel.
     # WLAN_KO_PACKER - automatically detects wlan.ko in your kernel dir and copies it to root of AK dir.
     # ASK_FOR_CLEAN_BUILD - if enabled, the script asks you "yes" or "no" for kernel cleaning.
     # ASK_FOR_AK_CLEANING - if enabled, the script asks you "yes" or "no" for AK dir cleaning.
-    # RECURSIVE_KERNEL_CLONE - enable if your kernel has git (sub)modules.
+    # RECURSIVE_KERNEL_CLONE - if enabled, the kernel clone is recursive (clones git (sub)modules).
     # STANDALONE_COMPILATION - compilation without output to external dir. Not for usage with Clang.
     # ALWAYS_DELETE_AND_CLONE_AK - on script start AK dir gets deleted everytime.
     # ALWAYS_DELETE_AND_CLONE_KERNEL - on script start the kernel dir gets deleted everytime.
@@ -56,6 +60,7 @@ function variables() {
         KERNEL_DIR=
         KERNEL_OUTPUT_DIR=
         KERNEL_DEFCONFIG=
+        KERNEL_NAME=
     }
 
     function remote() {
@@ -74,15 +79,34 @@ function variables() {
     }
 
     function optional() {
-        AK_NAME=
-        TOOLCHAIN_NAME=
-        CLANG_NAME=
-        KERNEL_NAME=
-        KERNEL_BUILD_USER=
-        KERNEL_BUILD_HOST=
-        KERNEL_VERSION_IN_ZIP_NAME=1
-        KERNEL_ANDROID_BASE_VERSION=
-        CUSTOM_ZIP_NAME=
+
+        function ak() {
+            AK_NAME=
+        }
+
+        function ak_zip_attributes() {
+            CURRENT_DATE_IN_NAME=1
+            KERNEL_LINUX_VERSION_IN_NAME=0
+            KERNEL_VERSION=
+            KERNEL_ANDROID_BASE_VERSION_IN_NAME=
+
+            CUSTOM_ZIP_NAME=
+        }
+
+        function toolchain() {
+            TOOLCHAIN_NAME=
+            CLANG_NAME=
+        }
+
+        function kernel() {
+            KERNEL_BUILD_USER=
+            KERNEL_BUILD_HOST=
+        }
+
+    ak
+    ak_zip_attributes
+    toolchain
+    kernel
     }
 
     function script() {
@@ -92,7 +116,7 @@ function variables() {
         WLAN_KO_PACKER=0
         ASK_FOR_CLEAN_BUILD=1
         ASK_FOR_AK_CLEANING=1
-        RECURSIVE_KERNEL_CLONE=0
+        RECURSIVE_KERNEL_CLONE=1
         STANDALONE_COMPILATION=0
         ALWAYS_DELETE_AND_CLONE_AK=0
         ALWAYS_DELETE_AND_CLONE_KERNEL=0
@@ -200,11 +224,7 @@ function cloning() {
             fi
         fi
         if [ ! -d "$kl_dir" ]; then
-            if [ -n "$KERNEL_NAME" ]; then
-                printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
-            else
-                printf "\n>>> ${white}Cloning the kernel${darkwhite}...\n"
-            fi
+            printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
             if [ "$RECURSIVE_KERNEL_CLONE" = 0 ]; then
                 git clone --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
             else
@@ -250,10 +270,8 @@ function choices() {
                         rm -fv "${ak_kl_img}"
                         if [ -n "$CUSTOM_ZIP_NAME" ]; then
                             find "${ak_dir}" -name "$CUSTOM_ZIP_NAME" -type f -exec rm -fv {} \;
-                        elif [ -n "$KERNEL_NAME" ]; then
-                        	find "${ak_dir}" -name "*$KERNEL_NAME*" -type f -exec rm -fv {} \;
                         else
-                            find "${ak_dir}" -name "*$idkme*" -type f -exec rm -fv {} \;
+                            find "${ak_dir}" -name "*$KERNEL_NAME*" -type f -exec rm -fv {} \;
                         fi
                         if [ "$WLAN_KO_PACKER" = 1 ]; then
                             if [ -f "$wl_file" ]; then
@@ -390,7 +408,7 @@ function compilation_report() {
 }
 
 function zip_builder() {
-    kernel_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
+    kernel_linux_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
 
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
         cp "${out_kl_img}" "${ak_kl_img}"
@@ -452,52 +470,72 @@ function zip_builder() {
 
     if [ -n "$CUSTOM_ZIP_NAME" ]; then
         file_name="${CUSTOM_ZIP_NAME}.zip"
-    elif [ -n "$KERNEL_NAME" ] && [ -n "$KERNEL_ANDROID_BASE_VERSION" ]; then
-        if [ "$KERNEL_VERSION_IN_ZIP_NAME" = 1 ]; then
-            file_name="${KERNEL_NAME}-${kernel_version}-${KERNEL_ANDROID_BASE_VERSION}-${current_date}.zip"
+    elif [ -n "$KERNEL_VERSION" ] && [ -n "$KERNEL_ANDROID_BASE_VERSION_IN_NAME" ]; then
+        if [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
+            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
+        elif [ "$CURRENT_DATE_IN_NAME" = 1 ]; then
+            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
         else
-            file_name="${KERNEL_NAME}-${KERNEL_ANDROID_BASE_VERSION}-${current_date}.zip"
+            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}.zip"
         fi
-    elif [ -n "$KERNEL_NAME" ]; then
-        if [ "$KERNEL_VERSION_IN_ZIP_NAME" = 1 ]; then
-            file_name="${KERNEL_NAME}-${kernel_version}-${current_date}.zip"
+    elif [ -n "$KERNEL_VERSION" ]; then
+        if [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
+            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${kernel_linux_version}-${current_date}.zip"
+        elif [ "$CURRENT_DATE_IN_NAME" = 1 ]; then
+            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${current_date}.zip"
         else
-            file_name="${KERNEL_NAME}-${current_date}.zip"
+            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${kernel_linux_version}.zip"
         fi
     else
-        file_name="${idkme}.Kernel-${current_date}.zip"
+        if [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
+            file_name="${KERNEL_NAME}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
+        elif [ "$CURRENT_DATE_IN_NAME" = 1 ]; then
+            file_name="${KERNEL_NAME}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
+        else
+            file_name="${KERNEL_NAME}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}.zip"
+        fi
     fi
 
-    if [ "$KERNEL_VERSION_IN_ZIP_NAME" = 1 ]; then
-        printf "${white}> Packing ${cyan}${KERNEL_NAME} ${kernel_version} ${white}kernel...${darkwhite}\n\n"
+    if [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
+        printf "${white}> Packing ${cyan}${KERNEL_NAME} ${kernel_linux_version} ${white}kernel...${darkwhite}\n\n"
     else
         printf "${white}> Packing ${cyan}${KERNEL_NAME} ${white}kernel...${darkwhite}\n\n"
     fi
+
     pushd "${ak_dir}"
         zip -r9 "${file_name}" * -x .git README.md
     popd
 }
 
 function stats() {
-    size=$(ls -lah "${ak_dir}"/"${file_name}" | awk '{print $5}')
-    echo
 
+    function convert_bytes() {
+        b=${1:-0}; d=''; s=0; S=(Bytes {K,M,G,T,P,E,Z,Y}B)
+        while ((b > 1000)); do
+            d="$(printf ".%02d" $((b % 1000 * 100 / 1000)))"
+            b=$((b / 1000))
+            let s++
+        done
+        echo "$b$d ${S[$s]}"
+    }
+
+    bytes=$(stat -c %s "${ak_dir}"/"${file_name}")
+    size=$(convert_bytes ${bytes})
+
+    echo
     if [ -n "$KERNEL_BUILD_USER" ]; then
         printf " ${white}> User: ${KERNEL_BUILD_USER}\n"
     else
         printf " ${white}> User: ${idkme}\n"
     fi
-
     if [ -n "$KERNEL_BUILD_HOST" ]; then
         printf " ${white}> Host: ${KERNEL_BUILD_HOST}\n"
     else
         printf " ${white}> Host: ${idkmy}\n"
     fi
-
     printf " ${white}> File location: ${ak_dir}/${file_name}\n"
-    printf " ${white}> File size: ${size}B\n"
+    printf " ${white}> File size: ${size}\n"
     printf " ${white}> Compilation took: $((end1-start1)) seconds${darkwhite}\n"
-
     if [ "$clg" = 1 ]; then
         if [ "$USE_CCACHE" = 1 ]; then
             printf " ${white}> Compilation details: out-${CLANG_BIN}-ccache\n\n"
@@ -525,8 +563,8 @@ choices
 compilation
 compilation_report
 if [ "$ZIP_BUILDER" = 1 ]; then
-  zip_builder
+    zip_builder
 fi
 if [ "$STATS" = 1 ]; then
-  stats
+    stats
 fi
