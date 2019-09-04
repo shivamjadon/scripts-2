@@ -46,6 +46,7 @@ function info() {
     # STANDALONE_COMPILATION - compilation without output to external dir. Not for usage with Clang.
     # ALWAYS_DELETE_AND_CLONE_AK - on script start AK dir gets deleted everytime.
     # ALWAYS_DELETE_AND_CLONE_KERNEL - on script start the kernel dir gets deleted everytime.
+    # REPORT_COMP_TIME_IN_MIN_AND_SEC - if enabled, compilation time is reported in min and sec. If disabled, only in sec.
 
     Additional help or info:
     # @mscalindt on Telegram and Twitter.
@@ -120,6 +121,7 @@ function variables() {
         STANDALONE_COMPILATION=0
         ALWAYS_DELETE_AND_CLONE_AK=0
         ALWAYS_DELETE_AND_CLONE_KERNEL=0
+        REPORT_COMP_TIME_IN_MIN_AND_SEC=0
     }
 
     function predefined() {
@@ -127,7 +129,6 @@ function variables() {
         KERNEL_SUBARCH=arm64
         CLANG_BIN=clang
         CLANG_DIR_PREFIX=aarch64-linux-gnu-
-        CCACHE_LOCATION=/usr/bin/ccache
     }
 
     function misc() {
@@ -140,6 +141,7 @@ function variables() {
         tc_clone_depth=1
         kl_clone_depth=10
         current_date=$(date +'%Y%m%d')
+        ccache_loc=$(command -v ccache)
         idkme=$(whoami)
         idkmy=$(uname -n)
         clg=bad
@@ -167,69 +169,95 @@ predefined
 misc
 }
 
+function configuration_checker() {
+    if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$TOOLCHAIN_DIR_PREFIX" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ]; then
+        printf "\n${red}You did not define all required variables.\nAborting further operations...${darkwhite}\n\n"
+        kill $$
+        exit 1
+    fi
+
+    if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
+        printf "\n${red}AnyKernel is missing but you did not define its repo and branch variables.\nAborting further operations...${darkwhite}\n\n"
+        kill $$
+        exit 1
+    fi
+
+    if [ ! -d "$tc_dir" ] && [ -z "$TOOLCHAIN_REPO" ] && [ -z "$TOOLCHAIN_BRANCH" ]; then
+        printf "\n${red}Toolchain is missing but you did not define its repo and branch variables.\nAborting further operations...${darkwhite}\n\n"
+        kill $$
+        exit 1
+    fi
+
+    if [ -n "$CLANG_DIR" ]; then
+        if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
+            printf "\n${red}Clang is missing but you did not define its repo and branch variables.\nAborting further operations...${darkwhite}\n\n"
+            kill $$
+            exit 1
+        fi
+    fi
+
+    if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
+        printf "\n${red}Kernel is missing but you did not define its repo and branch variables.\nAborting further operations...${darkwhite}\n\n"
+        kill $$
+        exit 1
+    fi
+}
+
 function cloning() {
-    if [ -n "$AK_REPO" ] && [ -n "$AK_BRANCH" ]; then
-        if [ "$ALWAYS_DELETE_AND_CLONE_AK" = 1 ]; then
-            if [ -d "$ak_dir" ]; then
-                rm -rf "${ak_dir}"
-            fi
-        fi
-        if [ ! -d "$ak_dir" ]; then
-            if [ -n "$AK_NAME" ]; then
-                printf "\n>>> ${white}Cloning ${cyan}${AK_NAME}${darkwhite}...\n"
-            else
-                printf "\n>>> ${white}Cloning AnyKernel${darkwhite}...\n"
-            fi
-            git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "${ak_dir}"
+    if [ "$ALWAYS_DELETE_AND_CLONE_AK" = 1 ]; then
+        if [ -d "$ak_dir" ]; then
+            rm -rf "${ak_dir}"
         fi
     fi
-
-    if [ -n "$TOOLCHAIN_REPO" ] && [ -n "$TOOLCHAIN_BRANCH" ]; then
-        if [ -n "$CLANG_REPO" ] && [ -n "$CLANG_BRANCH" ]; then
-            if [ ! -d "$tc_dir" ] && [ ! -d "$cg_dir" ]; then
-                if [ -n "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
-                    printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME} ${white}+ ${cyan}${CLANG_NAME}${darkwhite}...\n"
-                elif [ -n "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
-                    printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME} ${white}+ Clang${darkwhite}...\n"
-                elif [ -z "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
-                    printf "\n>>> ${white}Cloning toolchain + ${cyan}${CLANG_NAME}${darkwhite}...\n"
-                elif [ -z "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
-                    printf "\n>>> ${white}Cloning the toolchains${darkwhite}...\n"
-                fi
-                git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
-                git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
-            elif [ ! -d "$cg_dir" ]; then
-                if [ -n "$CLANG_NAME" ]; then
-                    printf "\n>>> ${white}Cloning ${cyan}${CLANG_NAME}${darkwhite}...\n"
-                else
-                    printf "\n>>> ${white}Cloning Clang${darkwhite}...\n"
-                fi
-                git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
-            fi
-        elif [ ! -d "$tc_dir" ]; then
-            if [ -n "$TOOLCHAIN_NAME" ]; then
-                printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite}...\n"
-            else
-                printf "\n>>> ${white}Cloning the toolchain${darkwhite}...\n"
-            fi
-            git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
+    if [ ! -d "$ak_dir" ]; then
+        if [ -n "$AK_NAME" ]; then
+            printf "\n>>> ${white}Cloning ${cyan}${AK_NAME}${darkwhite}...\n"
+        else
+            printf "\n>>> ${white}Cloning AnyKernel${darkwhite}...\n"
         fi
+        git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "${ak_dir}"
     fi
 
-    if [ -n "$KERNEL_REPO" ] && [ -n "$KERNEL_BRANCH" ]; then
-        if [ "$ALWAYS_DELETE_AND_CLONE_KERNEL" = 1 ]; then
-            if [ -d "$kl_dir" ]; then
-                rm -rf "${kl_dir}"
-                rm -rf "${out_dir}"
-            fi
+    if [ ! -d "$tc_dir" ] && [ ! -d "$cg_dir" ]; then
+        if [ -n "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
+            printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME} ${white}+ ${cyan}${CLANG_NAME}${darkwhite}...\n"
+        elif [ -n "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
+            printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME} ${white}+ Clang${darkwhite}...\n"
+        elif [ -z "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
+            printf "\n>>> ${white}Cloning toolchain + ${cyan}${CLANG_NAME}${darkwhite}...\n"
+        elif [ -z "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
+            printf "\n>>> ${white}Cloning the toolchains${darkwhite}...\n"
         fi
-        if [ ! -d "$kl_dir" ]; then
-            printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
-            if [ "$RECURSIVE_KERNEL_CLONE" = 0 ]; then
-                git clone --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
-            else
-                git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
-            fi
+        git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
+        git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
+    elif [ ! -d "$tc_dir" ]; then
+        if [ -n "$TOOLCHAIN_NAME" ]; then
+            printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite}...\n"
+        else
+            printf "\n>>> ${white}Cloning the toolchain${darkwhite}...\n"
+        fi
+        git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
+    elif [ ! -d "$cg_dir" ]; then
+        if [ -n "$CLANG_NAME" ]; then
+            printf "\n>>> ${white}Cloning ${cyan}${CLANG_NAME}${darkwhite}...\n"
+        else
+            printf "\n>>> ${white}Cloning Clang${darkwhite}...\n"
+        fi
+        git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
+    fi
+
+    if [ "$ALWAYS_DELETE_AND_CLONE_KERNEL" = 1 ]; then
+        if [ -d "$kl_dir" ]; then
+            rm -rf "${kl_dir}"
+            rm -rf "${out_dir}"
+        fi
+    fi
+    if [ ! -d "$kl_dir" ]; then
+        printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
+        if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
+            git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
+        else
+            git clone --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
         fi
     fi
 }
@@ -303,7 +331,7 @@ function choices() {
 }
 
 function compilation() {
-    start1=$SECONDS
+    start1=$(date +'%s')
     if [ "$clg" = 1 ]; then
         cd "${kl_dir}"
 
@@ -325,7 +353,7 @@ function compilation() {
             ${KERNEL_DEFCONFIG}
 
         if [ "$USE_CCACHE" = 1 ]; then
-            cs="${CCACHE_LOCATION} ${cg_dir}/bin:${tc_dir}/bin:${cs}" \
+            cs="${ccache_loc} ${cg_dir}/bin:${tc_dir}/bin:${cs}" \
             make O="${out_dir}" \
             ARCH=${KERNEL_ARCH} \
             CC="${cg_dir}"/bin/${CLANG_BIN} \
@@ -357,7 +385,7 @@ function compilation() {
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${KERNEL_SUBARCH}
         if [ "$USE_CCACHE" = 1 ]; then
-            export CROSS_COMPILE="${CCACHE_LOCATION} ${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            export CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
         else
             export CROSS_COMPILE="${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
         fi
@@ -375,7 +403,7 @@ function compilation() {
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${KERNEL_SUBARCH}
         if [ "$USE_CCACHE" = 1 ]; then
-            CROSS_COMPILE="${CCACHE_LOCATION} ${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
         else
             CROSS_COMPILE="${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
         fi
@@ -384,7 +412,8 @@ function compilation() {
 
         CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
     fi
-    end1=$SECONDS
+    end1=$(date +'%s')
+    comptime=$(($end1-$start1))
 }
 
 function compilation_report() {
@@ -535,7 +564,11 @@ function stats() {
     fi
     printf " ${white}> File location: ${ak_dir}/${file_name}\n"
     printf " ${white}> File size: ${size}\n"
-    printf " ${white}> Compilation took: $((end1-start1)) seconds${darkwhite}\n"
+    if [ "$REPORT_COMP_TIME_IN_MIN_AND_SEC" = 0 ]; then
+        printf " ${white}> Compilation took: ${comptime} seconds${darkwhite}\n"
+    else
+        printf " ${white}> Compilation took: $(($comptime / 60)) minute(s) and $(($comptime % 60)) second(s)${darkwhite}\n"
+    fi
     if [ "$clg" = 1 ]; then
         if [ "$USE_CCACHE" = 1 ]; then
             printf " ${white}> Compilation details: out-${CLANG_BIN}-ccache\n\n"
@@ -558,6 +591,7 @@ function stats() {
 }
 
 variables
+configuration_checker
 cloning
 choices
 compilation
