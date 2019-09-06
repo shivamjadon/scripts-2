@@ -2,28 +2,20 @@
 
 <<notice
  *
- * Script information:
- * During Nano kernel flash this script will insert props related to Nano in build.prop.
- * Indentation space is 4 and is space characters.
- *
  * SPDX-License-Identifier: GPL-3.0
  *
  * Copyright (C) Dimitar Yurukov <mscalindt@protonmail.com>
  *
 notice
 
-function nanovars() {
-    # Nano variables to insert.
-    # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-).
-
+function nano_variables() {
     NANO_MAINTAINER=
     NANO_DEVICE=
     NANO_RELEASE_DATE=
     NANO_VERSION=
-
 }
 
-function logfile() {
+function log_file() {
     LOG=/cache/NanoFlashLog.txt
     rm -f $LOG
     touch $LOG
@@ -115,6 +107,6 @@ function updater() {
     fi
 }
 
-nanovars
-logfile
+nano_variables
+log_file
 updater
