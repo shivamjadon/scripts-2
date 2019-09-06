@@ -12,7 +12,14 @@
  *
 notice
 
-function colors() {
+function get_sudo() {
+    if [ $EUID != 0 ]; then
+        sudo "$0" "$@"
+        exit $?
+    fi
+}
+
+function variables() {
     red='\033[1;31m'
     green='\033[1;32m'
     white='\033[1;37m'
@@ -21,177 +28,179 @@ function colors() {
 }
 
 function packages() {
-    start1=$SECONDS
-    printf "\n${darkcyan}===========================================${darkwhite}"
+    start1=$(date +'%s')
+    printf "\n${darkcyan}===========================================${darkwhite}\n"
         automake=$(command -v automake);
         if [ "$?" = "0" ]; then
-            printf "\n${green}automake OK${darkwhite}"
+            printf "${green}automake OK${darkwhite}\n"
         else
-            printf "\n${red}automake not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install automake > /dev/null 2>&1
+            printf "${red}automake not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install automake > /dev/null 2>&1
         fi
         bison=$(command -v bison);
         if [ "$?" = "0" ]; then
-            printf "\n${green}bison OK${darkwhite}"
+            printf "${green}bison OK${darkwhite}\n"
         else
-            printf "\n${red}bison not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install bison > /dev/null 2>&1
+            printf "${red}bison not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install bison > /dev/null 2>&1
         fi
         if dpkg -s build-essential | grep -q "ok"; then
-            printf "\n${green}build-essential OK${darkwhite}"
+            printf "${green}build-essential OK${darkwhite}\n"
         else
-            printf "\n${red}build-essential not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install build-essential > /dev/null 2>&1
+            printf "${red}build-essential not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install build-essential > /dev/null 2>&1
         fi
         bzip2=$(command -v bzip2);
         if [ "$?" = "0" ]; then
-            printf "\n${green}bzip2 OK${darkwhite}"
+            printf "${green}bzip2 OK${darkwhite}\n"
         else
-            printf "\n${red}bzip2 not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install bzip2 > /dev/null 2>&1
+            printf "${red}bzip2 not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install bzip2 > /dev/null 2>&1
         fi
         ccache=$(command -v ccache);
         if [ "$?" = "0" ]; then
-            printf "\n${green}ccache OK${darkwhite}"
+            printf "${green}ccache OK${darkwhite}\n"
         else
-            printf "\n${red}ccache not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install ccache > /dev/null 2>&1
+            printf "${red}ccache not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install ccache > /dev/null 2>&1
         fi
         curl=$(command -v curl);
         if [ "$?" = "0" ]; then
-            printf "\n${green}curl OK${darkwhite}"
+            printf "${green}curl OK${darkwhite}\n"
         else
-            printf "\n${red}curl not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install curl > /dev/null 2>&1
+            printf "${red}curl not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install curl > /dev/null 2>&1
         fi
         if dpkg -s dpkg-dev | grep -q "ok"; then
-            printf "\n${green}dpkg-dev OK${darkwhite}"
+            printf "${green}dpkg-dev OK${darkwhite}\n"
         else
-            printf "\n${red}dpkg-dev not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install dpkg-dev > /dev/null 2>&1
+            printf "${red}dpkg-dev not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install dpkg-dev > /dev/null 2>&1
         fi
         if dpkg -s g++-multilib | grep -q "ok"; then
-            printf "\n${green}g++-multilib OK${darkwhite}"
+            printf "${green}g++-multilib OK${darkwhite}\n"
         else
-            printf "\n${red}g++-multilib not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install g++-multilib > /dev/null 2>&1
+            printf "${red}g++-multilib not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install g++-multilib > /dev/null 2>&1
         fi
         git=$(command -v git);
         if [ "$?" = "0" ]; then
-            printf "\n${green}git OK${darkwhite}"
+            printf "${green}git OK${darkwhite}\n"
         else
-            printf "\n${red}git not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install git > /dev/null 2>&1
+            printf "${red}git not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install git > /dev/null 2>&1
         fi
         gperf=$(command -v gperf);
         if [ "$?" = "0" ]; then
-            printf "\n${green}gperf OK${darkwhite}"
+            printf "${green}gperf OK${darkwhite}\n"
         else
-            printf "\n${red}gperf not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install gperf > /dev/null 2>&1
+            printf "${red}gperf not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install gperf > /dev/null 2>&1
         fi
         if dpkg -s libbz2-1.0 | grep -q "ok"; then
-            printf "\n${green}libbz2-1.0 OK${darkwhite}"
+            printf "${green}libbz2-1.0 OK${darkwhite}\n"
         else
-            printf "\n${red}libbz2-1.0 not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install libbz2-1.0 > /dev/null 2>&1
+            printf "${red}libbz2-1.0 not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install libbz2-1.0 > /dev/null 2>&1
         fi
         if dpkg -s libbz2-dev | grep -q "ok"; then
-            printf "\n${green}libbz2-dev OK${darkwhite}"
+            printf "${green}libbz2-dev OK${darkwhite}\n"
         else
-            printf "\n${red}libbz2-dev not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install libbz2-dev > /dev/null 2>&1
+            printf "${red}libbz2-dev not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install libbz2-dev > /dev/null 2>&1
         fi
         if dpkg -s libfl-dev | grep -q "ok"; then
-            printf "\n${green}libfl-dev OK${darkwhite}"
+            printf "${green}libfl-dev OK${darkwhite}\n"
         else
-            printf "\n${red}libfl-dev not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install libfl-dev > /dev/null 2>&1
+            printf "${red}libfl-dev not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install libfl-dev > /dev/null 2>&1
         fi
         if dpkg -s libghc-bzlib-dev | grep -q "ok"; then
-            printf "\n${green}libghc-bzlib-dev OK${darkwhite}"
+            printf "${green}libghc-bzlib-dev OK${darkwhite}\n"
         else
-            printf "\n${red}libghc-bzlib-dev not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install libghc-bzlib-dev > /dev/null 2>&1
+            printf "${red}libghc-bzlib-dev not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install libghc-bzlib-dev > /dev/null 2>&1
         fi
         if dpkg -s liblz4-tool | grep -q "ok"; then
-            printf "\n${green}liblz4-tool OK${darkwhite}"
+            printf "${green}liblz4-tool OK${darkwhite}\n"
         else
-            printf "\n${red}liblz4-tool not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install liblz4-tool > /dev/null 2>&1
+            printf "${red}liblz4-tool not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install liblz4-tool > /dev/null 2>&1
         fi
         if dpkg -s libxml2-utils | grep -q "ok"; then
-            printf "\n${green}libxml2-utils OK${darkwhite}"
+            printf "${green}libxml2-utils OK${darkwhite}\n"
         else
-            printf "\n${red}libxml2-utils not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install libxml2-utils > /dev/null 2>&1
+            printf "${red}libxml2-utils not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install libxml2-utils > /dev/null 2>&1
         fi
         lzop=$(command -v lzop);
         if [ "$?" = "0" ]; then
-            printf "\n${green}lzop OK${darkwhite}"
+            printf "${green}lzop OK${darkwhite}\n"
         else
-            printf "\n${red}lzop not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install lzop > /dev/null 2>&1
+            printf "${red}lzop not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install lzop > /dev/null 2>&1
         fi
         make=$(command -v make);
         if [ "$?" = "0" ]; then
-            printf "\n${green}make OK${darkwhite}"
+            printf "${green}make OK${darkwhite}\n"
         else
-            printf "\n${red}make not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install make > /dev/null 2>&1
+            printf "${red}make not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install make > /dev/null 2>&1
         fi
         optipng=$(command -v optipng);
         if [ "$?" = "0" ]; then
-            printf "\n${green}optipng OK${darkwhite}"
+            printf "${green}optipng OK${darkwhite}\n"
         else
-            printf "\n${red}optipng not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install optipng > /dev/null 2>&1
+            printf "${red}optipng not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install optipng > /dev/null 2>&1
         fi
         pngcrush=$(command -v pngcrush);
         if [ "$?" = "0" ]; then
-            printf "\n${green}pngcrush OK${darkwhite}"
+            printf "${green}pngcrush OK${darkwhite}\n"
         else
-            printf "\n${red}pngcrush not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install pngcrush > /dev/null 2>&1
+            printf "${red}pngcrush not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install pngcrush > /dev/null 2>&1
         fi
         if dpkg -s python-networkx | grep -q "ok"; then
-            printf "\n${green}python-networkx OK${darkwhite}"
+            printf "${green}python-networkx OK${darkwhite}\n"
         else
-            printf "\n${red}python-networkx not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install python-networkx > /dev/null 2>&1
+            printf "${red}python-networkx not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install python-networkx > /dev/null 2>&1
         fi
         schedtool=$(command -v schedtool);
         if [ "$?" = "0" ]; then
-            printf "\n${green}schedtool OK${darkwhite}"
+            printf "${green}schedtool OK${darkwhite}\n"
         else
-            printf "\n${red}schedtool not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install schedtool > /dev/null 2>&1
+            printf "${red}schedtool not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install schedtool > /dev/null 2>&1
         fi
         if dpkg -s squashfs-tools | grep -q "ok"; then
-            printf "\n${green}squashfs-tools OK${darkwhite}"
+            printf "${green}squashfs-tools OK${darkwhite}\n"
         else
-            printf "\n${red}squashfs-tools not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install squashfs-tools > /dev/null 2>&1
+            printf "${red}squashfs-tools not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install squashfs-tools > /dev/null 2>&1
         fi
         zip=$(command -v zip);
         if [ "$?" = "0" ]; then
-            printf "\n${green}zip OK${darkwhite}"
+            printf "${green}zip OK${darkwhite}\n"
         else
-            printf "\n${red}zip not found! ${green}Installing it...${darkwhite}"
-            sudo -u root apt-get --yes --force-yes install zip > /dev/null 2>&1
+            printf "${red}zip not found! ${green}Installing it...${darkwhite}\n"
+            apt-get --yes --force-yes install zip > /dev/null 2>&1
         fi
-    printf "\n${darkcyan}===========================================${darkwhite}\n"
-    end1=$SECONDS
+    printf "${darkcyan}===========================================${darkwhite}\n\n"
+    end1=$(date +'%s')
+    installtime=$(($end1-$start1))
 }
 
 function stats() {
-        if [ "$((end1-start1))" = "0" ] || [ "$((end1-start1))" = "1" ]; then
-            printf "\n > ${green}The packages were already installed!${darkwhite}"
+        if [ "$installtime" = "0" ] || [ "$installtime" = "1" ] || [ "$installtime" = "2" ] ; then
+            printf " ${white}> The packages are already installed!${darkwhite}\n\n"
         else
-            printf "\n ${darkcyan}> Installing the packages was completed in ${white}$((end1-start1))${darkcyan} seconds.${darkwhite}"
+            printf " ${white}> Installing the packages took ${installtime} seconds.${darkwhite}\n\n"
         fi
 }
 
-colors
+get_sudo
+variables
 packages
 stats
