@@ -41,7 +41,6 @@ function info() {
     # ZIP_BUILDER - makes flashable zip for the kernel.
     # WLAN_KO_PACKER - automatically detects wlan.ko in your kernel dir and copies it to root of AK dir.
     # ASK_FOR_CLEAN_BUILD - if enabled, the script asks you "yes" or "no" for kernel cleaning.
-    # ASK_FOR_AK_CLEANING - if enabled, the script asks you "yes" or "no" for AK dir cleaning.
     # RECURSIVE_KERNEL_CLONE - if enabled, the kernel clone is recursive (clones git (sub)modules).
     # STANDALONE_COMPILATION - compilation without output to external dir. Not for usage with Clang.
     # ALWAYS_DELETE_AND_CLONE_AK - on script start AK dir gets deleted everytime.
@@ -116,7 +115,6 @@ function variables() {
         ZIP_BUILDER=1
         WLAN_KO_PACKER=0
         ASK_FOR_CLEAN_BUILD=1
-        ASK_FOR_AK_CLEANING=1
         RECURSIVE_KERNEL_CLONE=1
         STANDALONE_COMPILATION=0
         ALWAYS_DELETE_AND_CLONE_AK=0
@@ -155,7 +153,6 @@ function variables() {
         sde_file="$HOME"/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
         sde_file_2="$HOME"/${KERNEL_DIR}/arch/arm64/kernel/built-in.o
         ak_kl_img="$HOME"/${AK_DIR}/zImage
-        wl_file="$HOME"/${AK_DIR}/wlan.ko
         out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
         sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
     }
@@ -282,30 +279,6 @@ function choices() {
                         cd "${kl_dir}"
                         make clean
                         make mrproper
-                        break;;
-                    No ) break;;
-                esac
-            done
-        fi
-    fi
-
-    if [ "$ASK_FOR_AK_CLEANING" = 1 ]; then
-        if [ -f "$ak_kl_img" ]; then
-            printf "\n%bClean %s folder?%b\n" "$white" "$AK_DIR" "$darkwhite"
-            select yn2 in "Yes" "No"; do
-                case $yn2 in
-                    Yes )
-                        rm -fv "${ak_kl_img}"
-                        if [ -n "$CUSTOM_ZIP_NAME" ]; then
-                            find "${ak_dir}" -name "$CUSTOM_ZIP_NAME" -type f -exec rm -fv {} \;
-                        else
-                            find "${ak_dir}" -name "*$KERNEL_NAME*" -type f -exec rm -fv {} \;
-                        fi
-                        if [ "$WLAN_KO_PACKER" = 1 ]; then
-                            if [ -f "$wl_file" ]; then
-                                rm -fv "${wl_file}"
-                            fi
-                        fi
                         break;;
                     No ) break;;
                 esac
@@ -544,7 +517,7 @@ function zip_builder() {
     fi
 
     pushd "${ak_dir}"
-        zip -r9 "${file_name}" ./* -x .git README.md
+        zip -FSr9 "${file_name}" ./* -x .git README.md
     popd
     
     if [ "$STATS" = 0 ]; then
