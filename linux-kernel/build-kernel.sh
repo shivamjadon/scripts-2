@@ -1,6 +1,6 @@
 #!/bin/bash
 
-<<notice
+: <<'notice'
  *
  * Script information:
  * Universal and advanced script for Android kernel building.
@@ -171,33 +171,33 @@ misc
 
 function configuration_checker() {
     if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$TOOLCHAIN_DIR_PREFIX" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ]; then
-        printf "\n${red}You did not define all required variables.\nAborting further operations...${darkwhite}\n\n"
+        printf "\n%bYou did not define all required variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
         kill $$
         exit 1
     fi
 
     if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
-        printf "\n${red}AnyKernel is missing but you did not define its repo and branch variables.\nAborting further operations...${darkwhite}\n\n"
+        printf "\n%bAnyKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
         kill $$
         exit 1
     fi
 
     if [ ! -d "$tc_dir" ] && [ -z "$TOOLCHAIN_REPO" ] && [ -z "$TOOLCHAIN_BRANCH" ]; then
-        printf "\n${red}Toolchain is missing but you did not define its repo and branch variables.\nAborting further operations...${darkwhite}\n\n"
+        printf "\n%bToolchain is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
         kill $$
         exit 1
     fi
 
     if [ -n "$CLANG_DIR" ]; then
         if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
-            printf "\n${red}Clang is missing but you did not define its repo and branch variables.\nAborting further operations...${darkwhite}\n\n"
+            printf "\n%bClang is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
             kill $$
             exit 1
         fi
     fi
 
     if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
-        printf "\n${red}Kernel is missing but you did not define its repo and branch variables.\nAborting further operations...${darkwhite}\n\n"
+        printf "\n%bKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
         kill $$
         exit 1
     fi
@@ -211,37 +211,37 @@ function cloning() {
     fi
     if [ ! -d "$ak_dir" ]; then
         if [ -n "$AK_NAME" ]; then
-            printf "\n>>> ${white}Cloning ${cyan}${AK_NAME}${darkwhite}...\n"
+            printf "\n>>> %bCloning %b%s...%b\n" "$white" "$cyan" "$AK_NAME" "$darkwhite"
         else
-            printf "\n>>> ${white}Cloning AnyKernel${darkwhite}...\n"
+            printf "\n>>> %bCloning AnyKernel...%b\n" "$white" "$darkwhite"
         fi
         git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "${ak_dir}"
     fi
 
     if [ ! -d "$tc_dir" ] && [ ! -d "$cg_dir" ]; then
         if [ -n "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
-            printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME} ${white}+ ${cyan}${CLANG_NAME}${darkwhite}...\n"
+            printf "\n>>> %bCloning %b%s %b+ %b%s...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
         elif [ -n "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
-            printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME} ${white}+ Clang${darkwhite}...\n"
+            printf "\n>>> %bCloning %b%s %b+ Clang...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$white" "$darkwhite"
         elif [ -z "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
-            printf "\n>>> ${white}Cloning toolchain + ${cyan}${CLANG_NAME}${darkwhite}...\n"
+            printf "\n>>> %bCloning toolchain + %b%s...%b\n" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
         elif [ -z "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
-            printf "\n>>> ${white}Cloning the toolchains${darkwhite}...\n"
+            printf "\n>>> %bCloning the toolchains...%b\n" "$white" "$darkwhite"
         fi
         git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
         git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
     elif [ ! -d "$tc_dir" ]; then
         if [ -n "$TOOLCHAIN_NAME" ]; then
-            printf "\n>>> ${white}Cloning ${cyan}${TOOLCHAIN_NAME}${darkwhite}...\n"
+            printf "\n>>> %bCloning %b%s...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$darkwhite"
         else
-            printf "\n>>> ${white}Cloning the toolchain${darkwhite}...\n"
+            printf "\n>>> %bCloning the toolchain...%b\n" "$white" "$darkwhite"
         fi
         git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
     elif [ ! -d "$cg_dir" ]; then
         if [ -n "$CLANG_NAME" ]; then
-            printf "\n>>> ${white}Cloning ${cyan}${CLANG_NAME}${darkwhite}...\n"
+            printf "\n>>> %bCloning %b%s...%b\n" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
         else
-            printf "\n>>> ${white}Cloning Clang${darkwhite}...\n"
+            printf "\n>>> %bCloning Clang...%b\n" "$white" "$darkwhite"
         fi
         git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
     fi
@@ -253,7 +253,7 @@ function cloning() {
         fi
     fi
     if [ ! -d "$kl_dir" ]; then
-        printf "\n>>> ${white}Cloning ${cyan}${KERNEL_NAME}${darkwhite}...\n"
+        printf "\n>>> %bCloning %b%s...%b\n" "$white" "$cyan" "$KERNEL_NAME" "$darkwhite"
         if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
             git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
         else
@@ -265,7 +265,7 @@ function cloning() {
 function choices() {
     if [ "$ASK_FOR_CLEAN_BUILD" = 1 ]; then
         if [ -d "$out_dir" ]; then
-            printf "\n${white}Clean from previous output build?${darkwhite}\n"
+            printf "\n%bClean from previous build?%b\n" "$white" "$darkwhite"
             select yn1 in "Yes" "No"; do
                 case $yn1 in
                     Yes )
@@ -275,7 +275,7 @@ function choices() {
                 esac
             done
         elif [ -f "$sde_file" ] || [ -f "$sde_file_2" ]; then
-            printf "\n${white}Clean from previous standalone build?${darkwhite}\n"
+            printf "\n%bClean from previous build?%b\n" "$white" "$darkwhite"
             select yn1 in "Yes" "No"; do
                 case $yn1 in
                     Yes )
@@ -291,7 +291,7 @@ function choices() {
 
     if [ "$ASK_FOR_AK_CLEANING" = 1 ]; then
         if [ -f "$ak_kl_img" ]; then
-            printf "\n${white}Clean ${AK_DIR} folder?${darkwhite}\n"
+            printf "\n%bClean %s folder?%b\n" "$white" "$AK_DIR" "$darkwhite"
             select yn2 in "Yes" "No"; do
                 case $yn2 in
                     Yes )
@@ -316,16 +316,16 @@ function choices() {
     if [ -n "$CLANG_DIR" ]; then
         clg=1
         if [ -n "$CLANG_NAME" ]; then
-            printf "\n${white}${CLANG_NAME} detected, starting compilation.${darkwhite}\n"
+            printf "\n%b%s detected, starting compilation.%b\n" "$white" "$CLANG_NAME" "$darkwhite"
         else
-            printf "\n${white}Clang detected, starting compilation.${darkwhite}\n"
+            printf "\n%bClang detected, starting compilation.%b\n" "$white" "$darkwhite"
         fi
     elif [ "$STANDALONE_COMPILATION" = 0 ]; then
         out=1
-        printf "\n${white}Starting output folder compilation.${darkwhite}\n"
+        printf "\n%bStarting output folder compilation.%b\n" "$white" "$darkwhite"
     else
         sde=1
-        printf "\n${white}Starting standalone compilation.${darkwhite}\n"
+        printf "\n%bStarting standalone compilation.%b\n" "$white" "$darkwhite"
     fi
     echo
 }
@@ -355,19 +355,19 @@ function compilation() {
         if [ "$USE_CCACHE" = 1 ]; then
             cs="${ccache_loc} ${cg_dir}/bin:${tc_dir}/bin:${cs}" \
             make O="${out_dir}" \
-            ARCH=${KERNEL_ARCH} \
-            CC="${cg_dir}"/bin/${CLANG_BIN} \
-            CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
-            CROSS_COMPILE=${TOOLCHAIN_DIR_PREFIX} \
-            -j"$(nproc --all)"
+                ARCH=${KERNEL_ARCH} \
+                CC="${cg_dir}"/bin/${CLANG_BIN} \
+                CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
+                CROSS_COMPILE=${TOOLCHAIN_DIR_PREFIX} \
+                -j"$(nproc --all)"
         else
             cs="${cg_dir}/bin:${tc_dir}/bin:${cs}" \
             make O="${out_dir}" \
-            ARCH=${KERNEL_ARCH} \
-            CC="${cg_dir}"/bin/${CLANG_BIN} \
-            CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
-            CROSS_COMPILE=${TOOLCHAIN_DIR_PREFIX} \
-            -j"$(nproc --all)"
+                ARCH=${KERNEL_ARCH} \
+                CC="${cg_dir}"/bin/${CLANG_BIN} \
+                CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
+                CROSS_COMPILE=${TOOLCHAIN_DIR_PREFIX} \
+                -j"$(nproc --all)"
         fi
     elif [ "$out" = 1 ]; then
         cd "${kl_dir}"
@@ -413,23 +413,35 @@ function compilation() {
         CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
     fi
     end1=$(date +'%s')
-    comptime=$(($end1-$start1))
+    comptime=$((end1-start1))
 }
 
 function compilation_report() {
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
         if [ -f "$out_kl_img" ]; then
-            printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
+            if [ "$STATS" = 1 ] && [ "$ZIP_BUILDER" = 1 ]; then
+                printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
+            elif [ "$STATS" = 0 ] && [ "$ZIP_BUILDER" = 0 ]; then
+                printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
+            else
+                printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
+            fi
         else
-            printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
+            printf "\n%bThe kernel was not compiled correctly, check the log for errors.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
             kill $$
             exit 1
         fi
     elif [ "$sde" = 1 ]; then
         if [ -f "$sde_kl_img" ]; then
-            printf "\n${green}The kernel is compiled successfully!${darkwhite}\n"
+            if [ "$STATS" = 1 ] && [ "$ZIP_BUILDER" = 1 ]; then
+                printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
+            elif [ "$STATS" = 0 ] && [ "$ZIP_BUILDER" = 0 ]; then
+                printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
+            else
+                printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
+            fi
         else
-            printf "\n${red}The kernel was not compiled correctly, check the log for errors.\nAborting further operations...${darkwhite}\n\n"
+            printf "\n%bThe kernel was not compiled correctly, check the log for errors.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
             kill $$
             exit 1
         fi
@@ -445,9 +457,9 @@ function zip_builder() {
         cp "${sde_kl_img}" "${ak_kl_img}"
     fi
     if [ "$WLAN_KO_PACKER" = 1 ]; then 
-        printf "${green}Image.gz-dtb copied.${darkwhite}\n"
+        printf "%bImage.gz-dtb copied.%b\n" "$green" "$darkwhite"
     else
-        printf "${green}Image.gz-dtb copied.${darkwhite}\n\n"
+        printf "%bImage.gz-dtb copied.%b\n\n" "$green" "$darkwhite"
     fi
 
     if [ "$WLAN_KO_PACKER" = 1 ]; then
@@ -491,9 +503,9 @@ function zip_builder() {
 
         if [ "$wlan_ko_found1" = 1 ] || [ "$wlan_ko_found2" = 1 ]; then
             cp wlan.ko "${ak_dir}"
-            printf "${green}wlan.ko copied.${darkwhite}\n\n"
+            printf "%bwlan.ko copied.%b\n\n" "$green" "$darkwhite"
         else
-            printf "${red}wlan.ko could not be detected. ${white}Continuing without it...${darkwhite}\n\n"
+            printf "%bwlan.ko could not be detected. %bContinuing without it...%b\n\n" "$red" "$white" "$darkwhite"
         fi
     fi
 
@@ -526,14 +538,18 @@ function zip_builder() {
     fi
 
     if [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
-        printf "${white}> Packing ${cyan}${KERNEL_NAME} ${kernel_linux_version} ${white}kernel...${darkwhite}\n\n"
+        printf "%b> Packing %b%s %s %bkernel...%b\n\n" "$white" "$cyan" "$KERNEL_NAME" "$kernel_linux_version" "$white" "$darkwhite"
     else
-        printf "${white}> Packing ${cyan}${KERNEL_NAME} ${white}kernel...${darkwhite}\n\n"
+        printf "%b> Packing %b%s %bkernel...%b\n\n" "$white" "$cyan" "$KERNEL_NAME" "$white" "$darkwhite"
     fi
 
     pushd "${ak_dir}"
-        zip -r9 "${file_name}" * -x .git README.md
+        zip -r9 "${file_name}" ./* -x .git README.md
     popd
+    
+    if [ "$STATS" = 0 ]; then
+        echo
+    fi
 }
 
 function stats() {
@@ -543,49 +559,80 @@ function stats() {
         while ((b > 1000)); do
             d="$(printf ".%02d" $((b % 1000 * 100 / 1000)))"
             b=$((b / 1000))
-            let s++
+            (( s++ ))
         done
         echo "$b$d ${S[$s]}"
     }
 
-    bytes=$(stat -c %s "${ak_dir}"/"${file_name}")
-    size=$(convert_bytes ${bytes})
+    if [ "$ZIP_BUILDER" = 1 ]; then
+        byteszip=$(stat -c %s "${ak_dir}"/"${file_name}")
+    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
+        bytesoutimg=$(stat -c %s "${out_kl_img}")
+    else
+        bytessdeimg=$(stat -c %s "${sde_kl_img}")
+    fi
+
+    if [ "$ZIP_BUILDER" = 1 ]; then
+        sizezip=$(convert_bytes "${byteszip}")
+    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
+        sizeoutimg=$(convert_bytes "${bytesoutimg}")
+    else
+        sizesdeimg=$(convert_bytes "${bytessdeimg}")
+    fi
 
     echo
+
     if [ -n "$KERNEL_BUILD_USER" ]; then
-        printf " ${white}> User: ${KERNEL_BUILD_USER}\n"
+        printf " %b> User: %s\n" "$white" "$KERNEL_BUILD_USER"
     else
-        printf " ${white}> User: ${idkme}\n"
+        printf " %b> User: %s\n" "$white" "$idkme"
     fi
+
     if [ -n "$KERNEL_BUILD_HOST" ]; then
-        printf " ${white}> Host: ${KERNEL_BUILD_HOST}\n"
+        printf " %b> Host: %s\n" "$white" "$KERNEL_BUILD_HOST"
     else
-        printf " ${white}> Host: ${idkmy}\n"
+        printf " %b> Host: %s\n" "$white" "$idkmy"
     fi
-    printf " ${white}> File location: ${ak_dir}/${file_name}\n"
-    printf " ${white}> File size: ${size}\n"
+
+    if [ "$ZIP_BUILDER" = 1 ]; then
+        printf " %b> File location: %s/%s\n" "$white" "$ak_dir" "$file_name"
+    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
+        printf " %b> Kernel image location: %s\n" "$white" "$out_kl_img"
+    else
+        printf " %b> Kernel image location: %s\n" "$white" "$sde_kl_img"
+    fi
+
+    if [ "$ZIP_BUILDER" = 1 ]; then
+        printf " %b> File size: %s\n" "$white" "$sizezip"
+    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
+        printf " %b> Kernel image size: %s\n" "$white" "$sizeoutimg"
+    else
+        printf " %b> Kernel image size: %s\n" "$white" "$sizesdeimg"
+    fi
+
     if [ "$REPORT_COMP_TIME_IN_MIN_AND_SEC" = 0 ]; then
-        printf " ${white}> Compilation took: ${comptime} seconds${darkwhite}\n"
+        printf " %b> Compilation took: %d seconds%b\n" "$white" "$comptime" "$darkwhite"
     else
-        printf " ${white}> Compilation took: $(($comptime / 60)) minute(s) and $(($comptime % 60)) second(s)${darkwhite}\n"
+        printf " %b> Compilation took: $((comptime / 60)) minute(s) and $((comptime % 60)) second(s)%b\n" "$white" "$darkwhite"
     fi
+
     if [ "$clg" = 1 ]; then
         if [ "$USE_CCACHE" = 1 ]; then
-            printf " ${white}> Compilation details: out-${CLANG_BIN}-ccache\n\n"
+            printf " %b> Compilation details: out-%s-ccache\n\n" "$white" "$CLANG_BIN"
         else
-            printf " ${white}> Compilation details: out-${CLANG_BIN}\n\n"
+            printf " %b> Compilation details: out-%s\n\n" "$white" "$CLANG_BIN"
         fi
     elif [ "$out" = 1 ]; then
         if [ "$USE_CCACHE" = 1 ]; then
-            printf " ${white}> Compilation details: out-gcc-ccache\n\n"
+            printf " %b> Compilation details: out-gcc-ccache\n\n" "$white"
         else
-            printf " ${white}> Compilation details: out-gcc\n\n"
+            printf " %b> Compilation details: out-gcc\n\n" "$white"
         fi
     elif [ "$sde" = 1 ]; then
         if [ "$USE_CCACHE" = 1 ]; then
-            printf " ${white}> Compilation details: standalone-gcc-ccache\n\n"
+            printf " %b> Compilation details: standalone-gcc-ccache\n\n" "$white"
         else
-            printf " ${white}> Compilation details: standalone-gcc\n\n"
+            printf " %b> Compilation details: standalone-gcc\n\n" "$white"
         fi
     fi
 }
