@@ -56,7 +56,6 @@ function variables() {
     function essential() {
         AK_DIR=
         TOOLCHAIN_DIR=
-        TOOLCHAIN_DIR_PREFIX=
         KERNEL_DIR=
         KERNEL_OUTPUT_DIR=
         KERNEL_DEFCONFIG=
@@ -124,7 +123,6 @@ function variables() {
 
     function predefined() {
         KERNEL_ARCH=arm64
-        KERNEL_SUBARCH=arm64
         CLANG_BIN=clang
         CLANG_DIR_PREFIX=aarch64-linux-gnu-
     }
@@ -166,8 +164,20 @@ predefined
 misc
 }
 
+function automatic_configuration() {
+    if [ "$KERNEL_ARCH" = "arm64" ]; then
+        kernel_subarch=arm64
+    else
+        kernel_subarch=arm
+    fi
+
+    cd "${tc_dir}"/lib/gcc
+    cd -- *
+    tc_prefix=$(basename "$PWD")-
+}
+
 function configuration_checker() {
-    if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$TOOLCHAIN_DIR_PREFIX" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ]; then
+    if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ]; then
         printf "\n%bYou did not define all required variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
         kill $$
         exit 1
@@ -319,7 +329,7 @@ function compilation() {
             export KBUILD_BUILD_HOST=${idkmy}
         fi
         export ARCH=${KERNEL_ARCH}
-        export SUBARCH=${KERNEL_SUBARCH}
+        export SUBARCH=${kernel_subarch}
 
         make O="${out_dir}" \
             ARCH=${KERNEL_ARCH} \
@@ -331,7 +341,7 @@ function compilation() {
                 ARCH=${KERNEL_ARCH} \
                 CC="${cg_dir}"/bin/${CLANG_BIN} \
                 CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
-                CROSS_COMPILE=${TOOLCHAIN_DIR_PREFIX} \
+                CROSS_COMPILE="${tc_prefix}" \
                 -j"$(nproc --all)"
         else
             cs="${cg_dir}/bin:${tc_dir}/bin:${cs}" \
@@ -339,7 +349,7 @@ function compilation() {
                 ARCH=${KERNEL_ARCH} \
                 CC="${cg_dir}"/bin/${CLANG_BIN} \
                 CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
-                CROSS_COMPILE=${TOOLCHAIN_DIR_PREFIX} \
+                CROSS_COMPILE="${tc_prefix}" \
                 -j"$(nproc --all)"
         fi
     elif [ "$out" = 1 ]; then
@@ -356,11 +366,11 @@ function compilation() {
             export KBUILD_BUILD_HOST=${idkmy}
         fi
         export ARCH=${KERNEL_ARCH}
-        export SUBARCH=${KERNEL_SUBARCH}
+        export SUBARCH=${kernel_subarch}
         if [ "$USE_CCACHE" = 1 ]; then
-            export CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            export CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${tc_prefix}"
         else
-            export CROSS_COMPILE="${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            export CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
         fi
 
         make O="${out_dir}" \
@@ -374,11 +384,11 @@ function compilation() {
         cd "${kl_dir}"
 
         export ARCH=${KERNEL_ARCH}
-        export SUBARCH=${KERNEL_SUBARCH}
+        export SUBARCH=${kernel_subarch}
         if [ "$USE_CCACHE" = 1 ]; then
-            CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${tc_prefix}"
         else
-            CROSS_COMPILE="${tc_dir}/bin/${TOOLCHAIN_DIR_PREFIX}"
+            CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
         fi
 
         make ${KERNEL_DEFCONFIG}
@@ -611,6 +621,7 @@ function stats() {
 }
 
 variables
+automatic_configuration
 configuration_checker
 cloning
 choices
