@@ -13,23 +13,24 @@
 notice
 
 function info() {
-    # NOTE: Read all the text in the current function, or save yourself 1 hour by trial and error.
-    # NOTE: You only have to configure the function "variables" and its nested functions.
+    # NOTE: You only have to define the variables in function "variables".
     # NOTE: 1 means enabled. Anything else means disabled.
     # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-), and NEVER end variables with slash (/).
     # NOTE: You can leave REPO/BRANCH variables empty. If defined, they activate only if any source is missing!
-    # WARNING: Although rare, configuring this script incorrectly might result in unexpected behaviour.
 
-    Functions:
-    # essential - all required.
-    # remote - required if sources not present locally.
-    # clang - required if toolchain is clang.
-    # optional - not required but might be preferred.
-    # predefined - most of the times modifications are not required.
+    Functions info:
+    # essential - all variables required.
+    # remote - variables required if sources not present locally.
+    # clang - variables required if toolchain is clang.
+    # optional - variables not required but might be preferred.
     # script - control how the script behaves and what it does.
     # misc - have a look, but do not touch unless you want to break or fix something.
 
-    Variables:
+    Variables info:
+    essential:
+    # KERNEL_NAME - your kernel's name.
+    # KERNEL_ARCH - your kernel's architecture (arm64 for 64-bit, arm for 32-bit).
+    optional:
     # CURRENT_DATE_IN_NAME - if enabled, appends the current date to the kernel zip.
     # KERNEL_LINUX_VERSION_IN_NAME - if enabled, the script appends kernel makefile version variables to the kernel zip.
     # KERNEL_VERSION - your own kernel version.
@@ -37,6 +38,7 @@ function info() {
     # CUSTOM_ZIP_NAME - what you write here will be used as filename for the kernel zip (this discards all zip attributes set).
     # KERNEL_BUILD_USER - your nickname.
     # KERNEL_BUILD_HOST - your Linux distribution's abbreviation.
+    script:
     # STATS - script-only stats (zip file location, compilation time, etc.).
     # ZIP_BUILDER - makes flashable zip for the kernel.
     # WLAN_KO_PACKER - automatically detects wlan.ko in your kernel dir and copies it to root of AK dir.
@@ -60,6 +62,7 @@ function variables() {
         KERNEL_OUTPUT_DIR=
         KERNEL_DEFCONFIG=
         KERNEL_NAME=
+        KERNEL_ARCH=
     }
 
     function remote() {
@@ -75,37 +78,24 @@ function variables() {
         CLANG_REPO=
         CLANG_BRANCH=
         CLANG_DIR=
+        CLANG_BIN=clang
+        CLANG_DIR_PREFIX=aarch64-linux-gnu-
     }
 
     function optional() {
-
-        function ak() {
-            AK_NAME=
-        }
-
-        function ak_zip_attributes() {
-            CURRENT_DATE_IN_NAME=1
-            KERNEL_LINUX_VERSION_IN_NAME=0
-            KERNEL_VERSION=
-            KERNEL_ANDROID_BASE_VERSION_IN_NAME=
-
-            CUSTOM_ZIP_NAME=
-        }
-
-        function toolchain() {
-            TOOLCHAIN_NAME=
-            CLANG_NAME=
-        }
-
-        function kernel() {
-            KERNEL_BUILD_USER=
-            KERNEL_BUILD_HOST=
-        }
-
-    ak
-    ak_zip_attributes
-    toolchain
-    kernel
+        # AnyKernel
+        AK_NAME=
+        CURRENT_DATE_IN_NAME=1
+        KERNEL_LINUX_VERSION_IN_NAME=0
+        KERNEL_VERSION=
+        KERNEL_ANDROID_BASE_VERSION_IN_NAME=
+        CUSTOM_ZIP_NAME=
+        # Toolchain
+        TOOLCHAIN_NAME=
+        CLANG_NAME=
+        # Kernel
+        KERNEL_BUILD_USER=
+        KERNEL_BUILD_HOST=
     }
 
     function script() {
@@ -119,12 +109,6 @@ function variables() {
         ALWAYS_DELETE_AND_CLONE_AK=0
         ALWAYS_DELETE_AND_CLONE_KERNEL=0
         REPORT_COMP_TIME_IN_MIN_AND_SEC=0
-    }
-
-    function predefined() {
-        KERNEL_ARCH=arm64
-        CLANG_BIN=clang
-        CLANG_DIR_PREFIX=aarch64-linux-gnu-
     }
 
     function misc() {
@@ -160,24 +144,11 @@ remote
 clang
 optional
 script
-predefined
 misc
 }
 
-function automatic_configuration() {
-    if [ "$KERNEL_ARCH" = "arm64" ]; then
-        kernel_subarch=arm64
-    else
-        kernel_subarch=arm
-    fi
-
-    cd "${tc_dir}"/lib/gcc
-    cd -- *
-    tc_prefix=$(basename "$PWD")-
-}
-
 function configuration_checker() {
-    if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ]; then
+    if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ] || [ -z "$KERNEL_ARCH" ]; then
         printf "\n%bYou did not define all required variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
         kill $$
         exit 1
@@ -208,6 +179,18 @@ function configuration_checker() {
         kill $$
         exit 1
     fi
+}
+
+function automatic_configuration() {
+    if [ "$KERNEL_ARCH" = "arm64" ]; then
+        kernel_subarch=arm64
+    else
+        kernel_subarch=arm
+    fi
+
+    cd "${tc_dir}"/lib/gcc
+    cd -- *
+    tc_prefix=$(basename "$PWD")-
 }
 
 function cloning() {
@@ -621,8 +604,8 @@ function stats() {
 }
 
 variables
-automatic_configuration
 configuration_checker
+automatic_configuration
 cloning
 choices
 compilation
