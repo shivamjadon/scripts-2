@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-<<notice
+: <<'notice'
  *
  * Script information:
  * During Nano kernel flash this script will insert props related to Nano in build.prop.
@@ -14,26 +14,31 @@ notice
 
 # Nano variables to insert.
 # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-).
-
-    NANO_MAINTAINER=
-    NANO_DEVICE=
-    NANO_RELEASE_DATE=
-    NANO_VERSION=
+NANO_MAINTAINER=
+NANO_DEVICE=
+NANO_RELEASE_DATE=
+NANO_VERSION=
 
 LOG=/cache/NanoFlashLog.txt
 rm -f $LOG
 touch $LOG
 
 if grep -Fq "NANO_KERNEL_PROPERTIES" /system/build.prop; then
-    echo "NKP = YES" >> $LOG
-    echo "==========" >> $LOG
+    {
+        echo "NKP = YES"
+        echo "=========="
+    } >> $LOG
 else
-    printf "\n" >> /system/build.prop
-    echo "#" >> /system/build.prop
-    echo "# NANO_KERNEL_PROPERTIES" >> /system/build.prop
-    echo "#" >> /system/build.prop
-    echo "NKP = INSERTED" >> $LOG
-    echo "==============" >> $LOG
+    {
+        echo
+        echo "#"
+        echo "# NANO_KERNEL_PROPERTIES"
+        echo "#"
+    } >> /system/build.prop
+    {
+        echo "NKP = INSERTED"
+        echo "=============="
+    } >> $LOG
 fi
 
 if grep -Fq "nano.maintainer" /system/build.prop; then
