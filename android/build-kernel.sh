@@ -47,7 +47,6 @@ function info() {
     # STANDALONE_COMPILATION - compilation without output to external dir. Not for usage with Clang.
     # ALWAYS_DELETE_AND_CLONE_AK - on script start AK dir gets deleted everytime.
     # ALWAYS_DELETE_AND_CLONE_KERNEL - on script start the kernel dir gets deleted everytime.
-    # REPORT_COMP_TIME_IN_MIN_AND_SEC - if enabled, compilation time is reported in min and sec. If disabled, only in sec.
 
     Additional help or info:
     # @mscalindt on Telegram and Twitter.
@@ -108,7 +107,6 @@ function variables() {
         STANDALONE_COMPILATION=0
         ALWAYS_DELETE_AND_CLONE_AK=0
         ALWAYS_DELETE_AND_CLONE_KERNEL=0
-        REPORT_COMP_TIME_IN_MIN_AND_SEC=0
     }
 
     function misc() {
@@ -546,6 +544,9 @@ function stats() {
         sizesdeimg=$(convert_bytes "${bytessdeimg}")
     fi
 
+    comptimemin=$((comptime / 60))
+    comptimesec=$((comptime % 60))
+
     echo
 
     if [ -n "$KERNEL_BUILD_USER" ]; then
@@ -576,10 +577,14 @@ function stats() {
         printf " %b> Kernel image size: %s\n" "$white" "$sizesdeimg"
     fi
 
-    if [ "$REPORT_COMP_TIME_IN_MIN_AND_SEC" = 0 ]; then
-        printf " %b> Compilation took: %d seconds%b\n" "$white" "$comptime" "$darkwhite"
-    else
-        printf " %b> Compilation took: $((comptime / 60)) minute(s) and $((comptime % 60)) second(s)%b\n" "$white" "$darkwhite"
+    if [ "$comptimemin" = 1 ] && [ "$comptimesec" = 1 ]; then
+        printf " %b> Compilation took: %d minute and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+    elif [ "$comptimemin" = 1 ] && [ "$comptimesec" != 1 ]; then
+        printf " %b> Compilation took: %d minute and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+    elif [ "$comptimemin" != 1 ] && [ "$comptimesec" = 1 ]; then
+        printf " %b> Compilation took: %d minutes and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+    elif [ "$comptimemin" != 1 ] && [ "$comptimesec" != 1 ]; then
+        printf " %b> Compilation took: %d minutes and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
     fi
 
     if [ "$clg" = 1 ]; then
