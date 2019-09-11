@@ -179,18 +179,6 @@ function configuration_checker() {
     fi
 }
 
-function automatic_configuration() {
-    if [ "$KERNEL_ARCH" = "arm64" ]; then
-        kernel_subarch=arm64
-    else
-        kernel_subarch=arm
-    fi
-
-    cd "${tc_dir}"/lib/gcc
-    cd -- *
-    tc_prefix=$(basename "$PWD")-
-}
-
 function cloning() {
     if [ "$ALWAYS_DELETE_AND_CLONE_AK" = 1 ]; then
         if [ -d "$ak_dir" ]; then
@@ -292,6 +280,18 @@ function choices() {
         printf "\n%bStarting standalone compilation.%b\n" "$white" "$darkwhite"
     fi
     echo
+}
+
+function automatic_configuration() {
+    if [ "$KERNEL_ARCH" = "arm64" ]; then
+        kernel_subarch=arm64
+    else
+        kernel_subarch=arm
+    fi
+
+    cd "${tc_dir}"/lib/gcc
+    cd -- *
+    tc_prefix=$(basename "$PWD")-
 }
 
 function compilation() {
@@ -610,9 +610,9 @@ function stats() {
 
 variables
 configuration_checker
-automatic_configuration
 cloning
 choices
+automatic_configuration
 compilation
 compilation_report
 if [ "$ZIP_BUILDER" = 1 ]; then
