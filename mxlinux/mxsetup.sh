@@ -25,8 +25,8 @@ function variables() {
 
     function script() {
         # Toggles
-        tweak_memory=1
-        remove_bloatware=1
+        tweak_memory=0
+        remove_bloatware=0
         install_software=1
         
         # Behaviour
@@ -178,9 +178,9 @@ function install_software() {
     fi
 
     if [ "$verbose_operations" = 0 ]; then
-        apt-get --yes --force-yes install adb fastboot zip squashfs-tools libfl-dev libbz2-1.0 git dpkg-dev curl bzip2 build-essential texinfo flex gcc-multilib autopoint autoconf subversion expat libtool lib32ncurses5-dev lib32readline6-dev ncurses-dev lib32z1-dev python-all-dev libesd0-dev liblzma-dev libexpat1-dev libncurses5-dev libsdl1.2-dev libwxgtk3.0-dev binutils-dev xsltproc pkg-config libmpfr-dev ccache automake lzop bison gperf libcloog-isl-dev zlib1g-dev libcap-dev txt2man g++-multilib python-networkx libmpc-dev libxml2-utils libgmp-dev libbz2-dev libghc-bzlib-dev libssl-dev pngcrush schedtool liblz4-tool optipng openjdk-8-jdk preload bum > /dev/null 2>&1
+        apt-get --yes --force-yes install adb fastboot libfl-dev texinfo gcc-multilib autopoint autoconf subversion expat libtool lib32ncurses5-dev lib32readline-dev lib32z1-dev python-all-dev libesd0-dev liblzma-dev binutils-dev xsltproc ccache automake lzop bison gperf libcap-dev txt2man g++-multilib python-networkx libxml2-utils libgmp-dev libbz2-dev libghc-bzlib-dev libssl-dev pngcrush schedtool liblz4-tool optipng preload bum > /dev/null 2>&1
     else
-        apt-get --yes --force-yes install adb fastboot zip squashfs-tools libfl-dev libbz2-1.0 git dpkg-dev curl bzip2 build-essential texinfo flex gcc-multilib autopoint autoconf subversion expat libtool lib32ncurses5-dev lib32readline6-dev ncurses-dev lib32z1-dev python-all-dev libesd0-dev liblzma-dev libexpat1-dev libncurses5-dev libsdl1.2-dev libwxgtk3.0-dev binutils-dev xsltproc pkg-config libmpfr-dev ccache automake lzop bison gperf libcloog-isl-dev zlib1g-dev libcap-dev txt2man g++-multilib python-networkx libmpc-dev libxml2-utils libgmp-dev libbz2-dev libghc-bzlib-dev libssl-dev pngcrush schedtool liblz4-tool optipng openjdk-8-jdk preload bum
+        apt-get --yes --force-yes install adb fastboot libfl-dev texinfo gcc-multilib autopoint autoconf subversion expat libtool lib32ncurses5-dev lib32readline-dev lib32z1-dev python-all-dev libesd0-dev liblzma-dev binutils-dev xsltproc ccache automake lzop bison gperf libcap-dev txt2man g++-multilib python-networkx libxml2-utils libgmp-dev libbz2-dev libghc-bzlib-dev libssl-dev pngcrush schedtool liblz4-tool optipng preload bum
     fi
 
     if [ "$verbose_operations" = 0 ]; then
