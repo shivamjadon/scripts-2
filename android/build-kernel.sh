@@ -110,6 +110,23 @@ function variables() {
     }
 
     function misc() {
+
+        function package_checker() {
+            if ! command -v ccache > /dev/null 2>&1; then
+                printf "\n%bccache not found.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+                kill $$
+                exit 1
+            fi
+
+            if ! command -v git > /dev/null 2>&1; then
+                printf "\n%bgit not found.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+                kill $$
+                exit 1
+            fi
+        }
+
+        package_checker
+
         red='\033[1;31m'
         green='\033[1;32m'
         white='\033[1;37m'
