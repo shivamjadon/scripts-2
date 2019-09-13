@@ -154,12 +154,12 @@ function variables() {
         sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
     }
 
-essential
-remote
-clang
-optional
-script
-misc
+    essential
+    remote
+    clang
+    optional
+    script
+    misc
 }
 
 function configuration_checker() {
