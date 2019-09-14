@@ -27,10 +27,10 @@ function variables() {
         # Toggles
         tweak_memory=0
         remove_bloatware=0
-        install_software=1
+        install_software=0
         
         # Behaviour
-        verbose_operations=0 # NOTE: Very verbose.
+        verbose_operations=0
     }
 
     function misc() {
