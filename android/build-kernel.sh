@@ -204,37 +204,37 @@ function cloning() {
     fi
     if [ ! -d "$ak_dir" ]; then
         if [ -n "$AK_NAME" ]; then
-            printf "\n>>> %bCloning %b%s...%b\n" "$white" "$cyan" "$AK_NAME" "$darkwhite"
+            printf "\n%bCloning %b%s...%b\n" "$white" "$cyan" "$AK_NAME" "$darkwhite"
         else
-            printf "\n>>> %bCloning AnyKernel...%b\n" "$white" "$darkwhite"
+            printf "\n%bCloning AnyKernel...%b\n" "$white" "$darkwhite"
         fi
         git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "${ak_dir}"
     fi
 
     if [ ! -d "$tc_dir" ] && [ ! -d "$cg_dir" ]; then
         if [ -n "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
-            printf "\n>>> %bCloning %b%s %b+ %b%s...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
+            printf "\n%bCloning %b%s %b+ %b%s...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
         elif [ -n "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
-            printf "\n>>> %bCloning %b%s %b+ Clang...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$white" "$darkwhite"
+            printf "\n%bCloning %b%s %b+ Clang...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$white" "$darkwhite"
         elif [ -z "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
-            printf "\n>>> %bCloning toolchain + %b%s...%b\n" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
+            printf "\n%bCloning toolchain + %b%s...%b\n" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
         elif [ -z "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
-            printf "\n>>> %bCloning the toolchains...%b\n" "$white" "$darkwhite"
+            printf "\n%bCloning the toolchains...%b\n" "$white" "$darkwhite"
         fi
         git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
         git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
     elif [ ! -d "$tc_dir" ]; then
         if [ -n "$TOOLCHAIN_NAME" ]; then
-            printf "\n>>> %bCloning %b%s...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$darkwhite"
+            printf "\n%bCloning %b%s...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$darkwhite"
         else
-            printf "\n>>> %bCloning the toolchain...%b\n" "$white" "$darkwhite"
+            printf "\n%bCloning the toolchain...%b\n" "$white" "$darkwhite"
         fi
         git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
     elif [ ! -d "$cg_dir" ]; then
         if [ -n "$CLANG_NAME" ]; then
-            printf "\n>>> %bCloning %b%s...%b\n" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
+            printf "\n%bCloning %b%s...%b\n" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
         else
-            printf "\n>>> %bCloning Clang...%b\n" "$white" "$darkwhite"
+            printf "\n%bCloning Clang...%b\n" "$white" "$darkwhite"
         fi
         git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
     fi
@@ -246,7 +246,7 @@ function cloning() {
         fi
     fi
     if [ ! -d "$kl_dir" ]; then
-        printf "\n>>> %bCloning %b%s...%b\n" "$white" "$cyan" "$KERNEL_NAME" "$darkwhite"
+        printf "\n%bCloning %b%s...%b\n" "$white" "$cyan" "$KERNEL_NAME" "$darkwhite"
         if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
             git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
         else
