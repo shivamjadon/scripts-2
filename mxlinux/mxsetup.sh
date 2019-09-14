@@ -26,7 +26,6 @@ function variables() {
     function script() {
         # Toggles
         tweak_memory=0
-        remove_bloatware=0
         install_software=0
         
         # Behaviour
@@ -138,26 +137,6 @@ function tweak_memory() {
     fi
 }
 
-function remove_bloatware() {
-    {
-        printf "\nRemoving bloatware...\n"
-        printf "=====================\n"
-        printf "Removing: apt-xapian-index, gnome-orca, ndiswrapper*, mobile-broadband-provider-info, et cetera.\n"
-    } >> "$LOG"
-
-    if [ "$verbose_operations" = 0 ]; then
-        apt-get --yes --force-yes remove apt-xapian-index mono-runtime-common gnome-orca ndiswrapper* gnome-schedule gscan2pdf hplip hplip-data lightning simple-scan printer-driver-gutenprint printer-driver-postscript-hp sane-utils thunderbird vim-tiny mobile-broadband-provider-info > /dev/null 2>&1
-    else
-        apt-get --yes --force-yes remove apt-xapian-index mono-runtime-common gnome-orca ndiswrapper* gnome-schedule gscan2pdf hplip hplip-data lightning simple-scan printer-driver-gutenprint printer-driver-postscript-hp sane-utils thunderbird vim-tiny mobile-broadband-provider-info
-    fi
-
-    if [ "$verbose_operations" = 0 ]; then
-        apt --yes --force-yes autoremove > /dev/null 2>&1
-    else
-        apt --yes --force-yes autoremove
-    fi
-}
-
 function install_software() {
     {
         printf "\nInstalling software...\n"
@@ -206,9 +185,6 @@ log_file
 check_os
 if [ "$tweak_memory" = 1 ]; then
     tweak_memory
-fi
-if [ "$remove_bloatware" = 1 ]; then
-    remove_bloatware
 fi
 if [ "$install_software" = 1 ]; then
     install_software
