@@ -178,9 +178,9 @@ function install_software() {
     fi
 
     if [ "$verbose_operations" = 0 ]; then
-        apt-get --yes --force-yes install adb fastboot libfl-dev texinfo gcc-multilib autopoint autoconf subversion expat libtool lib32ncurses5-dev lib32readline-dev lib32z1-dev python-all-dev libesd0-dev liblzma-dev binutils-dev xsltproc ccache automake lzop bison gperf libcap-dev txt2man g++-multilib python-networkx libxml2-utils libgmp-dev libbz2-dev libghc-bzlib-dev libssl-dev pngcrush schedtool liblz4-tool optipng preload bum > /dev/null 2>&1
+        apt-get --yes --force-yes install adb fastboot libfl-dev texinfo gcc-multilib autopoint autoconf subversion expat libtool lib32ncurses5-dev lib32readline-dev lib32z1-dev python-all-dev libesd0-dev liblzma-dev binutils-dev xsltproc ccache automake lzop bison gperf libcap-dev txt2man g++-multilib python-networkx libxml2-utils libgmp-dev libbz2-dev libghc-bzlib-dev libssl-dev pngcrush schedtool liblz4-tool optipng bum > /dev/null 2>&1
     else
-        apt-get --yes --force-yes install adb fastboot libfl-dev texinfo gcc-multilib autopoint autoconf subversion expat libtool lib32ncurses5-dev lib32readline-dev lib32z1-dev python-all-dev libesd0-dev liblzma-dev binutils-dev xsltproc ccache automake lzop bison gperf libcap-dev txt2man g++-multilib python-networkx libxml2-utils libgmp-dev libbz2-dev libghc-bzlib-dev libssl-dev pngcrush schedtool liblz4-tool optipng preload bum
+        apt-get --yes --force-yes install adb fastboot libfl-dev texinfo gcc-multilib autopoint autoconf subversion expat libtool lib32ncurses5-dev lib32readline-dev lib32z1-dev python-all-dev libesd0-dev liblzma-dev binutils-dev xsltproc ccache automake lzop bison gperf libcap-dev txt2man g++-multilib python-networkx libxml2-utils libgmp-dev libbz2-dev libghc-bzlib-dev libssl-dev pngcrush schedtool liblz4-tool optipng bum
     fi
 
     if [ "$verbose_operations" = 0 ]; then
