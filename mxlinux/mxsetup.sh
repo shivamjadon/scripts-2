@@ -50,7 +50,7 @@ function log_file() {
     touch "$LOG"
 }
 
-function check_os() {
+function compatibility_check() {
     mx=$(uname -n)
     memory=$(awk '/^MemTotal:/{print $2}' /proc/meminfo)
     memcut=${memory%??????}
@@ -182,7 +182,7 @@ function finish() {
 get_sudo "$@"
 variables
 log_file
-check_os
+compatibility_check
 if [ "$tweak_memory" = 1 ]; then
     tweak_memory
 fi
