@@ -152,9 +152,9 @@ function install_software() {
     fi
 
     if [ "$verbose_operations" = 0 ]; then
-        apt-get --yes --force-yes ugrade > /dev/null 2>&1
+        apt-get --yes --force-yes upgrade > /dev/null 2>&1
     else
-        apt-get --yes --force-yes ugrade
+        apt-get --yes --force-yes upgrade
     fi
 
     if [ "$verbose_operations" = 0 ]; then
