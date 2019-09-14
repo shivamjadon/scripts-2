@@ -509,9 +509,9 @@ function zip_builder() {
             file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${kernel_linux_version}.zip"
         fi
     else
-        if [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
+        if [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ] && [ -n "$KERNEL_ANDROID_BASE_VERSION_IN_NAME" ]; then
             file_name="${KERNEL_NAME}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
-        elif [ "$CURRENT_DATE_IN_NAME" = 1 ]; then
+        elif [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ -n "$KERNEL_ANDROID_BASE_VERSION_IN_NAME" ]; then
             file_name="${KERNEL_NAME}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
         else
             file_name="${KERNEL_NAME}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}.zip"
@@ -525,7 +525,7 @@ function zip_builder() {
     fi
 
     pushd "${ak_dir}"
-        zip -FSr9 "${file_name}" ./* -x .git README.md
+        zip -FSr9 "${file_name}" ./* -x .git *.zip README.md
     popd
     
     if [ "$STATS" = 0 ]; then
