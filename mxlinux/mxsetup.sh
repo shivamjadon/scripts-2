@@ -39,9 +39,9 @@ function variables() {
         start1=$(date +'%s')
     }
 
-tweak
-script
-misc
+    tweak
+    script
+    misc
 }
 
 function log_file() {
@@ -54,6 +54,7 @@ function compatibility_check() {
     mx=$(uname -n)
     memory=$(awk '/^MemTotal:/{print $2}' /proc/meminfo)
     memcut=${memory%??????}
+
     if [ "$mx" != "mx" ]; then
         os_info=$(uname -a)
         {
@@ -172,10 +173,12 @@ function install_software() {
 function finish() {
     end1=$(date +'%s')
     elapsed=$((end1-start1))
+
     {
         printf "\nThe script finished execution.\n"
         printf "Elapsed time: %d seconds.\n" "$elapsed"
     } >> "$LOG"
+
     printf "\n%b> Log location: %s\n\n" "$white" "$LOG"
 }
 
