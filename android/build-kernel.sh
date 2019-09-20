@@ -109,57 +109,56 @@ function variables() {
         ALWAYS_DELETE_AND_CLONE_KERNEL=0
     }
 
-    function misc() {
-
-        function package_checker() {
-            if ! command -v ccache > /dev/null 2>&1; then
-                printf "\n%bccache not found.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-                kill $$
-                exit 1
-            fi
-
-            if ! command -v git > /dev/null 2>&1; then
-                printf "\n%bgit not found.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-                kill $$
-                exit 1
-            fi
-        }
-
-        package_checker
-
-        red='\033[1;31m'
-        green='\033[1;32m'
-        white='\033[1;37m'
-        cyan='\033[1;36m'
-        darkwhite='\033[0;37m'
-        ak_clone_depth=1
-        tc_clone_depth=1
-        kl_clone_depth=10
-        current_date=$(date +'%Y%m%d')
-        ccache_loc=$(command -v ccache)
-        idkme=$(whoami)
-        idkmy=$(uname -n)
-        clg=bad
-        out=and
-        sde=boujee
-        ak_dir="$HOME"/${AK_DIR}
-        tc_dir="$HOME"/${TOOLCHAIN_DIR}
-        cg_dir="$HOME"/${CLANG_DIR}
-        kl_dir="$HOME"/${KERNEL_DIR}
-        out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
-        sde_file="$HOME"/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
-        sde_file_2="$HOME"/${KERNEL_DIR}/arch/arm64/kernel/built-in.o
-        ak_kl_img="$HOME"/${AK_DIR}/zImage
-        out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
-        sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
-    }
-
     essential
     remote
     clang
     optional
     script
-    misc
+}
+
+function additional_variables() {
+
+    function package_checker() {
+        if ! command -v ccache > /dev/null 2>&1; then
+            printf "\n%bccache not found.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+
+        if ! command -v git > /dev/null 2>&1; then
+            printf "\n%bgit not found.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+    }
+
+    package_checker
+
+    red='\033[1;31m'
+    green='\033[1;32m'
+    white='\033[1;37m'
+    cyan='\033[1;36m'
+    darkwhite='\033[0;37m'
+    ak_clone_depth=1
+    tc_clone_depth=1
+    kl_clone_depth=10
+    current_date=$(date +'%Y%m%d')
+    ccache_loc=$(command -v ccache)
+    idkme=$(whoami)
+    idkmy=$(uname -n)
+    clg=bad
+    out=and
+    sde=boujee
+    ak_dir="$HOME"/${AK_DIR}
+    tc_dir="$HOME"/${TOOLCHAIN_DIR}
+    cg_dir="$HOME"/${CLANG_DIR}
+    kl_dir="$HOME"/${KERNEL_DIR}
+    out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
+    sde_file="$HOME"/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
+    sde_file_2="$HOME"/${KERNEL_DIR}/arch/arm64/kernel/built-in.o
+    ak_kl_img="$HOME"/${AK_DIR}/zImage
+    out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
+    sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
 }
 
 function configuration_checker() {
@@ -716,6 +715,7 @@ function stats() {
 }
 
 variables
+additional_variables
 configuration_checker
 cloning
 choices
