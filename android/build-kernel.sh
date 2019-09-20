@@ -15,7 +15,7 @@ notice
 function info() {
     # NOTE: You only have to define the variables in function "variables".
     # NOTE: 1 means enabled. Anything else means disabled.
-    # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-), and NEVER end variables with slash (/).
+    # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-).
     # NOTE: You can leave REPO/BRANCH variables empty. If defined, they activate only if any source is missing!
 
     Functions info:
@@ -24,7 +24,6 @@ function info() {
     # clang - variables required if toolchain is clang.
     # optional - variables not required but might be preferred.
     # script - control how the script behaves and what it does.
-    # misc - have a look, but do not touch unless you want to break or fix something.
 
     Variables info:
     essential:
@@ -47,9 +46,6 @@ function info() {
     # STANDALONE_COMPILATION - compilation without output to external dir. Not for usage with Clang.
     # ALWAYS_DELETE_AND_CLONE_AK - on script start AK dir gets deleted everytime.
     # ALWAYS_DELETE_AND_CLONE_KERNEL - on script start the kernel dir gets deleted everytime.
-
-    Additional help or info:
-    # @mscalindt on Telegram and Twitter.
 }
 
 function variables() {
