@@ -119,24 +119,21 @@ function variables() {
     script
 }
 
+function package_checker() {
+    if ! command -v ccache > /dev/null 2>&1; then
+        printf "\n%bccache not found.\nAborting further operations...%b\n\n" "\033[1;31m" "\033[0;37m"
+        kill $$
+        exit 1
+    fi
+
+    if ! command -v git > /dev/null 2>&1; then
+        printf "\n%bgit not found.\nAborting further operations...%b\n\n" "\033[1;31m" "\033[0;37m"
+        kill $$
+        exit 1
+    fi
+}
+
 function additional_variables() {
-
-    function package_checker() {
-        if ! command -v ccache > /dev/null 2>&1; then
-            printf "\n%bccache not found.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
-        fi
-
-        if ! command -v git > /dev/null 2>&1; then
-            printf "\n%bgit not found.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
-        fi
-    }
-
-    package_checker
-
     red='\033[1;31m'
     green='\033[1;32m'
     white='\033[1;37m'
@@ -718,6 +715,7 @@ function stats() {
 }
 
 variables
+package_checker
 additional_variables
 configuration_checker
 cloning
