@@ -1,5 +1,12 @@
 #!/bin/bash
 
+bash_ver=${BASH_VERSION}
+bash_ver_cut=$(printf "%s" "$bash_ver" | cut -c -1)
+if [ "$bash_ver_cut" = "2" ] || [ "$bash_ver_cut" = "3" ]; then
+    printf "\n%bThis script requires bash 4+%b\n\n" "\033[1;31m" "\033[0;37m"
+    exit 1
+fi
+
 : <<'notice'
  *
  * Script information:
