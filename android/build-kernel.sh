@@ -163,37 +163,121 @@ function variables() {
 }
 
 function configuration_checker() {
-    if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ] || [ -z "$KERNEL_ARCH" ]; then
-        printf "\n%bYou did not define all required variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-        kill $$
-        exit 1
-    fi
 
-    if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
-        printf "\n%bAnyKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-        kill $$
-        exit 1
-    fi
-
-    if [ ! -d "$tc_dir" ] && [ -z "$TOOLCHAIN_REPO" ] && [ -z "$TOOLCHAIN_BRANCH" ]; then
-        printf "\n%bToolchain is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-        kill $$
-        exit 1
-    fi
-
-    if [ -n "$CLANG_DIR" ]; then
-        if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
-            printf "\n%bClang is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+    function undefined_variables_check() {
+        if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ] || [ -z "$KERNEL_ARCH" ]; then
+            printf "\n%bYou did not define all required variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
             kill $$
             exit 1
         fi
-    fi
+    }
 
-    if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
-        printf "\n%bKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-        kill $$
-        exit 1
-    fi
+    function slash_check() {
+        akd_first_char=$(printf "%s" "$AK_DIR" | cut -c -1)
+        akd_last_char=$(printf "%s" "$AK_DIR" | rev | cut -c -1)
+        tcd_first_char=$(printf "%s" "$TOOLCHAIN_DIR" | cut -c -1)
+        tcd_last_char=$(printf "%s" "$TOOLCHAIN_DIR" | rev | cut -c -1)
+        kld_first_char=$(printf "%s" "$KERNEL_DIR" | cut -c -1)
+        kld_last_char=$(printf "%s" "$KERNEL_DIR" | rev | cut -c -1)
+        kldo_first_char=$(printf "%s" "$KERNEL_OUTPUT_DIR" | cut -c -1)
+        kldo_last_char=$(printf "%s" "$KERNEL_OUTPUT_DIR" | rev | cut -c -1)
+
+        if [ "$akd_first_char" = "/" ]; then
+            printf "\n%bRemove the first slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        elif [ "$akd_last_char" = "/" ]; then
+            printf "\n%bRemove the last slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+
+        if [ "$tcd_first_char" = "/" ]; then
+            printf "\n%bRemove the first slash (/) in TOOLCHAIN_DIR variable.%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        elif [ "$tcd_last_char" = "/" ]; then
+            printf "\n%bRemove the last slash (/) in TOOLCHAIN_DIR variable.%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+
+        if [ "$kld_first_char" = "/" ]; then
+            printf "\n%bRemove the first slash (/) in KERNEL_DIR variable.%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        elif [ "$kld_last_char" = "/" ]; then
+            printf "\n%bRemove the last slash (/) in KERNEL_DIR variable.%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+
+        if [ "$kldo_first_char" = "/" ]; then
+            printf "\n%bRemove the first slash (/) in KERNEL_OUTPUT_DIR variable.%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        elif [ "$kldo_last_char" = "/" ]; then
+            printf "\n%bRemove the last slash (/) in KERNEL_OUTPUT_DIR variable.%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+
+        if [ -n "$CLANG_DIR" ]; then
+            cgd_first_char=$(printf "%s" "$CLANG_DIR" | cut -c -1)
+            cgd_last_char=$(printf "%s" "$CLANG_DIR" | rev | cut -c -1)
+
+            if [ "$cgd_first_char" = "/" ]; then
+                printf "\n%bRemove the first slash (/) in CLANG_DIR variable.%b\n\n" "$red" "$darkwhite"
+                kill $$
+                exit 1
+            elif [ "$cgd_last_char" = "/" ]; then
+                printf "\n%bRemove the last slash (/) in CLANG_DIR variable.%b\n\n" "$red" "$darkwhite"
+                kill $$
+                exit 1
+            fi
+        fi
+    }
+
+    function incorrect_variables_check() {
+        if [ "$KERNEL_ARCH" != "arm64" ] && [ "$KERNEL_ARCH" != "arm" ]; then
+            printf "\n%bIncorrect kernel arch defined.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+    }
+
+    function missing_and_undefined_variables_check() {
+        if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
+            printf "\n%bAnyKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+
+        if [ ! -d "$tc_dir" ] && [ -z "$TOOLCHAIN_REPO" ] && [ -z "$TOOLCHAIN_BRANCH" ]; then
+            printf "\n%bToolchain is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+
+        if [ -n "$CLANG_DIR" ]; then
+            if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
+                printf "\n%bClang is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+                kill $$
+                exit 1
+            fi
+        fi
+
+        if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
+            printf "\n%bKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
+    }
+
+    undefined_variables_check
+    slash_check
+    incorrect_variables_check
+    missing_and_undefined_variables_check
 }
 
 function cloning() {
