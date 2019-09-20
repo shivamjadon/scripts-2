@@ -244,6 +244,12 @@ function configuration_checker() {
             kill $$
             exit 1
         fi
+
+        if [ -n "$CLANG_DIR" ] && [ "$STANDALONE_COMPILATION" = 1 ]; then
+            printf "\n%bYou cannot make standalone compilation with Clang...\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            kill $$
+            exit 1
+        fi
     }
 
     function missing_and_undefined_variables_check() {
