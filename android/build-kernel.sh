@@ -119,17 +119,42 @@ function variables() {
     script
 }
 
+function die_codes() {
+    # Package not found
+    function die_10() {
+        exit 10 && kill $$
+    }
+
+    # An essential variable is not defined
+    function die_20() {
+        exit 20 && kill $$
+    }
+
+    # Incorrect definition of an variable
+    function die_21() {
+        exit 21 && kill $$
+    }
+
+    # Incompatible variable configuration
+    function die_22() {
+        exit 22 && kill $$
+    }
+
+    # Kernel compilation is unsuccessful
+    function die_30() {
+        exit 30 && kill $$
+    }
+}
+
 function package_checker() {
     if ! command -v ccache > /dev/null 2>&1; then
         printf "\n%bccache not found.\nAborting further operations...%b\n\n" "\033[1;31m" "\033[0;37m"
-        kill $$
-        exit 1
+        die_10
     fi
 
     if ! command -v git > /dev/null 2>&1; then
         printf "\n%bgit not found.\nAborting further operations...%b\n\n" "\033[1;31m" "\033[0;37m"
-        kill $$
-        exit 1
+        die_10
     fi
 }
 
@@ -166,8 +191,7 @@ function configuration_checker() {
     function undefined_variables_check() {
         if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ] || [ -z "$KERNEL_ARCH" ]; then
             printf "\n%bYou did not define all required variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_20
         fi
     }
 
@@ -183,42 +207,34 @@ function configuration_checker() {
 
         if [ "$akd_first_char" = "/" ]; then
             printf "\n%bRemove the first slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_21
         elif [ "$akd_last_char" = "/" ]; then
             printf "\n%bRemove the last slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_21
         fi
 
         if [ "$tcd_first_char" = "/" ]; then
             printf "\n%bRemove the first slash (/) in TOOLCHAIN_DIR variable.%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_21
         elif [ "$tcd_last_char" = "/" ]; then
             printf "\n%bRemove the last slash (/) in TOOLCHAIN_DIR variable.%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_21
         fi
 
         if [ "$kld_first_char" = "/" ]; then
             printf "\n%bRemove the first slash (/) in KERNEL_DIR variable.%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_21
         elif [ "$kld_last_char" = "/" ]; then
             printf "\n%bRemove the last slash (/) in KERNEL_DIR variable.%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_21
         fi
 
         if [ "$kldo_first_char" = "/" ]; then
             printf "\n%bRemove the first slash (/) in KERNEL_OUTPUT_DIR variable.%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_21
         elif [ "$kldo_last_char" = "/" ]; then
             printf "\n%bRemove the last slash (/) in KERNEL_OUTPUT_DIR variable.%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_21
         fi
 
         if [ -n "$CLANG_DIR" ]; then
@@ -227,12 +243,10 @@ function configuration_checker() {
 
             if [ "$cgd_first_char" = "/" ]; then
                 printf "\n%bRemove the first slash (/) in CLANG_DIR variable.%b\n\n" "$red" "$darkwhite"
-                kill $$
-                exit 1
+                die_21
             elif [ "$cgd_last_char" = "/" ]; then
                 printf "\n%bRemove the last slash (/) in CLANG_DIR variable.%b\n\n" "$red" "$darkwhite"
-                kill $$
-                exit 1
+                die_21
             fi
         fi
     }
@@ -240,42 +254,36 @@ function configuration_checker() {
     function incorrect_variables_check() {
         if [ "$KERNEL_ARCH" != "arm64" ] && [ "$KERNEL_ARCH" != "arm" ]; then
             printf "\n%bIncorrect kernel arch defined.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_21
         fi
 
         if [ -n "$CLANG_DIR" ] && [ "$STANDALONE_COMPILATION" = 1 ]; then
             printf "\n%bYou cannot make standalone compilation with Clang...\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_22
         fi
     }
 
     function missing_and_undefined_variables_check() {
         if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
             printf "\n%bAnyKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_22
         fi
 
         if [ ! -d "$tc_dir" ] && [ -z "$TOOLCHAIN_REPO" ] && [ -z "$TOOLCHAIN_BRANCH" ]; then
             printf "\n%bToolchain is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_22
         fi
 
         if [ -n "$CLANG_DIR" ]; then
             if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
                 printf "\n%bClang is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-                kill $$
-                exit 1
+                die_22
             fi
         fi
 
         if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
             printf "\n%bKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_22
         fi
     }
 
@@ -498,8 +506,7 @@ function compilation_report() {
             fi
         else
             printf "\n%bThe kernel was not compiled correctly, check the log for errors.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_30
         fi
     elif [ "$sde" = 1 ]; then
         if [ -f "$sde_kl_img" ]; then
@@ -512,8 +519,7 @@ function compilation_report() {
             fi
         else
             printf "\n%bThe kernel was not compiled correctly, check the log for errors.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
-            kill $$
-            exit 1
+            die_30
         fi
     fi
 }
@@ -715,6 +721,7 @@ function stats() {
 }
 
 variables
+die_codes
 package_checker
 additional_variables
 configuration_checker
