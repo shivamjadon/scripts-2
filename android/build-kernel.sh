@@ -7,6 +7,11 @@ if [ "$bash_ver_cut" = "2" ] || [ "$bash_ver_cut" = "3" ]; then
     exit 1
 fi
 
+if [ $EUID = 0 ]; then
+    printf "\n%bYou should not run this script as root.%b\n\n" "\033[1;31m" "\033[0;37m"
+    exit 1
+fi
+
 : <<'notice'
  *
  * Script information:
