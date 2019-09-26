@@ -154,9 +154,11 @@ function die_codes() {
 }
 
 function package_checker() {
-    if ! command -v ccache > /dev/null 2>&1; then
-        printf "\n%bccache not found.%b\n\n" "\033[1;31m" "\033[0;37m"
-        die_10
+    if [ "$USE_CCACHE" = 1 ]; then
+        if ! command -v ccache > /dev/null 2>&1; then
+            printf "\n%bccache not found.%b\n\n" "\033[1;31m" "\033[0;37m"
+            die_10
+        fi
     fi
 
     if ! command -v git > /dev/null 2>&1; then
@@ -175,9 +177,19 @@ function additional_variables() {
     tc_clone_depth=1
     kl_clone_depth=10
     current_date=$(date +'%Y%m%d')
-    ccache_loc=$(command -v ccache)
-    idkme=$(whoami)
-    idkmy=$(uname -n)
+
+    if [ "$USE_CCACHE" = 1 ]; then
+        ccache_loc=$(command -v ccache)
+    fi
+
+    if [ -z "$KERNEL_BUILD_USER" ]; then
+        idkme=$(whoami)
+    fi
+
+    if [ -z "$KERNEL_BUILD_HOST" ]; then
+        idkmy=$(uname -n)
+    fi
+
     clg=bad
     out=and
     sde=boujee
