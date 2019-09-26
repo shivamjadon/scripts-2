@@ -1,17 +1,5 @@
 #!/bin/bash
 
-bash_ver=${BASH_VERSION}
-bash_ver_cut=$(printf "%s" "$bash_ver" | cut -c -1)
-if [ "$bash_ver_cut" = "2" ] || [ "$bash_ver_cut" = "3" ]; then
-    printf "\n%bThis script requires bash 4+%b\n\n" "\033[1;31m" "\033[0;37m"
-    exit 1
-fi
-
-if [ $EUID = 0 ]; then
-    printf "\n%bYou should not run this script as root.%b\n\n" "\033[1;31m" "\033[0;37m"
-    exit 1
-fi
-
 : <<'notice'
  *
  * Script information:
@@ -23,6 +11,18 @@ fi
  * Copyright (C) Dimitar Yurukov <mscalindt@protonmail.com>
  *
 notice
+
+bash_ver=${BASH_VERSION}
+bash_ver_cut=$(printf "%s" "$bash_ver" | cut -c -1)
+if [ "$bash_ver_cut" = "2" ] || [ "$bash_ver_cut" = "3" ]; then
+    printf "\n%bThis script requires bash 4+%b\n\n" "\033[1;31m" "\033[0;37m"
+    exit 1
+fi
+
+if [ $EUID = 0 ]; then
+    printf "\n%bYou should not run this script as root.%b\n\n" "\033[1;31m" "\033[0;37m"
+    exit 1
+fi
 
 function info() {
     # NOTE: You only have to define the variables in function "variables".
