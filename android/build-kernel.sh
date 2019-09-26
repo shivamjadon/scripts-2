@@ -183,7 +183,7 @@ function additional_variables() {
     fi
 
     if [ -z "$KERNEL_BUILD_USER" ]; then
-        idkme=$(whoami)
+        idkme=$(id -un)
     fi
 
     if [ -z "$KERNEL_BUILD_HOST" ]; then
