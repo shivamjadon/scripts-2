@@ -585,33 +585,33 @@ function zip_builder() {
         fi
     fi
 
-    if [ -n "$CUSTOM_ZIP_NAME" ]; then
-        file_name="${CUSTOM_ZIP_NAME}.zip"
-    elif [ -n "$KERNEL_VERSION" ] && [ -n "$KERNEL_ANDROID_BASE_VERSION_IN_NAME" ]; then
-        if [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
-            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
-        elif [ "$CURRENT_DATE_IN_NAME" = 1 ]; then
-            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
+    function filename() {
+        if [ -n "$CUSTOM_ZIP_NAME" ]; then
+            filename="${CUSTOM_ZIP_NAME}.zip"
         else
-            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}.zip"
+            filename="${KERNEL_NAME}"
+
+            if [ -n "$KERNEL_VERSION" ]; then
+                filename="${filename}-${KERNEL_VERSION}"
+            fi
+
+            if [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
+                filename="${filename}-${kernel_linux_version}"
+            fi
+
+            if [ -n "$KERNEL_ANDROID_BASE_VERSION_IN_NAME" ]; then
+                filename="${filename}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}"
+            fi
+
+            if [ "$CURRENT_DATE_IN_NAME" = 1 ]; then
+                filename="${filename}-${current_date}"
+            fi
+
+            filename="${filename}.zip"
         fi
-    elif [ -n "$KERNEL_VERSION" ]; then
-        if [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
-            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${kernel_linux_version}-${current_date}.zip"
-        elif [ "$CURRENT_DATE_IN_NAME" = 1 ]; then
-            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${current_date}.zip"
-        else
-            file_name="${KERNEL_NAME}-${KERNEL_VERSION}-${kernel_linux_version}.zip"
-        fi
-    else
-        if [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ] && [ -n "$KERNEL_ANDROID_BASE_VERSION_IN_NAME" ]; then
-            file_name="${KERNEL_NAME}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
-        elif [ "$CURRENT_DATE_IN_NAME" = 1 ] && [ -n "$KERNEL_ANDROID_BASE_VERSION_IN_NAME" ]; then
-            file_name="${KERNEL_NAME}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}-${current_date}.zip"
-        else
-            file_name="${KERNEL_NAME}-${kernel_linux_version}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}.zip"
-        fi
-    fi
+    }
+
+    filename
 
     if [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
         printf "%b> Packing %b%s %s %bkernel...%b\n\n" "$white" "$cyan" "$KERNEL_NAME" "$kernel_linux_version" "$white" "$darkwhite"
@@ -620,7 +620,7 @@ function zip_builder() {
     fi
 
     pushd "${ak_dir}"
-        zip -FSr9 "${file_name}" ./* -x .git *.zip README.md
+        zip -FSr9 "${filename}" ./* -x .git *.zip README.md
     popd
     
     if [ "$STATS" = 0 ]; then
@@ -641,7 +641,7 @@ function stats() {
     }
 
     if [ "$ZIP_BUILDER" = 1 ]; then
-        byteszip=$(stat -c %s "${ak_dir}"/"${file_name}")
+        byteszip=$(stat -c %s "${ak_dir}"/"${filename}")
     elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
         bytesoutimg=$(stat -c %s "${out_kl_img}")
     else
@@ -674,7 +674,7 @@ function stats() {
     fi
 
     if [ "$ZIP_BUILDER" = 1 ]; then
-        printf " %b> File location: %s/%s\n" "$white" "$ak_dir" "$file_name"
+        printf " %b> File location: %s/%s\n" "$white" "$ak_dir" "$filename"
     elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
         printf " %b> Kernel image location: %s\n" "$white" "$out_kl_img"
     else
