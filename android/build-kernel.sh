@@ -155,12 +155,12 @@ function die_codes() {
 
 function package_checker() {
     if ! command -v ccache > /dev/null 2>&1; then
-        printf "\n%bccache not found.\nAborting further operations...%b\n\n" "\033[1;31m" "\033[0;37m"
+        printf "\n%bccache not found.%b\n\n" "\033[1;31m" "\033[0;37m"
         die_10
     fi
 
     if ! command -v git > /dev/null 2>&1; then
-        printf "\n%bgit not found.\nAborting further operations...%b\n\n" "\033[1;31m" "\033[0;37m"
+        printf "\n%bgit not found.%b\n\n" "\033[1;31m" "\033[0;37m"
         die_10
     fi
 }
@@ -197,7 +197,7 @@ function configuration_checker() {
 
     function undefined_variables_check() {
         if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ] || [ -z "$KERNEL_ARCH" ]; then
-            printf "\n%bYou did not define all required variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            printf "\n%bYou did not define all required variables.%b\n\n" "$red" "$darkwhite"
             die_20
         fi
     }
@@ -260,36 +260,36 @@ function configuration_checker() {
 
     function incorrect_variables_check() {
         if [ "$KERNEL_ARCH" != "arm64" ] && [ "$KERNEL_ARCH" != "arm" ]; then
-            printf "\n%bIncorrect kernel arch defined.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            printf "\n%bIncorrect kernel arch defined.%b\n\n" "$red" "$darkwhite"
             die_21
         fi
 
         if [ -n "$CLANG_DIR" ] && [ "$STANDALONE_COMPILATION" = 1 ]; then
-            printf "\n%bYou cannot make standalone compilation with Clang...\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            printf "\n%bYou cannot make standalone compilation with Clang...%b\n\n" "$red" "$darkwhite"
             die_22
         fi
     }
 
     function missing_and_undefined_variables_check() {
         if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
-            printf "\n%bAnyKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            printf "\n%bAnyKernel is missing but you did not define its repo and branch variables.%b\n\n" "$red" "$darkwhite"
             die_22
         fi
 
         if [ ! -d "$tc_dir" ] && [ -z "$TOOLCHAIN_REPO" ] && [ -z "$TOOLCHAIN_BRANCH" ]; then
-            printf "\n%bToolchain is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            printf "\n%bToolchain is missing but you did not define its repo and branch variables.%b\n\n" "$red" "$darkwhite"
             die_22
         fi
 
         if [ -n "$CLANG_DIR" ]; then
             if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
-                printf "\n%bClang is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+                printf "\n%bClang is missing but you did not define its repo and branch variables.%b\n\n" "$red" "$darkwhite"
                 die_22
             fi
         fi
 
         if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
-            printf "\n%bKernel is missing but you did not define its repo and branch variables.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            printf "\n%bKernel is missing but you did not define its repo and branch variables.%b\n\n" "$red" "$darkwhite"
             die_22
         fi
     }
@@ -512,7 +512,7 @@ function compilation_report() {
                 printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
             fi
         else
-            printf "\n%bThe kernel was not compiled correctly, check the log for errors.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            printf "\n%bThe kernel was not compiled correctly, check the log for errors.%b\n\n" "$red" "$darkwhite"
             die_30
         fi
     elif [ "$sde" = 1 ]; then
@@ -525,7 +525,7 @@ function compilation_report() {
                 printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
             fi
         else
-            printf "\n%bThe kernel was not compiled correctly, check the log for errors.\nAborting further operations...%b\n\n" "$red" "$darkwhite"
+            printf "\n%bThe kernel was not compiled correctly, check the log for errors.%b\n\n" "$red" "$darkwhite"
             die_30
         fi
     fi
