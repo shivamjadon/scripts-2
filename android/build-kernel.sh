@@ -49,6 +49,7 @@ function info() {
     # ZIP_BUILDER - makes flashable zip for the kernel (requires AK).
     # WLAN_KO_PACKER - automatically detects wlan.ko in your kernel dir and copies it to root of AK dir.
     # ASK_FOR_CLEAN_BUILD - if enabled, the script asks you "yes" or "no" for kernel cleaning.
+    # DELETE_OLD_ZIP_IN_AK - if enabled, the script deletes any post-compilation zips (old zips).
     # RECURSIVE_KERNEL_CLONE - if enabled, the kernel clone is recursive (clones git (sub)modules).
     # STANDALONE_COMPILATION - compilation without output to external dir.
     # ALWAYS_DELETE_AND_CLONE_AK - on every script start AK dir will be deleted.
@@ -106,6 +107,7 @@ function variables() {
         ZIP_BUILDER=1
         WLAN_KO_PACKER=0
         ASK_FOR_CLEAN_BUILD=1
+        DELETE_OLD_ZIP_IN_AK=1
         RECURSIVE_KERNEL_CLONE=1
         STANDALONE_COMPILATION=0
         ALWAYS_DELETE_AND_CLONE_AK=0
@@ -583,6 +585,11 @@ function zip_builder() {
         else
             printf "%bwlan.ko could not be detected. %bContinuing without it...%b\n\n" "$red" "$white" "$darkwhite"
         fi
+    fi
+
+    if [ "$DELETE_OLD_ZIP_IN_AK" = 1 ]; then
+        rm -fv "${ak_dir}"/*${KERNEL_NAME}*.zip
+        printf "\n"
     fi
 
     function filename() {
