@@ -433,18 +433,18 @@ function compilation() {
             ${KERNEL_DEFCONFIG}
 
         if [ "$USE_CCACHE" = 1 ]; then
-            cs="${ccache_loc} ${cg_dir}/bin:${tc_dir}/bin:${cs}" \
+            cgp="${ccache_loc} ${cg_dir}/bin:${tc_dir}/bin:${PATH}" \
             make O="${out_dir}" \
                 ARCH=${KERNEL_ARCH} \
-                CC="${cg_dir}"/bin/${CLANG_BIN} \
+                CC=clang \
                 CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
                 CROSS_COMPILE="${tc_prefix}" \
                 -j"$(nproc --all)"
         else
-            cs="${cg_dir}/bin:${tc_dir}/bin:${cs}" \
+            cgp="${cg_dir}/bin:${tc_dir}/bin:${PATH}" \
             make O="${out_dir}" \
                 ARCH=${KERNEL_ARCH} \
-                CC="${cg_dir}"/bin/${CLANG_BIN} \
+                CC=clang \
                 CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
                 CROSS_COMPILE="${tc_prefix}" \
                 -j"$(nproc --all)"
