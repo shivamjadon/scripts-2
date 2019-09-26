@@ -37,22 +37,22 @@ function info() {
     # KERNEL_NAME - your kernel's name.
     # KERNEL_ARCH - your kernel's architecture (arm64 for 64-bit, arm for 32-bit).
     optional:
-    # CURRENT_DATE_IN_NAME - if enabled, appends the current date to the kernel zip.
-    # KERNEL_LINUX_VERSION_IN_NAME - if enabled, the script appends kernel makefile version variables to the kernel zip.
-    # KERNEL_VERSION - your own kernel version.
-    # KERNEL_ANDROID_BASE_VERSION_IN_NAME - your kernel Android name/version target.
-    # CUSTOM_ZIP_NAME - what you write here will be used as filename for the kernel zip (this discards all zip attributes set).
+    # CURRENT_DATE_IN_NAME - if enabled, the script appends the current date to kernel's zip name.
+    # KERNEL_LINUX_VERSION_IN_NAME - if enabled, the script appends kernel makefile version variables to kernel's zip name.
+    # KERNEL_VERSION - if defined, the script appends your own kernel version to kernel's zip name.
+    # KERNEL_ANDROID_BASE_VERSION_IN_NAME - your kernel's Android name/version target.
+    # CUSTOM_ZIP_NAME - if defined, it will be used as name for the kernel zip (this discards all zip name attributes set).
     # KERNEL_BUILD_USER - your nickname.
     # KERNEL_BUILD_HOST - your Linux distribution's abbreviation.
     script:
     # STATS - script-only stats (zip file location, compilation time, etc.).
-    # ZIP_BUILDER - makes flashable zip for the kernel.
+    # ZIP_BUILDER - makes flashable zip for the kernel (requires AK).
     # WLAN_KO_PACKER - automatically detects wlan.ko in your kernel dir and copies it to root of AK dir.
     # ASK_FOR_CLEAN_BUILD - if enabled, the script asks you "yes" or "no" for kernel cleaning.
     # RECURSIVE_KERNEL_CLONE - if enabled, the kernel clone is recursive (clones git (sub)modules).
-    # STANDALONE_COMPILATION - compilation without output to external dir. Not for usage with Clang.
-    # ALWAYS_DELETE_AND_CLONE_AK - on script start AK dir gets deleted everytime.
-    # ALWAYS_DELETE_AND_CLONE_KERNEL - on script start the kernel dir gets deleted everytime.
+    # STANDALONE_COMPILATION - compilation without output to external dir.
+    # ALWAYS_DELETE_AND_CLONE_AK - on every script start AK dir will be deleted.
+    # ALWAYS_DELETE_AND_CLONE_KERNEL - on every script start the kernel dir will be deleted.
 }
 
 function variables() {
