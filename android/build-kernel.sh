@@ -24,43 +24,6 @@ if [ $EUID = 0 ]; then
     exit 1
 fi
 
-function info() {
-    # NOTE: You only have to define the variables in function "variables".
-    # NOTE: 1 means enabled. Anything else means disabled.
-    # NOTE: Do NOT use space in any variable, instead use dot (.) or dash (-).
-    # NOTE: You can leave REPO/BRANCH variables empty. If defined, they activate only if any source is missing!
-
-    Functions info:
-    # essential - all variables required.
-    # remote - variables required if sources not present locally.
-    # clang - variables required if toolchain is clang.
-    # optional - variables not required but might be preferred.
-    # script - control how the script behaves and what it does.
-
-    Variables info:
-    essential:
-    # KERNEL_NAME - your kernel's name.
-    # KERNEL_ARCH - your kernel's architecture (arm64 for 64-bit, arm for 32-bit).
-    optional:
-    # CURRENT_DATE_IN_NAME - if enabled, the script appends the current date to kernel's zip name.
-    # KERNEL_LINUX_VERSION_IN_NAME - if enabled, the script appends kernel makefile version variables to kernel's zip name.
-    # KERNEL_VERSION - if defined, the script appends your own kernel version to kernel's zip name.
-    # KERNEL_ANDROID_BASE_VERSION_IN_NAME - your kernel's Android name/version target.
-    # CUSTOM_ZIP_NAME - if defined, it will be used as name for the kernel zip (this discards all zip name attributes set).
-    # KERNEL_BUILD_USER - your nickname.
-    # KERNEL_BUILD_HOST - your Linux distribution's abbreviation.
-    script:
-    # STATS - script-only stats (zip file location, compilation time, etc.).
-    # ZIP_BUILDER - makes flashable zip for the kernel (requires AK).
-    # WLAN_KO_PACKER - automatically detects wlan.ko in your kernel dir and copies it to root of AK dir.
-    # ASK_FOR_CLEAN_BUILD - if enabled, the script asks you "yes" or "no" for kernel cleaning.
-    # DELETE_OLD_ZIP_IN_AK - if enabled, the script deletes any post-compilation zips (old zips).
-    # RECURSIVE_KERNEL_CLONE - if enabled, the kernel clone is recursive (clones git (sub)modules).
-    # STANDALONE_COMPILATION - compilation without output to external dir.
-    # ALWAYS_DELETE_AND_CLONE_AK - on every script start AK dir will be deleted.
-    # ALWAYS_DELETE_AND_CLONE_KERNEL - on every script start the kernel dir will be deleted.
-}
-
 function variables() {
 
     function essential() {
