@@ -479,9 +479,7 @@ function compilation() {
 function compilation_report() {
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
         if [ -f "$out_kl_img" ]; then
-            if [ "$STATS" = 1 ] && [ "$ZIP_BUILDER" = 1 ]; then
-                printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
-            elif [ "$STATS" = 0 ] && [ "$ZIP_BUILDER" = 0 ]; then
+            if [ "$STATS" = 0 ] && [ "$ZIP_BUILDER" = 0 ]; then
                 printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
             else
                 printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
@@ -492,9 +490,7 @@ function compilation_report() {
         fi
     elif [ "$sde" = 1 ]; then
         if [ -f "$sde_kl_img" ]; then
-            if [ "$STATS" = 1 ] && [ "$ZIP_BUILDER" = 1 ]; then
-                printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
-            elif [ "$STATS" = 0 ] && [ "$ZIP_BUILDER" = 0 ]; then
+            if [ "$STATS" = 0 ] && [ "$ZIP_BUILDER" = 0 ]; then
                 printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
             else
                 printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
@@ -514,6 +510,7 @@ function zip_builder() {
     elif [ "$sde" = 1 ]; then
         cp "${sde_kl_img}" "${ak_kl_img}"
     fi
+
     if [ "$WLAN_KO_PACKER" = 1 ]; then 
         printf "%bImage.gz-dtb copied.%b\n" "$green" "$darkwhite"
     else
