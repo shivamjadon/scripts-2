@@ -660,22 +660,6 @@ function stats() {
         printf " %b> Host: %s\n" "$white" "$idkmy"
     fi
 
-    if [ "$ZIP_BUILDER" = 1 ]; then
-        printf " %b> File location: %s/%s\n" "$white" "$ak_dir" "$filename"
-    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
-        printf " %b> Kernel image location: %s\n" "$white" "$out_kl_img"
-    else
-        printf " %b> Kernel image location: %s\n" "$white" "$sde_kl_img"
-    fi
-
-    if [ "$ZIP_BUILDER" = 1 ]; then
-        printf " %b> File size: %s\n" "$white" "$sizezip"
-    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
-        printf " %b> Kernel image size: %s\n" "$white" "$sizeoutimg"
-    else
-        printf " %b> Kernel image size: %s\n" "$white" "$sizesdeimg"
-    fi
-
     if [ "$comptimemin" = 1 ] && [ "$comptimesec" = 1 ]; then
         printf " %b> Compilation took: %d minute and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
     elif [ "$comptimemin" = 1 ] && [ "$comptimesec" != 1 ]; then
@@ -704,6 +688,22 @@ function stats() {
         else
             printf " %b> Compilation details: standalone-gcc\n\n" "$white"
         fi
+    fi
+
+    if [ "$ZIP_BUILDER" = 1 ]; then
+        printf " %b> File size: %s\n" "$white" "$sizezip"
+    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
+        printf " %b> Kernel image size: %s\n" "$white" "$sizeoutimg"
+    else
+        printf " %b> Kernel image size: %s\n" "$white" "$sizesdeimg"
+    fi
+
+    if [ "$ZIP_BUILDER" = 1 ]; then
+        printf " %b> File location: %s/%s\n" "$white" "$ak_dir" "$filename"
+    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
+        printf " %b> Kernel image location: %s\n" "$white" "$out_kl_img"
+    else
+        printf " %b> Kernel image location: %s\n" "$white" "$sde_kl_img"
     fi
 }
 
