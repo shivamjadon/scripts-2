@@ -467,6 +467,16 @@ function compilation() {
     elif [ "$sde" = 1 ]; then
         cd "${kl_dir}"
 
+        if [ -n "$KERNEL_BUILD_USER" ]; then
+            export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
+        else
+            export KBUILD_BUILD_USER=${idkme}
+        fi
+        if [ -n "$KERNEL_BUILD_HOST" ]; then
+            export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
+        else
+            export KBUILD_BUILD_HOST=${idkmy}
+        fi
         if [ -n "$KERNEL_LOCALVERSION" ]; then
             export LOCALVERSION=${KERNEL_LOCALVERSION}
         fi
