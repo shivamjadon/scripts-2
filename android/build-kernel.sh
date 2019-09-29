@@ -93,27 +93,27 @@ function variables() {
 function die_codes() {
     # Package not found
     function die_10() {
-        exit 10 && kill $$
+        exit 10
     }
 
     # An essential variable is not defined
     function die_20() {
-        exit 20 && kill $$
+        exit 20
     }
 
     # Incorrect definition of an variable
     function die_21() {
-        exit 21 && kill $$
+        exit 21
     }
 
     # Incompatible variable configuration
     function die_22() {
-        exit 22 && kill $$
+        exit 22
     }
 
     # Kernel compilation is unsuccessful
     function die_30() {
-        exit 30 && kill $$
+        exit 30
     }
 }
 
