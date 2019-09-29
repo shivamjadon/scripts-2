@@ -129,6 +129,13 @@ function package_checker() {
         printf "\n%bgit not found.%b\n\n" "\033[1;31m" "\033[0;37m"
         die_10
     fi
+
+    if [ "$ZIP_BUILDER" = 1 ]; then
+        if ! command -v zip > /dev/null 2>&1; then
+            printf "\n%bzip not found.%b\n\n" "\033[1;31m" "\033[0;37m"
+            die_10
+        fi
+    fi
 }
 
 function additional_variables() {
