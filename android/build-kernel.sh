@@ -652,11 +652,11 @@ function stats() {
     }
 
     if [ "$ZIP_BUILDER" = 1 ]; then
-        byteszip=$(stat -c %s "${ak_dir}"/"${filename}")
+        byteszip=$(wc -c < "${ak_dir}"/"${filename}")
     elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
-        bytesoutimg=$(stat -c %s "${out_kl_img}")
+        bytesoutimg=$(wc -c < "${out_kl_img}")
     else
-        bytessdeimg=$(stat -c %s "${sde_kl_img}")
+        bytessdeimg=$(wc -c < "${sde_kl_img}")
     fi
 
     if [ "$ZIP_BUILDER" = 1 ]; then
