@@ -67,6 +67,7 @@ function variables() {
         # Kernel
         KERNEL_BUILD_USER=
         KERNEL_BUILD_HOST=
+        KERNEL_LOCALVERSION=
     }
 
     function script() {
@@ -405,6 +406,9 @@ function compilation() {
         else
             export KBUILD_BUILD_HOST=${idkmy}
         fi
+        if [ -n "$KERNEL_LOCALVERSION" ]; then
+            export LOCALVERSION=${KERNEL_LOCALVERSION}
+        fi
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${kernel_subarch}
 
@@ -442,6 +446,9 @@ function compilation() {
         else
             export KBUILD_BUILD_HOST=${idkmy}
         fi
+        if [ -n "$KERNEL_LOCALVERSION" ]; then
+            export LOCALVERSION=${KERNEL_LOCALVERSION}
+        fi
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${kernel_subarch}
         if [ "$USE_CCACHE" = 1 ]; then
@@ -460,6 +467,9 @@ function compilation() {
     elif [ "$sde" = 1 ]; then
         cd "${kl_dir}"
 
+        if [ -n "$KERNEL_LOCALVERSION" ]; then
+            export LOCALVERSION=${KERNEL_LOCALVERSION}
+        fi
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${kernel_subarch}
         if [ "$USE_CCACHE" = 1 ]; then
