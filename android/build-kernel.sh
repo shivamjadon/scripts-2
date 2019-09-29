@@ -180,13 +180,13 @@ function configuration_checker() {
 
     function slash_check() {
         akd_first_char=$(printf "%s" "$AK_DIR" | cut -c -1)
-        akd_last_char=$(printf "%s" "$AK_DIR" | rev | cut -c -1)
+        akd_last_char=$(printf "%s" "$AK_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
         tcd_first_char=$(printf "%s" "$TOOLCHAIN_DIR" | cut -c -1)
-        tcd_last_char=$(printf "%s" "$TOOLCHAIN_DIR" | rev | cut -c -1)
+        tcd_last_char=$(printf "%s" "$TOOLCHAIN_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
         kld_first_char=$(printf "%s" "$KERNEL_DIR" | cut -c -1)
-        kld_last_char=$(printf "%s" "$KERNEL_DIR" | rev | cut -c -1)
+        kld_last_char=$(printf "%s" "$KERNEL_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
         kldo_first_char=$(printf "%s" "$KERNEL_OUTPUT_DIR" | cut -c -1)
-        kldo_last_char=$(printf "%s" "$KERNEL_OUTPUT_DIR" | rev | cut -c -1)
+        kldo_last_char=$(printf "%s" "$KERNEL_OUTPUT_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
 
         if [ "$akd_first_char" = "/" ]; then
             printf "\n%bRemove the first slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
@@ -222,7 +222,7 @@ function configuration_checker() {
 
         if [ -n "$CLANG_DIR" ]; then
             cgd_first_char=$(printf "%s" "$CLANG_DIR" | cut -c -1)
-            cgd_last_char=$(printf "%s" "$CLANG_DIR" | rev | cut -c -1)
+            cgd_last_char=$(printf "%s" "$CLANG_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
 
             if [ "$cgd_first_char" = "/" ]; then
                 printf "\n%bRemove the first slash (/) in CLANG_DIR variable.%b\n\n" "$red" "$darkwhite"
