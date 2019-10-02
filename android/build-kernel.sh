@@ -26,8 +26,7 @@ fi
 
 function variables() {
 
-    function essential() {
-        AK_DIR=
+    ESSENTIAL_VARIABLES() {
         TOOLCHAIN_DIR=
         KERNEL_DIR=
         KERNEL_OUTPUT_DIR=
@@ -36,131 +35,94 @@ function variables() {
         KERNEL_ARCH=
     }
 
-    function remote() {
-        AK_REPO=
-        AK_BRANCH=
-        TOOLCHAIN_REPO=
-        TOOLCHAIN_BRANCH=
-        KERNEL_REPO=
-        KERNEL_BRANCH=
-    }
-
-    function clang() {
-        CLANG_REPO=
-        CLANG_BRANCH=
-        CLANG_DIR=
-        CLANG_BIN=clang
-        CLANG_DIR_PREFIX=aarch64-linux-gnu-
-    }
-
-    function optional() {
-        # AnyKernel
-        AK_NAME=
-        CURRENT_DATE_IN_NAME=1
-        KERNEL_LINUX_VERSION_IN_NAME=0
-        KERNEL_VERSION=
-        KERNEL_ANDROID_BASE_VERSION_IN_NAME=
-        CUSTOM_ZIP_NAME=
-        # Toolchain
-        TOOLCHAIN_NAME=
-        CLANG_NAME=
-        # Kernel
-        KERNEL_BUILD_USER=
-        KERNEL_BUILD_HOST=
-        KERNEL_LOCALVERSION=
-    }
-
-    function script() {
-        STATS=1
-        USE_CCACHE=1
-        ZIP_BUILDER=1
-        WLAN_KO_PACKER=0
-        ASK_FOR_CLEAN_BUILD=1
-        DELETE_OLD_ZIP_IN_AK=1
-        RECURSIVE_KERNEL_CLONE=1
+    SCRIPT_VARIABLES() {
+        STATS=0
+        USE_CCACHE=0
+        ZIP_BUILDER=0
+        ASK_FOR_CLEAN_BUILD=0
+        DELETE_OLD_ZIP_IN_AK=0
+        RECURSIVE_KERNEL_CLONE=0
         STANDALONE_COMPILATION=0
-        ALWAYS_DELETE_AND_CLONE_AK=0
-        ALWAYS_DELETE_AND_CLONE_KERNEL=0
     }
 
-    essential
-    remote
-    clang
-    optional
-    script
-}
+    OPTIONAL_VARIABLES() {
 
-function die_codes() {
-    # Package not found
-    function die_10() {
-        exit 10
+        anykernel() {
+            essential_variables() {
+                AK_DIR=
+            }
+            remote_variables() {
+                AK_REPO=
+                AK_BRANCH=
+            }
+            zip_filename_variables() {
+                APPEND_DATE=0
+                APPEND_LINUX_VERSION=0
+                APPEND_VERSION=
+                APPEND_ANDROID_TARGET=
+                CUSTOM_ZIP_NAME=
+            }
+            essential_variables
+            remote_variables
+            zip_filename_variables
+        }
+
+        toolchain() {
+            remote_variables() {
+                TOOLCHAIN_REPO=
+                TOOLCHAIN_BRANCH=
+            }
+            remote_variables
+        }
+
+        clang() {
+            essential_variables() {
+                CLANG_DIR=
+                CLANG_BIN=
+                CLANG_PREFIX=
+            }
+            remote_variables() {
+                CLANG_REPO=
+                CLANG_BRANCH=
+            }
+            essential_variables
+            remote_variables
+        }
+
+        kernel() {
+            remote_variables() {
+                KERNEL_REPO=
+                KERNEL_BRANCH=
+            }
+            options() {
+                KERNEL_BUILD_USER=
+                KERNEL_BUILD_HOST=
+                KERNEL_LOCALVERSION=
+            }
+            remote_variables
+            options
+        }
+
+        anykernel
+        toolchain
+        clang
+        kernel
     }
 
-    # An essential variable is not defined
-    function die_20() {
-        exit 20
-    }
-
-    # Incorrect definition of an variable
-    function die_21() {
-        exit 21
-    }
-
-    # Incompatible variable configuration
-    function die_22() {
-        exit 22
-    }
-
-    # Kernel compilation is unsuccessful
-    function die_30() {
-        exit 30
-    }
-}
-
-function package_checker() {
-    if [ "$USE_CCACHE" = 1 ]; then
-        if ! command -v ccache > /dev/null 2>&1; then
-            printf "\n%bccache not found.%b\n\n" "\033[1;31m" "\033[0;37m"
-            die_10
-        fi
-    fi
-
-    if ! command -v git > /dev/null 2>&1; then
-        printf "\n%bgit not found.%b\n\n" "\033[1;31m" "\033[0;37m"
-        die_10
-    fi
-
-    if [ "$ZIP_BUILDER" = 1 ]; then
-        if ! command -v zip > /dev/null 2>&1; then
-            printf "\n%bzip not found.%b\n\n" "\033[1;31m" "\033[0;37m"
-            die_10
-        fi
-    fi
+    ESSENTIAL_VARIABLES
+    SCRIPT_VARIABLES
+    OPTIONAL_VARIABLES
 }
 
 function additional_variables() {
     red='\033[1;31m'
     green='\033[1;32m'
     white='\033[1;37m'
-    cyan='\033[1;36m'
     darkwhite='\033[0;37m'
     ak_clone_depth=1
     tc_clone_depth=1
     kl_clone_depth=10
     current_date=$(date +'%Y%m%d')
-
-    if [ "$USE_CCACHE" = 1 ]; then
-        ccache_loc=$(command -v ccache)
-    fi
-
-    if [ -z "$KERNEL_BUILD_USER" ]; then
-        idkme=$(id -un)
-    fi
-
-    if [ -z "$KERNEL_BUILD_HOST" ]; then
-        idkmy=$(uname -n)
-    fi
-
     clg=bad
     out=and
     sde=boujee
@@ -169,39 +131,62 @@ function additional_variables() {
     cg_dir="$HOME"/${CLANG_DIR}
     kl_dir="$HOME"/${KERNEL_DIR}
     out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
-    sde_file="$HOME"/${KERNEL_DIR}/arch/arm64/crypto/built-in.o
-    sde_file_2="$HOME"/${KERNEL_DIR}/arch/arm64/kernel/built-in.o
+    sde_file="$HOME"/${KERNEL_DIR}/scripts/kconfig/conf.o
     ak_kl_img="$HOME"/${AK_DIR}/zImage
     out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
     sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
 }
 
+function die_codes() {
+
+    die_10() {
+        # Package not found
+        exit 10
+    }
+
+    die_20() {
+        printf "\n%bYou did not define all building essential variables.\nExit code: 20.%b\n\n" "$red" "$darkwhite"
+        exit 20
+    }
+
+    die_21() {
+        # Incorrect definition of an variable
+        exit 21
+    }
+
+    die_22() {
+        # Incompatible variable configuration
+        exit 22
+    }
+
+    die_30() {
+        printf "\n%bUnexpected path issue.\nExit code: 30.%b\n\n" "$red" "$darkwhite"
+        exit 30
+    }
+
+    die_40() {
+        printf "\n%bThe kernel was not compiled correctly, check the log for errors.%b\n\n" "$red" "$darkwhite"
+        exit 40
+    }
+}
+
 function configuration_checker() {
 
-    function undefined_variables_check() {
-        if [ -z "$AK_DIR" ] || [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || [ -z "$KERNEL_NAME" ] || [ -z "$KERNEL_ARCH" ]; then
-            printf "\n%bYou did not define all required variables.%b\n\n" "$red" "$darkwhite"
+    undefined_variables_check() {
+        if [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || \
+        [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || \
+        [ -z "$KERNEL_NAME" ] || [ -z "$KERNEL_ARCH" ]; then
             die_20
         fi
     }
 
-    function slash_check() {
-        akd_first_char=$(printf "%s" "$AK_DIR" | cut -c -1)
-        akd_last_char=$(printf "%s" "$AK_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
+    slash_check() {
         tcd_first_char=$(printf "%s" "$TOOLCHAIN_DIR" | cut -c -1)
         tcd_last_char=$(printf "%s" "$TOOLCHAIN_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
         kld_first_char=$(printf "%s" "$KERNEL_DIR" | cut -c -1)
         kld_last_char=$(printf "%s" "$KERNEL_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
         kldo_first_char=$(printf "%s" "$KERNEL_OUTPUT_DIR" | cut -c -1)
         kldo_last_char=$(printf "%s" "$KERNEL_OUTPUT_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
-
-        if [ "$akd_first_char" = "/" ]; then
-            printf "\n%bRemove the first slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
-            die_21
-        elif [ "$akd_last_char" = "/" ]; then
-            printf "\n%bRemove the last slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
-            die_21
-        fi
 
         if [ "$tcd_first_char" = "/" ]; then
             printf "\n%bRemove the first slash (/) in TOOLCHAIN_DIR variable.%b\n\n" "$red" "$darkwhite"
@@ -227,6 +212,19 @@ function configuration_checker() {
             die_21
         fi
 
+        if [ -n "$AK_DIR" ]; then
+            akd_first_char=$(printf "%s" "$AK_DIR" | cut -c -1)
+            akd_last_char=$(printf "%s" "$AK_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
+
+            if [ "$akd_first_char" = "/" ]; then
+                printf "\n%bRemove the first slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
+                die_21
+            elif [ "$akd_last_char" = "/" ]; then
+                printf "\n%bRemove the last slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
+                die_21
+            fi
+        fi
+
         if [ -n "$CLANG_DIR" ]; then
             cgd_first_char=$(printf "%s" "$CLANG_DIR" | cut -c -1)
             cgd_last_char=$(printf "%s" "$CLANG_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
@@ -241,9 +239,9 @@ function configuration_checker() {
         fi
     }
 
-    function incorrect_variables_check() {
+    incorrect_variables_check() {
         if [ "$KERNEL_ARCH" != "arm64" ] && [ "$KERNEL_ARCH" != "arm" ]; then
-            printf "\n%bIncorrect kernel arch defined.%b\n\n" "$red" "$darkwhite"
+            printf "\n%bIncorrect input for KERNEL_ARCH variable.%b\n\n" "$red" "$darkwhite"
             die_21
         fi
 
@@ -251,29 +249,36 @@ function configuration_checker() {
             printf "\n%bYou cannot make standalone compilation with Clang...%b\n\n" "$red" "$darkwhite"
             die_22
         fi
+
+        if [ "$ZIP_BUILDER" = 1 ] && [ -z "$AK_DIR" ]; then
+            printf "\n%bZip builder is enabled, but AnyKernel is not defined...%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
     }
 
-    function missing_and_undefined_variables_check() {
-        if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
-            printf "\n%bAnyKernel is missing but you did not define its repo and branch variables.%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-
+    missing_and_undefined_variables_check() {
         if [ ! -d "$tc_dir" ] && [ -z "$TOOLCHAIN_REPO" ] && [ -z "$TOOLCHAIN_BRANCH" ]; then
-            printf "\n%bToolchain is missing but you did not define its repo and branch variables.%b\n\n" "$red" "$darkwhite"
+            printf "\n%bToolchain is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
             die_22
         fi
 
-        if [ -n "$CLANG_DIR" ]; then
-            if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
-                printf "\n%bClang is missing but you did not define its repo and branch variables.%b\n\n" "$red" "$darkwhite"
+        if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
+            printf "\n%bKernel is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ -n "$AK_DIR" ]; then
+            if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
+                printf "\n%bAnyKernel is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
                 die_22
             fi
         fi
 
-        if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
-            printf "\n%bKernel is missing but you did not define its repo and branch variables.%b\n\n" "$red" "$darkwhite"
-            die_22
+        if [ -n "$CLANG_DIR" ]; then
+            if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
+                printf "\n%bClang is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
+                die_22
+            fi
         fi
     }
 
@@ -283,222 +288,306 @@ function configuration_checker() {
     missing_and_undefined_variables_check
 }
 
+function package_checker() {
+
+    ccache_binary() {
+        if [ "$USE_CCACHE" = 1 ]; then
+            if ! command -v ccache > /dev/null 2>&1; then
+                printf "\n%bccache not found.%b\n\n" "$red" "$darkwhite"
+                die_10
+            fi
+        fi
+    }
+
+    git_binary() {
+        if [ -n "$AK_REPO" ] || [ -n "$AK_BRANCH" ] || \
+        [ -n "$TOOLCHAIN_REPO" ] || [ -n "$TOOLCHAIN_BRANCH" ] || \
+        [ -n "$CLANG_REPO" ] || [ -n "$CLANG_BRANCH" ] || \
+        [ -n "$KERNEL_REPO" ] || [ -n "$KERNEL_BRANCH" ]; then
+            if ! command -v git > /dev/null 2>&1; then
+                printf "\n%bgit not found.%b\n\n" "$red" "$darkwhite"
+                die_10
+            fi
+        fi
+    }
+
+    zip_binary() {
+        if [ "$ZIP_BUILDER" = 1 ]; then
+            if ! command -v zip > /dev/null 2>&1; then
+                printf "\n%bzip not found.%b\n\n" "$red" "$darkwhite"
+                die_10
+            fi
+        fi
+    }
+
+    ccache_binary
+    git_binary
+    zip_binary
+}
+
 function cloning() {
-    if [ "$ALWAYS_DELETE_AND_CLONE_AK" = 1 ]; then
-        if [ -d "$ak_dir" ]; then
-            rm -rf "${ak_dir}"
-        fi
-    fi
-    if [ ! -d "$ak_dir" ]; then
-        if [ -n "$AK_NAME" ]; then
-            printf "\n%bCloning %b%s...%b\n" "$white" "$cyan" "$AK_NAME" "$darkwhite"
-        else
-            printf "\n%bCloning AnyKernel...%b\n" "$white" "$darkwhite"
-        fi
-        git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "${ak_dir}"
-    fi
 
-    if [ ! -d "$tc_dir" ] && [ ! -d "$cg_dir" ]; then
-        if [ -n "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
-            printf "\n%bCloning %b%s %b+ %b%s...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
-        elif [ -n "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
-            printf "\n%bCloning %b%s %b+ Clang...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$white" "$darkwhite"
-        elif [ -z "$TOOLCHAIN_NAME" ] && [ -n "$CLANG_NAME" ]; then
-            printf "\n%bCloning toolchain + %b%s...%b\n" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
-        elif [ -z "$TOOLCHAIN_NAME" ] && [ -z "$CLANG_NAME" ]; then
-            printf "\n%bCloning the toolchains...%b\n" "$white" "$darkwhite"
+    anykernel() {
+        if [ -n "$AK_DIR" ]; then
+            if [ ! -d "$ak_dir" ]; then
+                printf "\n%bCloning AnyKernel...%b\n" "$white" "$darkwhite"
+                git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "${ak_dir}"
+            fi
         fi
-        git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
-        git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
-    elif [ ! -d "$tc_dir" ]; then
-        if [ -n "$TOOLCHAIN_NAME" ]; then
-            printf "\n%bCloning %b%s...%b\n" "$white" "$cyan" "$TOOLCHAIN_NAME" "$darkwhite"
-        else
+    }
+
+    toolchain() {
+        if [ ! -d "$tc_dir" ]; then
             printf "\n%bCloning the toolchain...%b\n" "$white" "$darkwhite"
+            git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
         fi
-        git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
-    elif [ ! -d "$cg_dir" ]; then
-        if [ -n "$CLANG_NAME" ]; then
-            printf "\n%bCloning %b%s...%b\n" "$white" "$cyan" "$CLANG_NAME" "$darkwhite"
-        else
-            printf "\n%bCloning Clang...%b\n" "$white" "$darkwhite"
-        fi
-        git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
-    fi
+    }
 
-    if [ "$ALWAYS_DELETE_AND_CLONE_KERNEL" = 1 ]; then
-        if [ -d "$kl_dir" ]; then
-            rm -rf "${kl_dir}"
-            rm -rf "${out_dir}"
+    clang() {
+        if [ -n "$CLANG_DIR" ]; then
+            if [ ! -d "$cg_dir" ]; then
+                printf "\n%bCloning Clang...%b\n" "$white" "$darkwhite"
+                git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
+            fi
         fi
-    fi
-    if [ ! -d "$kl_dir" ]; then
-        printf "\n%bCloning %b%s...%b\n" "$white" "$cyan" "$KERNEL_NAME" "$darkwhite"
-        if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
-            git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
-        else
-            git clone --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
+    }
+
+    kernel() {
+        if [ ! -d "$kl_dir" ]; then
+            printf "\n%bCloning the kernel...%b\n" "$white" "$darkwhite"
+            if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
+                git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
+            else
+                git clone --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
+            fi
         fi
-    fi
+    }
+
+    anykernel
+    toolchain
+    clang
+    kernel
 }
 
 function choices() {
-    if [ "$ASK_FOR_CLEAN_BUILD" = 1 ]; then
-        if [ -d "$out_dir" ]; then
-            printf "\n%bClean from previous build?%b\n" "$white" "$darkwhite"
-            select yn1 in "Yes" "No"; do
-                case $yn1 in
-                    Yes )
-                        rm -rf "${out_dir}"
-                        break;;
-                    No ) break;;
-                esac
-            done
-        elif [ -f "$sde_file" ] || [ -f "$sde_file_2" ]; then
-            printf "\n%bClean from previous build?%b\n" "$white" "$darkwhite"
-            select yn1 in "Yes" "No"; do
-                case $yn1 in
-                    Yes )
-                        cd "${kl_dir}"
-                        make clean
-                        make mrproper
-                        break;;
-                    No ) break;;
-                esac
-            done
-        fi
-    fi
 
-    if [ -n "$CLANG_DIR" ]; then
-        clg=1
-        if [ -n "$CLANG_NAME" ]; then
-            printf "\n%b%s detected, starting compilation.%b\n" "$white" "$CLANG_NAME" "$darkwhite"
-        else
-            printf "\n%bClang detected, starting compilation.%b\n" "$white" "$darkwhite"
+    clean_build() {
+        if [ "$ASK_FOR_CLEAN_BUILD" = 1 ]; then
+            if [ -d "$out_dir" ]; then
+                printf "\n%bClean from previous build?%b\n" "$white" "$darkwhite"
+                select yn1 in "Yes" "No"; do
+                    case $yn1 in
+                        Yes )
+                            rm -rf "${out_dir}"
+                            break;;
+                        No ) break;;
+                    esac
+                done
+            elif [ -f "$sde_file" ]; then
+                printf "\n%bClean from previous build?%b\n" "$white" "$darkwhite"
+                select yn1 in "Yes" "No"; do
+                    case $yn1 in
+                        Yes )
+                            cd "${kl_dir}" || die_30
+                            make clean
+                            make mrproper
+                            break;;
+                        No ) break;;
+                    esac
+                done
+            fi
         fi
-    elif [ "$STANDALONE_COMPILATION" = 0 ]; then
-        out=1
-        printf "\n%bStarting output folder compilation.%b\n" "$white" "$darkwhite"
-    else
-        sde=1
-        printf "\n%bStarting standalone compilation.%b\n" "$white" "$darkwhite"
-    fi
-    echo
+    }
+
+    compilation_method() {
+        if [ -n "$CLANG_DIR" ]; then
+            clg=1
+            printf "\n%bClang detected, starting compilation.%b\n" "$white" "$darkwhite"
+        elif [ "$STANDALONE_COMPILATION" = 0 ]; then
+            out=1
+            printf "\n%bStarting output folder compilation.%b\n" "$white" "$darkwhite"
+        else
+            sde=1
+            printf "\n%bStarting standalone compilation.%b\n" "$white" "$darkwhite"
+        fi
+
+        printf "\n"
+    }
+
+    clean_build
+    compilation_method
 }
 
 function automatic_configuration() {
-    if [ "$KERNEL_ARCH" = "arm64" ]; then
-        kernel_subarch=arm64
-    else
-        kernel_subarch=arm
-    fi
 
-    cd "${tc_dir}"/lib/gcc
-    cd -- *
-    tc_prefix=$(basename "$PWD")-
+    set_subarch() {
+        if [ "$KERNEL_ARCH" = "arm64" ]; then
+            kernel_subarch=arm64
+        else
+            kernel_subarch=arm
+        fi
+    }
+
+    get_toolchain_prefix() {
+        cd "${tc_dir}"/lib/gcc || die_30
+        cd -- * || die_30
+        tc_prefix=$(basename "$PWD")-
+    }
+
+    ccache_path() {
+        if [ "$USE_CCACHE" = 1 ]; then
+            ccache_loc=$(command -v ccache)
+        fi
+    }
+
+    user() {
+        if [ -z "$KERNEL_BUILD_USER" ]; then
+            idkme=$(id -un)
+        fi
+    }
+
+    host() {
+        if [ -z "$KERNEL_BUILD_HOST" ]; then
+            idkmy=$(uname -n)
+        fi
+    }
+
+    set_subarch
+    get_toolchain_prefix
+    ccache_path
+    user
+    host
+}
+
+function time_log_start1() {
+    start1=$(date +'%s')
 }
 
 function compilation() {
-    start1=$(date +'%s')
-    if [ "$clg" = 1 ]; then
-        cd "${kl_dir}"
 
-        if [ -n "$KERNEL_BUILD_USER" ]; then
-            export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
-        else
-            export KBUILD_BUILD_USER=${idkme}
-        fi
-        if [ -n "$KERNEL_BUILD_HOST" ]; then
-            export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
-        else
-            export KBUILD_BUILD_HOST=${idkmy}
-        fi
-        if [ -n "$KERNEL_LOCALVERSION" ]; then
-            export LOCALVERSION=${KERNEL_LOCALVERSION}
-        fi
-        export ARCH=${KERNEL_ARCH}
-        export SUBARCH=${kernel_subarch}
+    clang() {
+        if [ "$clg" = 1 ]; then
+            cd "${kl_dir}" || die_30
 
-        make O="${out_dir}" \
-            ARCH=${KERNEL_ARCH} \
-            ${KERNEL_DEFCONFIG}
+            if [ -n "$KERNEL_BUILD_USER" ]; then
+                export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
+            else
+                export KBUILD_BUILD_USER=${idkme}
+            fi
 
-        if [ "$USE_CCACHE" = 1 ]; then
-            cgp="${ccache_loc} ${cg_dir}/bin:${tc_dir}/bin:${PATH}" \
+            if [ -n "$KERNEL_BUILD_HOST" ]; then
+                export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
+            else
+                export KBUILD_BUILD_HOST=${idkmy}
+            fi
+
+            if [ -n "$KERNEL_LOCALVERSION" ]; then
+                export LOCALVERSION=${KERNEL_LOCALVERSION}
+            fi
+
+            export ARCH=${KERNEL_ARCH}
+            export SUBARCH=${kernel_subarch}
+
             make O="${out_dir}" \
                 ARCH=${KERNEL_ARCH} \
-                CC=clang \
-                CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
-                CROSS_COMPILE="${tc_prefix}" \
-                -j"$(nproc --all)"
-        else
-            cgp="${cg_dir}/bin:${tc_dir}/bin:${PATH}" \
+                ${KERNEL_DEFCONFIG}
+
+            if [ "$USE_CCACHE" = 1 ]; then
+                cpaths="${ccache_loc} ${cg_dir}/bin:${tc_dir}/bin:${PATH}"
+            else
+                cpaths="${cg_dir}/bin:${tc_dir}/bin:${PATH}"
+            fi
+
+            tc_paths=${cpaths} \
             make O="${out_dir}" \
                 ARCH=${KERNEL_ARCH} \
-                CC=clang \
-                CLANG_TRIPLE=${CLANG_DIR_PREFIX} \
+                CC=${CLANG_BIN} \
+                CLANG_TRIPLE=${CLANG_PREFIX} \
                 CROSS_COMPILE="${tc_prefix}" \
                 -j"$(nproc --all)"
         fi
-    elif [ "$out" = 1 ]; then
-        cd "${kl_dir}"
+    }
 
-        if [ -n "$KERNEL_BUILD_USER" ]; then
-            export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
-        else
-            export KBUILD_BUILD_USER=${idkme}
-        fi
-        if [ -n "$KERNEL_BUILD_HOST" ]; then
-            export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
-        else
-            export KBUILD_BUILD_HOST=${idkmy}
-        fi
-        if [ -n "$KERNEL_LOCALVERSION" ]; then
-            export LOCALVERSION=${KERNEL_LOCALVERSION}
-        fi
-        export ARCH=${KERNEL_ARCH}
-        export SUBARCH=${kernel_subarch}
-        if [ "$USE_CCACHE" = 1 ]; then
-            export CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${tc_prefix}"
-        else
-            export CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
-        fi
+    output_folder() {
+        if [ "$out" = 1 ]; then
+            cd "${kl_dir}" || die_30
 
-        make O="${out_dir}" \
-            ARCH=${KERNEL_ARCH} \
-            ${KERNEL_DEFCONFIG}
+            if [ -n "$KERNEL_BUILD_USER" ]; then
+                export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
+            else
+                export KBUILD_BUILD_USER=${idkme}
+            fi
 
-        make O="${out_dir}" \
-            ARCH=${KERNEL_ARCH} \
-            -j"$(nproc --all)"
-    elif [ "$sde" = 1 ]; then
-        cd "${kl_dir}"
+            if [ -n "$KERNEL_BUILD_HOST" ]; then
+                export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
+            else
+                export KBUILD_BUILD_HOST=${idkmy}
+            fi
 
-        if [ -n "$KERNEL_BUILD_USER" ]; then
-            export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
-        else
-            export KBUILD_BUILD_USER=${idkme}
-        fi
-        if [ -n "$KERNEL_BUILD_HOST" ]; then
-            export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
-        else
-            export KBUILD_BUILD_HOST=${idkmy}
-        fi
-        if [ -n "$KERNEL_LOCALVERSION" ]; then
-            export LOCALVERSION=${KERNEL_LOCALVERSION}
-        fi
-        export ARCH=${KERNEL_ARCH}
-        export SUBARCH=${kernel_subarch}
-        if [ "$USE_CCACHE" = 1 ]; then
-            CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${tc_prefix}"
-        else
-            CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
-        fi
+            if [ -n "$KERNEL_LOCALVERSION" ]; then
+                export LOCALVERSION=${KERNEL_LOCALVERSION}
+            fi
 
-        make ${KERNEL_DEFCONFIG}
+            export ARCH=${KERNEL_ARCH}
+            export SUBARCH=${kernel_subarch}
 
-        CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
-    fi
+            if [ "$USE_CCACHE" = 1 ]; then
+                export CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${tc_prefix}"
+            else
+                export CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
+            fi
+
+            make O="${out_dir}" \
+                ARCH=${KERNEL_ARCH} \
+                ${KERNEL_DEFCONFIG}
+
+            make O="${out_dir}" \
+                ARCH=${KERNEL_ARCH} \
+                -j"$(nproc --all)"
+        fi
+    }
+
+    standalone() {
+        if [ "$sde" = 1 ]; then
+            cd "${kl_dir}" || die_30
+
+            if [ -n "$KERNEL_BUILD_USER" ]; then
+                export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
+            else
+                export KBUILD_BUILD_USER=${idkme}
+            fi
+
+            if [ -n "$KERNEL_BUILD_HOST" ]; then
+                export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
+            else
+                export KBUILD_BUILD_HOST=${idkmy}
+            fi
+
+            if [ -n "$KERNEL_LOCALVERSION" ]; then
+                export LOCALVERSION=${KERNEL_LOCALVERSION}
+            fi
+
+            export ARCH=${KERNEL_ARCH}
+            export SUBARCH=${kernel_subarch}
+
+            if [ "$USE_CCACHE" = 1 ]; then
+                CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${tc_prefix}"
+            else
+                CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
+            fi
+
+            make ${KERNEL_DEFCONFIG}
+
+            CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
+        fi
+    }
+
+    clang
+    output_folder
+    standalone
+}
+
+function time_log_end1() {
     end1=$(date +'%s')
     comptime=$((end1-start1))
 }
@@ -512,8 +601,7 @@ function compilation_report() {
                 printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
             fi
         else
-            printf "\n%bThe kernel was not compiled correctly, check the log for errors.%b\n\n" "$red" "$darkwhite"
-            die_30
+            die_40
         fi
     elif [ "$sde" = 1 ]; then
         if [ -f "$sde_kl_img" ]; then
@@ -523,98 +611,50 @@ function compilation_report() {
                 printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
             fi
         else
-            printf "\n%bThe kernel was not compiled correctly, check the log for errors.%b\n\n" "$red" "$darkwhite"
-            die_30
+            die_40
         fi
     fi
 }
 
 function zip_builder() {
-    kernel_linux_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
 
-    if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-        cp "${out_kl_img}" "${ak_kl_img}"
-    elif [ "$sde" = 1 ]; then
-        cp "${sde_kl_img}" "${ak_kl_img}"
-    fi
-
-    if [ "$WLAN_KO_PACKER" = 1 ]; then 
-        printf "%bImage.gz-dtb copied.%b\n" "$green" "$darkwhite"
-    else
-        printf "%bImage.gz-dtb copied.%b\n\n" "$green" "$darkwhite"
-    fi
-
-    if [ "$WLAN_KO_PACKER" = 1 ]; then
+    copy_image() {
         if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-            cd "$(find "${out_dir}" -type d -name "HDD")"
-            cd ../..
-            if [ -f "wlan.ko" ]; then
-                wlan_ko_found1=1
-            else
-                wlan_ko_found1=0
-            fi
+            cp "${out_kl_img}" "${ak_kl_img}"
         elif [ "$sde" = 1 ]; then
-            cd "$(find "${kl_dir}" -type d -name "HDD")"
-            cd ../..
-            if [ -f "wlan.ko" ]; then
-                wlan_ko_found1=1
-            else
-                wlan_ko_found1=0
-            fi
+            cp "${sde_kl_img}" "${ak_kl_img}"
         fi
 
-        if [ "$wlan_ko_found1" = 0 ]; then
-            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                cd "$(find "${out_dir}" -type d -name "hdd")"
-                cd ../..
-                if [ -f "wlan.ko" ]; then
-                    wlan_ko_found2=1
-                else
-                    wlan_ko_found2=0
-                fi
-            elif [ "$sde" = 1 ]; then
-                cd "$(find "${kl_dir}" -type d -name "hdd")"
-                cd ../..
-                if [ -f "wlan.ko" ]; then
-                    wlan_ko_found2=1
-                else
-                    wlan_ko_found2=0
-                fi
-            fi
+        printf "%bImage.gz-dtb copied.%b\n\n" "$green" "$darkwhite"
+    }
+
+    remove_old_zip() {
+        if [ "$DELETE_OLD_ZIP_IN_AK" = 1 ]; then
+            rm -f "${ak_dir}"/*${KERNEL_NAME}*.zip
         fi
+    }
 
-        if [ "$wlan_ko_found1" = 1 ] || [ "$wlan_ko_found2" = 1 ]; then
-            cp wlan.ko "${ak_dir}"
-            printf "%bwlan.ko copied.%b\n\n" "$green" "$darkwhite"
-        else
-            printf "%bwlan.ko could not be detected. %bContinuing without it...%b\n\n" "$red" "$white" "$darkwhite"
-        fi
-    fi
+    filename() {
+        kernel_linux_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
 
-    if [ "$DELETE_OLD_ZIP_IN_AK" = 1 ]; then
-        rm -fv "${ak_dir}"/*${KERNEL_NAME}*.zip
-        printf "\n"
-    fi
-
-    function filename() {
         if [ -n "$CUSTOM_ZIP_NAME" ]; then
             filename="${CUSTOM_ZIP_NAME}.zip"
         else
             filename="${KERNEL_NAME}"
 
-            if [ -n "$KERNEL_VERSION" ]; then
-                filename="${filename}-${KERNEL_VERSION}"
+            if [ -n "$APPEND_VERSION" ]; then
+                filename="${filename}-${APPEND_VERSION}"
             fi
 
-            if [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
+            if [ "$APPEND_LINUX_VERSION" = 1 ]; then
                 filename="${filename}-${kernel_linux_version}"
             fi
 
-            if [ -n "$KERNEL_ANDROID_BASE_VERSION_IN_NAME" ]; then
-                filename="${filename}-${KERNEL_ANDROID_BASE_VERSION_IN_NAME}"
+            if [ -n "$APPEND_ANDROID_TARGET" ]; then
+                filename="${filename}-${APPEND_ANDROID_TARGET}"
             fi
 
-            if [ "$CURRENT_DATE_IN_NAME" = 1 ]; then
+            if [ "$APPEND_DATE" = 1 ]; then
                 filename="${filename}-${current_date}"
             fi
 
@@ -622,26 +662,23 @@ function zip_builder() {
         fi
     }
 
+    create_zip() {
+        printf "%bPacking the kernel...%b\n\n" "$white" "$darkwhite"
+
+        pushd "${ak_dir}" || die_30
+            zip -FSr9 "${filename}" ./* -x .git ./*.zip README.md
+        popd || die_30
+    }
+
+    copy_image
+    remove_old_zip
     filename
-
-    if [ "$KERNEL_LINUX_VERSION_IN_NAME" = 1 ]; then
-        printf "%b> Packing %b%s %s %bkernel...%b\n\n" "$white" "$cyan" "$KERNEL_NAME" "$kernel_linux_version" "$white" "$darkwhite"
-    else
-        printf "%b> Packing %b%s %bkernel...%b\n\n" "$white" "$cyan" "$KERNEL_NAME" "$white" "$darkwhite"
-    fi
-
-    pushd "${ak_dir}"
-        zip -FSr9 "${filename}" ./* -x .git *.zip README.md
-    popd
-    
-    if [ "$STATS" = 0 ]; then
-        echo
-    fi
+    create_zip
 }
 
 function stats() {
 
-    function convert_bytes() {
+    convert_bytes_func() {
         b=${1:-0}; d=''; s=0; S=(Bytes {K,M,G,T,P,E,Z,Y}B)
         while ((b > 1000)); do
             d="$(printf ".%02d" $((b % 1000 * 100 / 1000)))"
@@ -651,99 +688,135 @@ function stats() {
         echo "$b$d ${S[$s]}"
     }
 
-    if [ "$ZIP_BUILDER" = 1 ]; then
-        byteszip=$(wc -c < "${ak_dir}"/"${filename}")
-    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
-        bytesoutimg=$(wc -c < "${out_kl_img}")
-    else
-        bytessdeimg=$(wc -c < "${sde_kl_img}")
-    fi
-
-    if [ "$ZIP_BUILDER" = 1 ]; then
-        sizezip=$(convert_bytes "${byteszip}")
-    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
-        sizeoutimg=$(convert_bytes "${bytesoutimg}")
-    else
-        sizesdeimg=$(convert_bytes "${bytessdeimg}")
-    fi
-
-    comptimemin=$((comptime / 60))
-    comptimesec=$((comptime % 60))
-
-    echo
-
-    if [ -n "$KERNEL_BUILD_USER" ]; then
-        printf " %b> User: %s\n" "$white" "$KERNEL_BUILD_USER"
-    else
-        printf " %b> User: %s\n" "$white" "$idkme"
-    fi
-
-    if [ -n "$KERNEL_BUILD_HOST" ]; then
-        printf " %b> Host: %s\n" "$white" "$KERNEL_BUILD_HOST"
-    else
-        printf " %b> Host: %s\n" "$white" "$idkmy"
-    fi
-
-    if [ "$comptimemin" = 1 ] && [ "$comptimesec" = 1 ]; then
-        printf " %b> Compilation took: %d minute and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-    elif [ "$comptimemin" = 1 ] && [ "$comptimesec" != 1 ]; then
-        printf " %b> Compilation took: %d minute and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-    elif [ "$comptimemin" != 1 ] && [ "$comptimesec" = 1 ]; then
-        printf " %b> Compilation took: %d minutes and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-    elif [ "$comptimemin" != 1 ] && [ "$comptimesec" != 1 ]; then
-        printf " %b> Compilation took: %d minutes and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-    fi
-
-    if [ "$clg" = 1 ]; then
-        if [ "$USE_CCACHE" = 1 ]; then
-            printf " %b> Compilation details: out-%s-ccache\n\n" "$white" "$CLANG_BIN"
+    get_size_of_file_in_bytes() {
+        if [ "$ZIP_BUILDER" = 1 ]; then
+            byteszip=$(wc -c < "${ak_dir}"/"${filename}")
+        elif [ "$out" = 1 ]; then
+            bytesoutimg=$(wc -c < "${out_kl_img}")
         else
-            printf " %b> Compilation details: out-%s\n\n" "$white" "$CLANG_BIN"
+            bytessdeimg=$(wc -c < "${sde_kl_img}")
         fi
-    elif [ "$out" = 1 ]; then
-        if [ "$USE_CCACHE" = 1 ]; then
-            printf " %b> Compilation details: out-gcc-ccache\n\n" "$white"
-        else
-            printf " %b> Compilation details: out-gcc\n\n" "$white"
-        fi
-    elif [ "$sde" = 1 ]; then
-        if [ "$USE_CCACHE" = 1 ]; then
-            printf " %b> Compilation details: standalone-gcc-ccache\n\n" "$white"
-        else
-            printf " %b> Compilation details: standalone-gcc\n\n" "$white"
-        fi
-    fi
+    }
 
-    if [ "$ZIP_BUILDER" = 1 ]; then
-        printf " %b> File size: %s\n" "$white" "$sizezip"
-    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
-        printf " %b> Kernel image size: %s\n" "$white" "$sizeoutimg"
-    else
-        printf " %b> Kernel image size: %s\n" "$white" "$sizesdeimg"
-    fi
+    convert_bytes_of_file() {
+        if [ "$ZIP_BUILDER" = 1 ]; then
+            sizezip=$(convert_bytes_func "${byteszip}")
+        elif [ "$out" = 1 ]; then
+            sizeoutimg=$(convert_bytes_func "${bytesoutimg}")
+        else
+            sizesdeimg=$(convert_bytes_func "${bytessdeimg}")
+        fi
+    }
 
-    if [ "$ZIP_BUILDER" = 1 ]; then
-        printf " %b> File location: %s/%s\n" "$white" "$ak_dir" "$filename"
-    elif [ "$ZIP_BUILDER" = 0 ] && [ "$out" = 1 ]; then
-        printf " %b> Kernel image location: %s\n" "$white" "$out_kl_img"
-    else
-        printf " %b> Kernel image location: %s\n" "$white" "$sde_kl_img"
-    fi
+    localversion() {
+        printf "\n"
+
+        if [ -n "$KERNEL_LOCALVERSION" ]; then
+            printf "%b> LOCALVERSION: %s\n" "$white" "$KERNEL_LOCALVERSION"
+        fi
+    }
+
+    user() {
+        if [ -n "$KERNEL_BUILD_USER" ]; then
+            printf "%b> User: %s\n" "$white" "$KERNEL_BUILD_USER"
+        else
+            printf "%b> User: %s\n" "$white" "$idkme"
+        fi
+    }
+
+    host() {
+        if [ -n "$KERNEL_BUILD_HOST" ]; then
+            printf "%b> Host: %s\n" "$white" "$KERNEL_BUILD_HOST"
+        else
+            printf "%b> Host: %s\n" "$white" "$idkmy"
+        fi
+    }
+
+    compilation_time() {
+        comptimemin=$((comptime / 60))
+        comptimesec=$((comptime % 60))
+
+        if [ "$comptimemin" = 1 ] && [ "$comptimesec" = 1 ]; then
+            printf "%b> Compilation took: %d minute and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+        elif [ "$comptimemin" = 1 ] && [ "$comptimesec" != 1 ]; then
+            printf "%b> Compilation took: %d minute and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+        elif [ "$comptimemin" != 1 ] && [ "$comptimesec" = 1 ]; then
+            printf "%b> Compilation took: %d minutes and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+        elif [ "$comptimemin" != 1 ] && [ "$comptimesec" != 1 ]; then
+            printf "%b> Compilation took: %d minutes and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+        fi
+    }
+
+    compilation_details() {
+        if [ "$clg" = 1 ]; then
+            if [ "$USE_CCACHE" = 1 ]; then
+                printf "%b> Compilation details: out-%s-ccache\n" "$white" "$CLANG_BIN"
+            else
+                printf "%b> Compilation details: out-%s\n" "$white" "$CLANG_BIN"
+            fi
+        elif [ "$out" = 1 ]; then
+            if [ "$USE_CCACHE" = 1 ]; then
+                printf "%b> Compilation details: out-gcc-ccache\n" "$white"
+            else
+                printf "%b> Compilation details: out-gcc\n" "$white"
+            fi
+        elif [ "$sde" = 1 ]; then
+            if [ "$USE_CCACHE" = 1 ]; then
+                printf "%b> Compilation details: standalone-gcc-ccache\n" "$white"
+            else
+                printf "%b> Compilation details: standalone-gcc\n" "$white"
+            fi
+        fi
+    }
+
+    file_size() {
+        if [ "$ZIP_BUILDER" = 1 ]; then
+            printf "%b> Zip size: %s\n" "$white" "$sizezip"
+        elif [ "$out" = 1 ]; then
+            printf "%b> Image size: %s\n" "$white" "$sizeoutimg"
+        else
+            printf "%b> Image size: %s\n" "$white" "$sizesdeimg"
+        fi
+    }
+
+    file_location() {
+        if [ "$ZIP_BUILDER" = 1 ]; then
+            printf "%b> Zip location: %s/%s\n\n" "$white" "$ak_dir" "$filename"
+        elif [ "$out" = 1 ]; then
+            printf "%b> Image location: %s\n\n" "$white" "$out_kl_img"
+        else
+            printf "%b> Image location: %s\n\n" "$white" "$sde_kl_img"
+        fi
+    }
+
+    get_size_of_file_in_bytes
+    convert_bytes_of_file
+    localversion
+    user
+    host
+    compilation_time
+    compilation_details
+    file_size
+    file_location
 }
 
 variables
-die_codes
-package_checker
 additional_variables
+die_codes
 configuration_checker
+package_checker
 cloning
 choices
 automatic_configuration
+time_log_start1
 compilation
+time_log_end1
 compilation_report
+
 if [ "$ZIP_BUILDER" = 1 ]; then
     zip_builder
 fi
+
 if [ "$STATS" = 1 ]; then
     stats
 fi
