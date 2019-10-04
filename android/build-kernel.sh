@@ -180,6 +180,53 @@ function configuration_checker() {
         fi
     }
 
+    toggles_check() {
+        if [ "$STATS" != 0 ] && [ "$STATS" != 1 ]; then
+            printf "\n%bIncorrect STATS variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ "$USE_CCACHE" != 0 ] && [ "$USE_CCACHE" != 1 ]; then
+            printf "\n%bIncorrect USE_CCACHE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ "$ZIP_BUILDER" != 0 ] && [ "$ZIP_BUILDER" != 1 ]; then
+            printf "\n%bIncorrect ZIP_BUILDER variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ "$ASK_FOR_CLEAN_BUILD" != 0 ] && [ "$ASK_FOR_CLEAN_BUILD" != 1 ]; then
+            printf "\n%bIncorrect ASK_FOR_CLEAN_BUILD variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ "$DELETE_OLD_ZIP_IN_AK" != 0 ] && [ "$DELETE_OLD_ZIP_IN_AK" != 1 ]; then
+            printf "\n%bIncorrect DELETE_OLD_ZIP_IN_AK variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ "$RECURSIVE_KERNEL_CLONE" != 0 ] && [ "$RECURSIVE_KERNEL_CLONE" != 1 ]; then
+            printf "\n%bIncorrect RECURSIVE_KERNEL_CLONE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ "$STANDALONE_COMPILATION" != 0 ] && [ "$STANDALONE_COMPILATION" != 1 ]; then
+            printf "\n%bIncorrect STANDALONE_COMPILATION variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ "$APPEND_DATE" != 0 ] && [ "$APPEND_DATE" != 1 ]; then
+            printf "\n%bIncorrect APPEND_DATE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ "$APPEND_LINUX_VERSION" != 0 ] && [ "$APPEND_LINUX_VERSION" != 1 ]; then
+            printf "\n%bIncorrect APPEND_LINUX_VERSION variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+    }
+
     slash_check() {
         tcd_first_char=$(printf "%s" "$TOOLCHAIN_DIR" | cut -c -1)
         tcd_last_char=$(printf "%s" "$TOOLCHAIN_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
@@ -283,6 +330,7 @@ function configuration_checker() {
     }
 
     undefined_variables_check
+    toggles_check
     slash_check
     incorrect_variables_check
     missing_and_undefined_variables_check
