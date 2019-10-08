@@ -24,6 +24,12 @@ if [ $EUID = 0 ]; then
     exit 1
 fi
 
+abort() {
+    printf "\n\n%bThe script was forcefully aborted.\n\n" "\033[1;37m"
+    exit 1
+}
+trap abort SIGINT
+
 function variables() {
 
     ESSENTIAL_VARIABLES() {
