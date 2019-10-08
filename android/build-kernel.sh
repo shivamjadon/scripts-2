@@ -713,9 +713,8 @@ function zip_builder() {
     create_zip() {
         printf "%bPacking the kernel...%b\n\n" "$white" "$darkwhite"
 
-        pushd "${ak_dir}" || die_30
-            zip -FSr9 "${filename}" ./* -x .git ./*.zip README.md
-        popd || die_30
+        cd "${ak_dir}" || die_30
+        zip -FSr9 "${filename}" ./* -x .git ./*.zip README.md
     }
 
     copy_image
