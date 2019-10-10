@@ -456,16 +456,16 @@ function choices() {
     compilation_method() {
         if [ -n "$CLANG_DIR" ]; then
             clg=1
-            printf "\n%bClang detected, starting compilation.%b\n" "$white" "$darkwhite"
+            printf "\n%bClang detected, starting compilation.%b" "$white" "$darkwhite"
         elif [ "$STANDALONE_COMPILATION" = 0 ]; then
             out=1
-            printf "\n%bStarting output folder compilation.%b\n" "$white" "$darkwhite"
+            printf "\n%bStarting output folder compilation.%b" "$white" "$darkwhite"
         else
             sde=1
-            printf "\n%bStarting standalone compilation.%b\n" "$white" "$darkwhite"
+            printf "\n%bStarting standalone compilation.%b" "$white" "$darkwhite"
         fi
 
-        printf "\n"
+        printf "\n\n"
     }
 
     clean_build
