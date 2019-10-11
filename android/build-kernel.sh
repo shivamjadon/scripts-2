@@ -175,6 +175,11 @@ function die_codes() {
         exit 30
     }
 
+    die_31() {
+        printf "\n%bThe cloning of a source failed.\nExit code: 31.%b\n\n" "$red" "$darkwhite"
+        exit 31
+    }
+
     die_40() {
         printf "\n%bThe kernel was not compiled correctly, check the log for errors.%b\n\n" "$red" "$darkwhite"
         exit 40
@@ -461,10 +466,33 @@ function cloning() {
         fi
     }
 
+    check_directories() {
+        if [ -n "$AK_DIR" ]; then
+            if [ ! -d "$ak_dir" ]; then
+                die_31
+            fi
+        fi
+
+        if [ ! -d "$tc_dir" ]; then
+            die_31
+        fi
+
+        if [ -n "$CLANG_DIR" ]; then
+            if [ ! -d "$cg_dir" ]; then
+                die_31
+            fi
+        fi
+
+        if [ ! -d "$kl_dir" ]; then
+            die_31
+        fi
+    }
+
     anykernel
     toolchain
     clang
     kernel
+    check_directories
 }
 
 function choices() {
