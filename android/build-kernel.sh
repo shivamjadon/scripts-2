@@ -165,6 +165,11 @@ function die_codes() {
         exit 22
     }
 
+    die_23() {
+        printf "\n%bYou changed one or more variables' names.\nExit code: 23.%b\n\n" "$red" "$darkwhite"
+        exit 23
+    }
+
     die_30() {
         printf "\n%bUnexpected path issue.\nExit code: 30.%b\n\n" "$red" "$darkwhite"
         exit 30
@@ -177,6 +182,44 @@ function die_codes() {
 }
 
 function configuration_checker() {
+
+    changed_variables_check() {
+        if [ ! -v TOOLCHAIN_DIR ] || [ ! -v KERNEL_DIR ] || \
+        [ ! -v KERNEL_OUTPUT_DIR ] || [ ! -v KERNEL_DEFCONFIG ] || \
+        [ ! -v KERNEL_NAME ] || [ ! -v KERNEL_ARCH ]; then
+            die_23
+        fi
+
+        if [ ! -v STATS ] || [ ! -v USE_CCACHE ] || \
+        [ ! -v ZIP_BUILDER ] || [ ! -v ASK_FOR_CLEAN_BUILD ] || \
+        [ ! -v DELETE_OLD_ZIP_IN_AK ] || [ ! -v RECURSIVE_KERNEL_CLONE ] || \
+        [ ! -v STANDALONE_COMPILATION ]; then
+            die_23
+        fi
+
+        if [ ! -v AK_DIR ] || [ ! -v AK_REPO ] || \
+        [ ! -v AK_BRANCH ] || [ ! -v APPEND_DATE ] || \
+        [ ! -v APPEND_LINUX_VERSION ] || [ ! -v APPEND_VERSION ] || \
+        [ ! -v APPEND_ANDROID_TARGET ] || [ ! -v CUSTOM_ZIP_NAME ]; then
+            die_23
+        fi
+
+        if [ ! -v TOOLCHAIN_REPO ] || [ ! -v TOOLCHAIN_BRANCH ]; then
+            die_23
+        fi
+
+        if [ ! -v CLANG_DIR ] || [ ! -v CLANG_BIN ] || \
+        [ ! -v CLANG_PREFIX ] || [ ! -v CLANG_REPO ] || \
+        [ ! -v CLANG_BRANCH ]; then
+            die_23
+        fi
+
+        if [ ! -v KERNEL_REPO ] || [ ! -v KERNEL_BRANCH ] || \
+        [ ! -v KERNEL_BUILD_USER ] || [ ! -v KERNEL_BUILD_HOST ] || \
+        [ ! -v KERNEL_LOCALVERSION ]; then
+            die_23
+        fi
+    }
 
     undefined_variables_check() {
         if [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || \
@@ -335,6 +378,7 @@ function configuration_checker() {
         fi
     }
 
+    changed_variables_check
     undefined_variables_check
     toggles_check
     slash_check
