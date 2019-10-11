@@ -156,7 +156,7 @@ function die_codes() {
     }
 
     die_21() {
-        # Incorrect definition of an variable
+        # Incorrect definition of a variable
         exit 21
     }
 
