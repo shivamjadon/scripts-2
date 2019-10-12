@@ -26,7 +26,7 @@ fi
 
 abort() {
     printf "\n\n%bThe script was forcefully aborted.\n\n" "\033[1;37m"
-    exit 1
+    exit 130
 }
 trap abort SIGINT
 
