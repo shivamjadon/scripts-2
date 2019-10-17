@@ -106,6 +106,7 @@ function additional_variables() {
     green='\033[1;32m'
     white='\033[1;37m'
     darkwhite='\033[0;37m'
+    cyan='\033[1;36m'
     ak_clone_depth=1
     tc_clone_depth=1
     kl_clone_depth=10
@@ -729,17 +730,121 @@ function time_log_end1() {
 function compilation_report() {
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
         if [ -f "$out_kl_img" ]; then
-            printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
+            printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
         else
             die_40
         fi
     elif [ "$sde" = 1 ]; then
         if [ -f "$sde_kl_img" ]; then
-            printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
+            printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
         else
             die_40
         fi
     fi
+}
+
+function stats() {
+
+    convert_bytes_func() {
+        b=${1:-0}; d=''; s=0; S=(Bytes {K,M,G,T,P,E,Z,Y}B)
+        while ((b > 1000)); do
+            d="$(printf ".%02d" $((b % 1000 * 100 / 1000)))"
+            b=$((b / 1000))
+            (( s++ ))
+        done
+        echo "$b$d ${S[$s]}"
+    }
+
+    get_size_of_image_in_bytes() {
+        if [ "$out" = 1 ]; then
+            bytesoutimg=$(wc -c < "${out_kl_img}")
+        else
+            bytessdeimg=$(wc -c < "${sde_kl_img}")
+        fi
+    }
+
+    convert_bytes_of_image() {
+        if [ "$out" = 1 ]; then
+            sizeoutimg=$(convert_bytes_func "${bytesoutimg}")
+        else
+            sizesdeimg=$(convert_bytes_func "${bytessdeimg}")
+        fi
+    }
+
+    kernel_stats() {
+        printf "%b> Defconfig: %s\n" "$white" "$KERNEL_DEFCONFIG"
+
+        if [ -n "$KERNEL_LOCALVERSION" ]; then
+            printf "%b> Localversion: %s\n" "$white" "$KERNEL_LOCALVERSION"
+        fi
+
+        if [ -n "$KERNEL_BUILD_USER" ]; then
+            printf "%b> User: %s\n" "$white" "$KERNEL_BUILD_USER"
+        else
+            printf "%b> User: %s\n" "$white" "$idkme"
+        fi
+
+        if [ -n "$KERNEL_BUILD_HOST" ]; then
+            printf "%b> Host: %s\n" "$white" "$KERNEL_BUILD_HOST"
+        else
+            printf "%b> Host: %s\n" "$white" "$idkmy"
+        fi
+    }
+
+    compilation_stats() {
+        comptimemin=$((comptime / 60))
+        comptimesec=$((comptime % 60))
+
+        if [ "$comptimemin" = 1 ] && [ "$comptimesec" = 1 ]; then
+            printf "%b> Compilation took: %d minute and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+        elif [ "$comptimemin" = 1 ] && [ "$comptimesec" != 1 ]; then
+            printf "%b> Compilation took: %d minute and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+        elif [ "$comptimemin" != 1 ] && [ "$comptimesec" = 1 ]; then
+            printf "%b> Compilation took: %d minutes and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+        elif [ "$comptimemin" != 1 ] && [ "$comptimesec" != 1 ]; then
+            printf "%b> Compilation took: %d minutes and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
+        fi
+
+        if [ "$clg" = 1 ]; then
+            if [ "$USE_CCACHE" = 1 ]; then
+                printf "%b> Compilation details: out-%s-ccache\n" "$white" "$CLANG_BIN"
+            else
+                printf "%b> Compilation details: out-%s\n" "$white" "$CLANG_BIN"
+            fi
+        elif [ "$out" = 1 ]; then
+            if [ "$USE_CCACHE" = 1 ]; then
+                printf "%b> Compilation details: out-gcc-ccache\n" "$white"
+            else
+                printf "%b> Compilation details: out-gcc\n" "$white"
+            fi
+        elif [ "$sde" = 1 ]; then
+            if [ "$USE_CCACHE" = 1 ]; then
+                printf "%b> Compilation details: standalone-gcc-ccache\n" "$white"
+            else
+                printf "%b> Compilation details: standalone-gcc\n" "$white"
+            fi
+        fi
+    }
+
+    image_stats() {
+        if [ "$out" = 1 ]; then
+            printf "%b> Image size: %s\n" "$white" "$sizeoutimg"
+        else
+            printf "%b> Image size: %s\n" "$white" "$sizesdeimg"
+        fi
+
+        if [ "$out" = 1 ]; then
+            printf "%b> Image location: %s\n\n" "$white" "$out_kl_img"
+        else
+            printf "%b> Image location: %s\n\n" "$white" "$sde_kl_img"
+        fi
+    }
+
+    get_size_of_image_in_bytes
+    convert_bytes_of_image
+    kernel_stats
+    compilation_stats
+    image_stats
 }
 
 function zip_builder() {
@@ -750,8 +855,6 @@ function zip_builder() {
         elif [ "$sde" = 1 ]; then
             cp "${sde_kl_img}" "${ak_kl_img}"
         fi
-
-        printf "%bImage.gz-dtb copied.%b\n\n" "$green" "$darkwhite"
     }
 
     remove_old_zip() {
@@ -789,145 +892,32 @@ function zip_builder() {
     }
 
     create_zip() {
-        printf "%bPacking the kernel...%b\n\n" "$white" "$darkwhite"
+        printf "%bPacking the kernel...%b\n\n" "$cyan" "$darkwhite"
 
         cd "${ak_dir}" || die_30
-        zip -FSr9 "${filename}" ./* -x .git ./*.zip README.md
+        zip -qFSr9 "${filename}" ./* -x .git ./*.zip README.md
+    }
+
+    get_size_of_zip_in_bytes() {
+        byteszip=$(wc -c < "${ak_dir}"/"${filename}")
+    }
+
+    convert_bytes_of_zip() {
+        sizezip=$(convert_bytes_func "${byteszip}")
+    }
+
+    zip_stats() {
+        printf "%b> Zip size: %s\n" "$white" "$sizezip"
+        printf "%b> Zip location: %s/%s\n\n" "$white" "$ak_dir" "$filename"
     }
 
     copy_image
     remove_old_zip
     filename
     create_zip
-}
-
-function stats() {
-
-    convert_bytes_func() {
-        b=${1:-0}; d=''; s=0; S=(Bytes {K,M,G,T,P,E,Z,Y}B)
-        while ((b > 1000)); do
-            d="$(printf ".%02d" $((b % 1000 * 100 / 1000)))"
-            b=$((b / 1000))
-            (( s++ ))
-        done
-        echo "$b$d ${S[$s]}"
-    }
-
-    get_size_of_file_in_bytes() {
-        if [ "$ZIP_BUILDER" = 1 ]; then
-            byteszip=$(wc -c < "${ak_dir}"/"${filename}")
-        elif [ "$out" = 1 ]; then
-            bytesoutimg=$(wc -c < "${out_kl_img}")
-        else
-            bytessdeimg=$(wc -c < "${sde_kl_img}")
-        fi
-    }
-
-    convert_bytes_of_file() {
-        if [ "$ZIP_BUILDER" = 1 ]; then
-            sizezip=$(convert_bytes_func "${byteszip}")
-        elif [ "$out" = 1 ]; then
-            sizeoutimg=$(convert_bytes_func "${bytesoutimg}")
-        else
-            sizesdeimg=$(convert_bytes_func "${bytessdeimg}")
-        fi
-    }
-
-    localversion() {
-        printf "\n"
-
-        if [ -n "$KERNEL_LOCALVERSION" ]; then
-            printf "%b> LOCALVERSION: %s\n" "$white" "$KERNEL_LOCALVERSION"
-        fi
-    }
-
-    defconfig() {
-        printf "%b> Defconfig: %s\n" "$white" "$KERNEL_DEFCONFIG"
-    }
-
-    user() {
-        if [ -n "$KERNEL_BUILD_USER" ]; then
-            printf "%b> User: %s\n" "$white" "$KERNEL_BUILD_USER"
-        else
-            printf "%b> User: %s\n" "$white" "$idkme"
-        fi
-    }
-
-    host() {
-        if [ -n "$KERNEL_BUILD_HOST" ]; then
-            printf "%b> Host: %s\n" "$white" "$KERNEL_BUILD_HOST"
-        else
-            printf "%b> Host: %s\n" "$white" "$idkmy"
-        fi
-    }
-
-    compilation_time() {
-        comptimemin=$((comptime / 60))
-        comptimesec=$((comptime % 60))
-
-        if [ "$comptimemin" = 1 ] && [ "$comptimesec" = 1 ]; then
-            printf "%b> Compilation took: %d minute and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-        elif [ "$comptimemin" = 1 ] && [ "$comptimesec" != 1 ]; then
-            printf "%b> Compilation took: %d minute and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-        elif [ "$comptimemin" != 1 ] && [ "$comptimesec" = 1 ]; then
-            printf "%b> Compilation took: %d minutes and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-        elif [ "$comptimemin" != 1 ] && [ "$comptimesec" != 1 ]; then
-            printf "%b> Compilation took: %d minutes and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-        fi
-    }
-
-    compilation_details() {
-        if [ "$clg" = 1 ]; then
-            if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: out-%s-ccache\n" "$white" "$CLANG_BIN"
-            else
-                printf "%b> Compilation details: out-%s\n" "$white" "$CLANG_BIN"
-            fi
-        elif [ "$out" = 1 ]; then
-            if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: out-gcc-ccache\n" "$white"
-            else
-                printf "%b> Compilation details: out-gcc\n" "$white"
-            fi
-        elif [ "$sde" = 1 ]; then
-            if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: standalone-gcc-ccache\n" "$white"
-            else
-                printf "%b> Compilation details: standalone-gcc\n" "$white"
-            fi
-        fi
-    }
-
-    file_size() {
-        if [ "$ZIP_BUILDER" = 1 ]; then
-            printf "%b> Zip size: %s\n" "$white" "$sizezip"
-        elif [ "$out" = 1 ]; then
-            printf "%b> Image size: %s\n" "$white" "$sizeoutimg"
-        else
-            printf "%b> Image size: %s\n" "$white" "$sizesdeimg"
-        fi
-    }
-
-    file_location() {
-        if [ "$ZIP_BUILDER" = 1 ]; then
-            printf "%b> Zip location: %s/%s\n\n" "$white" "$ak_dir" "$filename"
-        elif [ "$out" = 1 ]; then
-            printf "%b> Image location: %s\n\n" "$white" "$out_kl_img"
-        else
-            printf "%b> Image location: %s\n\n" "$white" "$sde_kl_img"
-        fi
-    }
-
-    get_size_of_file_in_bytes
-    convert_bytes_of_file
-    localversion
-    defconfig
-    user
-    host
-    compilation_time
-    compilation_details
-    file_size
-    file_location
+    get_size_of_zip_in_bytes
+    convert_bytes_of_zip
+    zip_stats
 }
 
 variables
@@ -944,9 +934,8 @@ time_log_start1
 compilation
 time_log_end1
 compilation_report
+stats
 
 if [ "$ZIP_BUILDER" = 1 ]; then
     zip_builder
 fi
-
-stats
