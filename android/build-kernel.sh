@@ -165,7 +165,7 @@ function die_codes() {
     }
 
     die_20() {
-        printf "\n%bYou did not define all building essential variables.\nExit code: 20.%b\n\n" "$red" "$darkwhite"
+        printf "\n%bYou did not define all building essential variables.%b\n\n" "$red" "$darkwhite"
         exit 20
     }
 
@@ -180,17 +180,17 @@ function die_codes() {
     }
 
     die_23() {
-        printf "\n%bYou changed one or more variables' names.\nExit code: 23.%b\n\n" "$red" "$darkwhite"
+        printf "\n%bYou changed one or more variables' names.%b\n\n" "$red" "$darkwhite"
         exit 23
     }
 
     die_30() {
-        printf "\n%bUnexpected path issue.\nExit code: 30.%b\n\n" "$red" "$darkwhite"
+        printf "\n%bUnexpected path issue.%b\n\n" "$red" "$darkwhite"
         exit 30
     }
 
     die_31() {
-        printf "\n%bThe cloning of a source failed.\nExit code: 31.%b\n\n" "$red" "$darkwhite"
+        printf "\n%bThe cloning of a source failed.%b\n\n" "$red" "$darkwhite"
         exit 31
     }
 
