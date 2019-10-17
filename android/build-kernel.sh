@@ -42,7 +42,6 @@ function variables() {
     }
 
     SCRIPT_VARIABLES() {
-        STATS=0
         USE_CCACHE=0
         ZIP_BUILDER=0
         ASK_FOR_CLEAN_BUILD=0
@@ -195,10 +194,9 @@ function configuration_checker() {
             die_23
         fi
 
-        if [ ! -v STATS ] || [ ! -v USE_CCACHE ] || \
-        [ ! -v ZIP_BUILDER ] || [ ! -v ASK_FOR_CLEAN_BUILD ] || \
-        [ ! -v DELETE_OLD_ZIP_IN_AK ] || [ ! -v RECURSIVE_KERNEL_CLONE ] || \
-        [ ! -v STANDALONE_COMPILATION ]; then
+        if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ] || \
+        [ ! -v ASK_FOR_CLEAN_BUILD ] || [ ! -v DELETE_OLD_ZIP_IN_AK ] || \
+        [ ! -v RECURSIVE_KERNEL_CLONE ] || [ ! -v STANDALONE_COMPILATION ]; then
             die_23
         fi
 
@@ -235,11 +233,6 @@ function configuration_checker() {
     }
 
     toggles_check() {
-        if [ "$STATS" != 0 ] && [ "$STATS" != 1 ]; then
-            printf "\n%bIncorrect STATS variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-
         if [ "$USE_CCACHE" != 0 ] && [ "$USE_CCACHE" != 1 ]; then
             printf "\n%bIncorrect USE_CCACHE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             die_22
@@ -721,21 +714,13 @@ function time_log_end1() {
 function compilation_report() {
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
         if [ -f "$out_kl_img" ]; then
-            if [ "$STATS" = 0 ] && [ "$ZIP_BUILDER" = 0 ]; then
-                printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
-            else
-                printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
-            fi
+            printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
         else
             die_40
         fi
     elif [ "$sde" = 1 ]; then
         if [ -f "$sde_kl_img" ]; then
-            if [ "$STATS" = 0 ] && [ "$ZIP_BUILDER" = 0 ]; then
-                printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
-            else
-                printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
-            fi
+            printf "\n%bThe kernel is compiled successfully!%b\n" "$green" "$darkwhite"
         else
             die_40
         fi
@@ -942,6 +927,4 @@ if [ "$ZIP_BUILDER" = 1 ]; then
     zip_builder
 fi
 
-if [ "$STATS" = 1 ]; then
-    stats
-fi
+stats
