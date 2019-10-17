@@ -12,18 +12,6 @@
  *
 notice
 
-bash_ver=${BASH_VERSION}
-bash_ver_cut=$(printf "%s" "$bash_ver" | cut -c -1)
-if [ "$bash_ver_cut" = "2" ] || [ "$bash_ver_cut" = "3" ]; then
-    printf "\n%bThis script requires bash 4+%b\n\n" "\033[1;31m" "\033[0;37m"
-    exit 1
-fi
-
-if [ $EUID = 0 ]; then
-    printf "\n%bYou should not run this script as root.%b\n\n" "\033[1;31m" "\033[0;37m"
-    exit 1
-fi
-
 function variables() {
 
     ESSENTIAL_VARIABLES() {
@@ -134,6 +122,29 @@ function additional_variables() {
     ak_kl_img="$HOME"/${AK_DIR}/zImage
     out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
     sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+}
+
+function env_checks() {
+
+    bash_check() {
+        bash_ver=${BASH_VERSION}
+        bash_ver_cut=$(printf "%s" "$bash_ver" | cut -c -1)
+
+        if [ "$bash_ver_cut" = "2" ] || [ "$bash_ver_cut" = "3" ]; then
+            printf "\n%bThis script requires bash 4+%b\n\n" "\033[1;31m" "\033[0;37m"
+            exit 1
+        fi
+    }
+
+    root_check() {
+        if [ $EUID = 0 ]; then
+            printf "\n%bYou should not run this script as root.%b\n\n" "\033[1;31m" "\033[0;37m"
+            exit 1
+        fi
+    }
+
+    bash_check
+    root_check
 }
 
 function traps() {
@@ -916,6 +927,7 @@ function stats() {
 
 variables
 additional_variables
+env_checks
 traps
 die_codes
 configuration_checker
