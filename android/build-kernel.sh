@@ -24,12 +24,6 @@ if [ $EUID = 0 ]; then
     exit 1
 fi
 
-abort() {
-    printf "\n\n%bThe script was forcefully aborted.\n\n" "\033[1;37m"
-    exit 130
-}
-trap abort SIGINT
-
 function variables() {
 
     ESSENTIAL_VARIABLES() {
@@ -140,6 +134,16 @@ function additional_variables() {
     ak_kl_img="$HOME"/${AK_DIR}/zImage
     out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
     sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+}
+
+function traps() {
+
+    abort() {
+        printf "\n\n%bThe script was forcefully aborted.\n\n" "\033[1;37m"
+        exit 130
+    }
+
+    trap abort SIGINT
 }
 
 function die_codes() {
@@ -912,6 +916,7 @@ function stats() {
 
 variables
 additional_variables
+traps
 die_codes
 configuration_checker
 package_checker
