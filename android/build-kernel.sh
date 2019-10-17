@@ -841,6 +841,10 @@ function stats() {
         fi
     }
 
+    defconfig() {
+        printf "%b> Defconfig: %s\n" "$white" "$KERNEL_DEFCONFIG"
+    }
+
     user() {
         if [ -n "$KERNEL_BUILD_USER" ]; then
             printf "%b> User: %s\n" "$white" "$KERNEL_BUILD_USER"
@@ -917,6 +921,7 @@ function stats() {
     get_size_of_file_in_bytes
     convert_bytes_of_file
     localversion
+    defconfig
     user
     host
     compilation_time
