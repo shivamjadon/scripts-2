@@ -429,7 +429,7 @@ function cloning() {
     anykernel() {
         if [ -n "$AK_DIR" ]; then
             if [ ! -d "$ak_dir" ]; then
-                printf "\n%bCloning AnyKernel...%b\n" "$white" "$darkwhite"
+                printf "\n%bStarting clone of AK with depth %d...%b\n" "$white" "$ak_clone_depth" "$darkwhite"
                 git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "${ak_dir}"
             fi
         fi
@@ -437,7 +437,7 @@ function cloning() {
 
     toolchain() {
         if [ ! -d "$tc_dir" ]; then
-            printf "\n%bCloning the toolchain...%b\n" "$white" "$darkwhite"
+            printf "\n%bStarting clone of the toolchain with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
             git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
         fi
     }
@@ -445,7 +445,7 @@ function cloning() {
     clang() {
         if [ -n "$CLANG_DIR" ]; then
             if [ ! -d "$cg_dir" ]; then
-                printf "\n%bCloning Clang...%b\n" "$white" "$darkwhite"
+                printf "\n%bStarting clone of Clang with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
                 git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
             fi
         fi
@@ -453,7 +453,7 @@ function cloning() {
 
     kernel() {
         if [ ! -d "$kl_dir" ]; then
-            printf "\n%bCloning the kernel...%b\n" "$white" "$darkwhite"
+            printf "\n%bStarting clone of the kernel with depth %d...%b\n" "$white" "$kl_clone_depth" "$darkwhite"
             if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
                 git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
             else
