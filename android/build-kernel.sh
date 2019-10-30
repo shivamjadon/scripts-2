@@ -26,7 +26,6 @@ function variables() {
     SCRIPT_VARIABLES() {
         USE_CCACHE=0
         ZIP_BUILDER=0
-        ASK_FOR_CLEAN_BUILD=0
         DELETE_OLD_ZIP_IN_AK=0
         RECURSIVE_KERNEL_CLONE=0
         STANDALONE_COMPILATION=0
@@ -119,7 +118,6 @@ function additional_variables() {
     cg_dir="$HOME"/${CLANG_DIR}
     kl_dir="$HOME"/${KERNEL_DIR}
     out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
-    sde_file="$HOME"/${KERNEL_DIR}/scripts/kconfig/conf.o
     ak_kl_img="$HOME"/${AK_DIR}/zImage
     out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
     sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
@@ -211,8 +209,8 @@ function configuration_checker() {
         fi
 
         if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ] || \
-        [ ! -v ASK_FOR_CLEAN_BUILD ] || [ ! -v DELETE_OLD_ZIP_IN_AK ] || \
-        [ ! -v RECURSIVE_KERNEL_CLONE ] || [ ! -v STANDALONE_COMPILATION ]; then
+        [ ! -v DELETE_OLD_ZIP_IN_AK ] || [ ! -v RECURSIVE_KERNEL_CLONE ] || \
+        [ ! -v STANDALONE_COMPILATION ]; then
             die_23
         fi
 
@@ -256,11 +254,6 @@ function configuration_checker() {
 
         if [ "$ZIP_BUILDER" != 0 ] && [ "$ZIP_BUILDER" != 1 ]; then
             printf "\n%bIncorrect ZIP_BUILDER variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-
-        if [ "$ASK_FOR_CLEAN_BUILD" != 0 ] && [ "$ASK_FOR_CLEAN_BUILD" != 1 ]; then
-            printf "\n%bIncorrect ASK_FOR_CLEAN_BUILD variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             die_22
         fi
 
@@ -506,34 +499,6 @@ function cloning() {
 
 function choices() {
 
-    clean_build() {
-        if [ "$ASK_FOR_CLEAN_BUILD" = 1 ]; then
-            if [ -d "$out_dir" ]; then
-                printf "\n%bClean from previous build?%b\n" "$white" "$darkwhite"
-                select yn1 in "Yes" "No"; do
-                    case $yn1 in
-                        Yes )
-                            rm -rf "${out_dir}"
-                            break;;
-                        No ) break;;
-                    esac
-                done
-            elif [ -f "$sde_file" ]; then
-                printf "\n%bClean from previous build?%b\n" "$white" "$darkwhite"
-                select yn1 in "Yes" "No"; do
-                    case $yn1 in
-                        Yes )
-                            cd "${kl_dir}" || die_30
-                            make clean
-                            make mrproper
-                            break;;
-                        No ) break;;
-                    esac
-                done
-            fi
-        fi
-    }
-
     compilation_method() {
         if [ -n "$CLANG_DIR" ]; then
             clg=1
@@ -549,7 +514,6 @@ function choices() {
         printf "\n\n"
     }
 
-    clean_build
     compilation_method
 }
 
