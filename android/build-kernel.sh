@@ -42,10 +42,9 @@ function variables() {
                 AK_BRANCH=
             }
             zip_filename_variables() {
-                APPEND_DATE=0
-                APPEND_LINUX_VERSION=0
                 APPEND_VERSION=
                 APPEND_ANDROID_TARGET=
+                APPEND_DATE=0
                 CUSTOM_ZIP_NAME=
             }
             essential_variables
@@ -215,9 +214,9 @@ function configuration_checker() {
         fi
 
         if [ ! -v AK_DIR ] || [ ! -v AK_REPO ] || \
-        [ ! -v AK_BRANCH ] || [ ! -v APPEND_DATE ] || \
-        [ ! -v APPEND_LINUX_VERSION ] || [ ! -v APPEND_VERSION ] || \
-        [ ! -v APPEND_ANDROID_TARGET ] || [ ! -v CUSTOM_ZIP_NAME ]; then
+        [ ! -v AK_BRANCH ] || [ ! -v APPEND_VERSION ] || \
+        [ ! -v APPEND_ANDROID_TARGET ] || [ ! -v APPEND_DATE ] || \
+        [ ! -v CUSTOM_ZIP_NAME ]; then
             die_23
         fi
 
@@ -274,11 +273,6 @@ function configuration_checker() {
 
         if [ "$APPEND_DATE" != 0 ] && [ "$APPEND_DATE" != 1 ]; then
             printf "\n%bIncorrect APPEND_DATE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-
-        if [ "$APPEND_LINUX_VERSION" != 0 ] && [ "$APPEND_LINUX_VERSION" != 1 ]; then
-            printf "\n%bIncorrect APPEND_LINUX_VERSION variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             die_22
         fi
     }
@@ -828,8 +822,6 @@ function zip_builder() {
     }
 
     filename() {
-        kernel_linux_version=$(head -n3 Makefile | sed -E 's/.*(^\w+\s[=]\s)//g' | xargs | sed -E 's/(\s)/./g')
-
         if [ -n "$CUSTOM_ZIP_NAME" ]; then
             filename="${CUSTOM_ZIP_NAME}.zip"
         else
@@ -837,10 +829,6 @@ function zip_builder() {
 
             if [ -n "$APPEND_VERSION" ]; then
                 filename="${filename}-${APPEND_VERSION}"
-            fi
-
-            if [ "$APPEND_LINUX_VERSION" = 1 ]; then
-                filename="${filename}-${kernel_linux_version}"
             fi
 
             if [ -n "$APPEND_ANDROID_TARGET" ]; then
