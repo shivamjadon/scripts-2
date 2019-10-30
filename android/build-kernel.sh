@@ -28,7 +28,7 @@ function variables() {
         ZIP_BUILDER=0
         DELETE_OLD_ZIP_IN_AK=0
         RECURSIVE_KERNEL_CLONE=0
-        STANDALONE_COMPILATION=0
+        NORMAL_COMPILATION=0
     }
 
     OPTIONAL_VARIABLES() {
@@ -111,7 +111,7 @@ function additional_variables() {
     current_date=$(date +'%Y%m%d')
     clg=bad
     out=and
-    sde=boujee
+    nml=boujee
     ak_dir="$HOME"/${AK_DIR}
     tc_dir="$HOME"/${TOOLCHAIN_DIR}
     cg_dir="$HOME"/${CLANG_DIR}
@@ -119,7 +119,7 @@ function additional_variables() {
     out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
     ak_kl_img="$HOME"/${AK_DIR}/zImage
     out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
-    sde_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+    nml_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
 }
 
 function env_checks() {
@@ -209,7 +209,7 @@ function configuration_checker() {
 
         if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ] || \
         [ ! -v DELETE_OLD_ZIP_IN_AK ] || [ ! -v RECURSIVE_KERNEL_CLONE ] || \
-        [ ! -v STANDALONE_COMPILATION ]; then
+        [ ! -v NORMAL_COMPILATION ]; then
             die_23
         fi
 
@@ -266,8 +266,8 @@ function configuration_checker() {
             die_22
         fi
 
-        if [ "$STANDALONE_COMPILATION" != 0 ] && [ "$STANDALONE_COMPILATION" != 1 ]; then
-            printf "\n%bIncorrect STANDALONE_COMPILATION variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+        if [ "$NORMAL_COMPILATION" != 0 ] && [ "$NORMAL_COMPILATION" != 1 ]; then
+            printf "\n%bIncorrect NORMAL_COMPILATION variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             die_22
         fi
 
@@ -342,8 +342,8 @@ function configuration_checker() {
             die_21
         fi
 
-        if [ -n "$CLANG_DIR" ] && [ "$STANDALONE_COMPILATION" = 1 ]; then
-            printf "\n%bYou cannot make standalone compilation with Clang...%b\n\n" "$red" "$darkwhite"
+        if [ -n "$CLANG_DIR" ] && [ "$NORMAL_COMPILATION" = 1 ]; then
+            printf "\n%bYou cannot make normal compilation with Clang...%b\n\n" "$red" "$darkwhite"
             die_22
         fi
 
@@ -497,12 +497,12 @@ function choices() {
         if [ -n "$CLANG_DIR" ]; then
             clg=1
             printf "\n%bClang detected, starting compilation.%b" "$white" "$darkwhite"
-        elif [ "$STANDALONE_COMPILATION" = 0 ]; then
+        elif [ "$NORMAL_COMPILATION" = 0 ]; then
             out=1
             printf "\n%bStarting output folder compilation.%b" "$white" "$darkwhite"
         else
-            sde=1
-            printf "\n%bStarting standalone compilation.%b" "$white" "$darkwhite"
+            nml=1
+            printf "\n%bStarting normal compilation.%b" "$white" "$darkwhite"
         fi
 
         printf "\n\n"
@@ -640,8 +640,8 @@ function compilation() {
         fi
     }
 
-    standalone() {
-        if [ "$sde" = 1 ]; then
+    normal() {
+        if [ "$nml" = 1 ]; then
             cd "${kl_dir}" || die_30
 
             if [ -n "$KERNEL_BUILD_USER" ]; then
@@ -677,7 +677,7 @@ function compilation() {
 
     clang
     output_folder
-    standalone
+    normal
 }
 
 function time_log_end1() {
@@ -692,8 +692,8 @@ function compilation_report() {
         else
             die_40
         fi
-    elif [ "$sde" = 1 ]; then
-        if [ -f "$sde_kl_img" ]; then
+    elif [ "$nml" = 1 ]; then
+        if [ -f "$nml_kl_img" ]; then
             printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
         else
             die_40
@@ -717,7 +717,7 @@ function stats() {
         if [ "$out" = 1 ]; then
             bytesoutimg=$(wc -c < "${out_kl_img}")
         else
-            bytessdeimg=$(wc -c < "${sde_kl_img}")
+            bytesnmlimg=$(wc -c < "${nml_kl_img}")
         fi
     }
 
@@ -725,7 +725,7 @@ function stats() {
         if [ "$out" = 1 ]; then
             sizeoutimg=$(convert_bytes_func "${bytesoutimg}")
         else
-            sizesdeimg=$(convert_bytes_func "${bytessdeimg}")
+            sizenmlimg=$(convert_bytes_func "${bytesnmlimg}")
         fi
     }
 
@@ -775,11 +775,11 @@ function stats() {
             else
                 printf "%b> Compilation details: out-gcc\n" "$white"
             fi
-        elif [ "$sde" = 1 ]; then
+        elif [ "$nml" = 1 ]; then
             if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: standalone-gcc-ccache\n" "$white"
+                printf "%b> Compilation details: normal-gcc-ccache\n" "$white"
             else
-                printf "%b> Compilation details: standalone-gcc\n" "$white"
+                printf "%b> Compilation details: normal-gcc\n" "$white"
             fi
         fi
     }
@@ -788,13 +788,13 @@ function stats() {
         if [ "$out" = 1 ]; then
             printf "%b> Image size: %s\n" "$white" "$sizeoutimg"
         else
-            printf "%b> Image size: %s\n" "$white" "$sizesdeimg"
+            printf "%b> Image size: %s\n" "$white" "$sizenmlimg"
         fi
 
         if [ "$out" = 1 ]; then
             printf "%b> Image location: %s\n\n" "$white" "$out_kl_img"
         else
-            printf "%b> Image location: %s\n\n" "$white" "$sde_kl_img"
+            printf "%b> Image location: %s\n\n" "$white" "$nml_kl_img"
         fi
     }
 
@@ -810,8 +810,8 @@ function zip_builder() {
     copy_image() {
         if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
             cp "${out_kl_img}" "${ak_kl_img}"
-        elif [ "$sde" = 1 ]; then
-            cp "${sde_kl_img}" "${ak_kl_img}"
+        elif [ "$nml" = 1 ]; then
+            cp "${nml_kl_img}" "${ak_kl_img}"
         fi
     }
 
