@@ -43,6 +43,7 @@ function variables() {
             }
             zip_filename_variables() {
                 APPEND_VERSION=
+                APPEND_DEVICE=
                 APPEND_ANDROID_TARGET=
                 APPEND_DATE=0
                 CUSTOM_ZIP_NAME=
@@ -215,8 +216,8 @@ function configuration_checker() {
 
         if [ ! -v AK_DIR ] || [ ! -v AK_REPO ] || \
         [ ! -v AK_BRANCH ] || [ ! -v APPEND_VERSION ] || \
-        [ ! -v APPEND_ANDROID_TARGET ] || [ ! -v APPEND_DATE ] || \
-        [ ! -v CUSTOM_ZIP_NAME ]; then
+        [ ! -v APPEND_DEVICE ] || [ ! -v APPEND_ANDROID_TARGET ] || \
+        [ ! -v APPEND_DATE ] || [ ! -v CUSTOM_ZIP_NAME ]; then
             die_23
         fi
 
@@ -829,6 +830,10 @@ function zip_builder() {
 
             if [ -n "$APPEND_VERSION" ]; then
                 filename="${filename}-${APPEND_VERSION}"
+            fi
+
+            if [ -n "$APPEND_DEVICE" ]; then
+                filename="${filename}-${APPEND_DEVICE}"
             fi
 
             if [ -n "$APPEND_ANDROID_TARGET" ]; then
