@@ -26,7 +26,6 @@ function variables() {
     SCRIPT_VARIABLES() {
         USE_CCACHE=0
         ZIP_BUILDER=0
-        DELETE_OLD_ZIP_IN_AK=0
         RECURSIVE_KERNEL_CLONE=0
         NORMAL_COMPILATION=0
     }
@@ -209,8 +208,7 @@ function configuration_checker() {
         fi
 
         if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ] || \
-        [ ! -v DELETE_OLD_ZIP_IN_AK ] || [ ! -v RECURSIVE_KERNEL_CLONE ] || \
-        [ ! -v NORMAL_COMPILATION ]; then
+        [ ! -v RECURSIVE_KERNEL_CLONE ] || [ ! -v NORMAL_COMPILATION ]; then
             die_23
         fi
 
@@ -254,11 +252,6 @@ function configuration_checker() {
 
         if [ "$ZIP_BUILDER" != 0 ] && [ "$ZIP_BUILDER" != 1 ]; then
             printf "\n%bIncorrect ZIP_BUILDER variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-
-        if [ "$DELETE_OLD_ZIP_IN_AK" != 0 ] && [ "$DELETE_OLD_ZIP_IN_AK" != 1 ]; then
-            printf "\n%bIncorrect DELETE_OLD_ZIP_IN_AK variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             die_22
         fi
 
@@ -817,9 +810,7 @@ function zip_builder() {
     }
 
     remove_old_zip() {
-        if [ "$DELETE_OLD_ZIP_IN_AK" = 1 ]; then
-            rm -f "${ak_dir}"/*${KERNEL_NAME}*.zip
-        fi
+        rm -f "${ak_dir}"/*${KERNEL_NAME}*.zip
     }
 
     filename() {
