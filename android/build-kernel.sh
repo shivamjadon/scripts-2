@@ -117,7 +117,7 @@ function additional_variables() {
     cg_dir="$HOME"/${CLANG_DIR}
     kl_dir="$HOME"/${KERNEL_DIR}
     out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
-    ak_kl_img="$HOME"/${AK_DIR}/zImage
+    ak_kl_img="$HOME"/${AK_DIR}/Image.gz-dtb
     out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
     nml_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
 }
