@@ -810,7 +810,7 @@ function zip_builder() {
     }
 
     remove_old_zip() {
-        rm -f "${ak_dir}"/*${KERNEL_NAME}*.zip
+        rm -f "${ak_dir}"/${KERNEL_NAME}*.zip
     }
 
     filename() {
