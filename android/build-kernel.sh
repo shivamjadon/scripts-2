@@ -19,7 +19,6 @@ function variables() {
         KERNEL_DIR=
         KERNEL_OUTPUT_DIR=
         KERNEL_DEFCONFIG=
-        KERNEL_NAME=
         KERNEL_ARCH=
     }
 
@@ -35,6 +34,7 @@ function variables() {
         anykernel() {
             essential_variables() {
                 AK_DIR=
+                KERNEL_NAME=
             }
             remote_variables() {
                 AK_REPO=
@@ -198,7 +198,7 @@ function configuration_checker() {
     changed_variables_check() {
         if [ ! -v TOOLCHAIN_DIR ] || [ ! -v KERNEL_DIR ] || \
         [ ! -v KERNEL_OUTPUT_DIR ] || [ ! -v KERNEL_DEFCONFIG ] || \
-        [ ! -v KERNEL_NAME ] || [ ! -v KERNEL_ARCH ]; then
+        [ ! -v KERNEL_ARCH ]; then
             die_23
         fi
 
@@ -207,10 +207,11 @@ function configuration_checker() {
             die_23
         fi
 
-        if [ ! -v AK_DIR ] || [ ! -v AK_REPO ] || \
-        [ ! -v AK_BRANCH ] || [ ! -v APPEND_VERSION ] || \
-        [ ! -v APPEND_DEVICE ] || [ ! -v APPEND_ANDROID_TARGET ] || \
-        [ ! -v APPEND_DATE ] || [ ! -v CUSTOM_ZIP_NAME ]; then
+        if [ ! -v AK_DIR ] || [ ! -v KERNEL_NAME ] || \
+        [ ! -v AK_REPO ] || [ ! -v AK_BRANCH ] || \
+        [ ! -v APPEND_VERSION ] || [ ! -v APPEND_DEVICE ] || \
+        [ ! -v APPEND_ANDROID_TARGET ] || [ ! -v APPEND_DATE ] || \
+        [ ! -v CUSTOM_ZIP_NAME ]; then
             die_23
         fi
 
@@ -234,7 +235,7 @@ function configuration_checker() {
     undefined_variables_check() {
         if [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || \
         [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || \
-        [ -z "$KERNEL_NAME" ] || [ -z "$KERNEL_ARCH" ]; then
+        [ -z "$KERNEL_ARCH" ]; then
             die_20
         fi
     }
@@ -338,6 +339,11 @@ function configuration_checker() {
 
         if [ "$ZIP_BUILDER" = 1 ] && [ -z "$AK_DIR" ]; then
             printf "\n%bZip builder is enabled, but AnyKernel is not defined...%b\n\n" "$red" "$darkwhite"
+            die_22
+        fi
+
+        if [ "$ZIP_BUILDER" = 1 ] && [ -z "$KERNEL_NAME" ]; then
+            printf "\n%bKERNEL_NAME is not defined...%b\n\n" "$red" "$darkwhite"
             die_22
         fi
     }
