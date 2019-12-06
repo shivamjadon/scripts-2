@@ -592,6 +592,8 @@ function compilation() {
                 CLANG_TRIPLE=${CLANG_PREFIX} \
                 CROSS_COMPILE="${tc_prefix}" \
                 -j"$(nproc --all)"
+
+            makeexit1=$(printf "%d" "$?")
         fi
     }
 
@@ -631,6 +633,8 @@ function compilation() {
             make O="${out_dir}" \
                 ARCH=${KERNEL_ARCH} \
                 -j"$(nproc --all)"
+
+            makeexit2=$(printf "%d" "$?")
         fi
     }
 
@@ -666,6 +670,8 @@ function compilation() {
             make ${KERNEL_DEFCONFIG}
 
             CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
+
+            makeexit3=$(printf "%d" "$?")
         fi
     }
 
@@ -680,6 +686,20 @@ function time_log_end1() {
 }
 
 function compilation_report() {
+    if [ "$clg" = 1 ]; then
+        if [ "$makeexit1" != 0 ]; then
+            die_40
+        fi
+    elif [ "$out" = 1 ]; then
+        if [ "$makeexit2" != 0 ]; then
+            die_40
+        fi
+    elif [ "$nml" = 1 ]; then
+        if [ "$makeexit3" != 0 ]; then
+            die_40
+        fi
+    fi
+
     if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
         if [ -f "$out_kl_img" ]; then
             printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
