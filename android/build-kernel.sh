@@ -158,23 +158,13 @@ function traps() {
 function die_codes() {
 
     die_20() {
-        printf "\n%bYou did not define all building essential variables.%b\n\n" "$red" "$darkwhite"
+        printf "\n%bYou changed one or more variables' names.%b\n\n" "$red" "$darkwhite"
         exit 20
     }
 
     die_21() {
-        # Incorrect definition of a variable
+        printf "\n%bYou did not define all essential variables for the current configuration.%b\n\n" "$red" "$darkwhite"
         exit 21
-    }
-
-    die_22() {
-        # Incompatible variable configuration
-        exit 22
-    }
-
-    die_23() {
-        printf "\n%bYou changed one or more variables' names.%b\n\n" "$red" "$darkwhite"
-        exit 23
     }
 
     die_30() {
@@ -195,16 +185,16 @@ function die_codes() {
 
 function configuration_checker() {
 
-    changed_variables_check() {
+    changed_variables() {
         if [ ! -v TOOLCHAIN_DIR ] || [ ! -v KERNEL_DIR ] || \
         [ ! -v KERNEL_OUTPUT_DIR ] || [ ! -v KERNEL_DEFCONFIG ] || \
         [ ! -v KERNEL_ARCH ]; then
-            die_23
+            die_20
         fi
 
         if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ] || \
         [ ! -v RECURSIVE_KERNEL_CLONE ] || [ ! -v NORMAL_COMPILATION ]; then
-            die_23
+            die_20
         fi
 
         if [ ! -v AK_DIR ] || [ ! -v KERNEL_NAME ] || \
@@ -212,62 +202,117 @@ function configuration_checker() {
         [ ! -v APPEND_VERSION ] || [ ! -v APPEND_DEVICE ] || \
         [ ! -v APPEND_ANDROID_TARGET ] || [ ! -v APPEND_DATE ] || \
         [ ! -v CUSTOM_ZIP_NAME ]; then
-            die_23
+            die_20
         fi
 
         if [ ! -v TOOLCHAIN_REPO ] || [ ! -v TOOLCHAIN_BRANCH ]; then
-            die_23
+            die_20
         fi
 
         if [ ! -v CLANG_DIR ] || [ ! -v CLANG_BIN ] || \
         [ ! -v CLANG_PREFIX ] || [ ! -v CLANG_REPO ] || \
         [ ! -v CLANG_BRANCH ]; then
-            die_23
+            die_20
         fi
 
         if [ ! -v KERNEL_REPO ] || [ ! -v KERNEL_BRANCH ] || \
         [ ! -v KERNEL_BUILD_USER ] || [ ! -v KERNEL_BUILD_HOST ] || \
         [ ! -v KERNEL_LOCALVERSION ]; then
-            die_23
-        fi
-    }
-
-    undefined_variables_check() {
-        if [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || \
-        [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || \
-        [ -z "$KERNEL_ARCH" ]; then
             die_20
         fi
     }
 
-    toggles_check() {
+    undefined_variables() {
+        if [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || \
+        [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || \
+        [ -z "$KERNEL_ARCH" ]; then
+            die_21
+        fi
+
+        if [ -n "$AK_DIR" ]; then
+            if [ -z "$KERNEL_NAME" ]; then
+                die_21
+            fi
+        fi
+
+        if [ -n "$CLANG_DIR" ]; then
+            if [ -z "$CLANG_BIN" ] || [ -z "$CLANG_PREFIX" ]; then
+                die_21
+            fi
+        fi
+    }
+
+    missing_variables() {
+        if [ ! -d "$tc_dir" ] && [ -z "$TOOLCHAIN_REPO" ] && [ -z "$TOOLCHAIN_BRANCH" ]; then
+            printf "\n%bToolchain is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+
+        if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
+            printf "\n%bKernel is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+
+        if [ -n "$AK_DIR" ]; then
+            if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
+                printf "\n%bAnyKernel is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
+                exit 1
+            fi
+        fi
+
+        if [ -n "$CLANG_DIR" ]; then
+            if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
+                printf "\n%bClang is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
+                exit 1
+            fi
+        fi
+    }
+
+    incorrect_variables() {
+        if [ "$KERNEL_ARCH" != "arm64" ] && [ "$KERNEL_ARCH" != "arm" ]; then
+            printf "\n%bIncorrect input for KERNEL_ARCH variable.%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+
+        if [ "$ZIP_BUILDER" = 1 ] && [ -z "$AK_DIR" ]; then
+            printf "\n%bZip builder is enabled, but AK directory is not defined...%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+
+        if [ -n "$CLANG_DIR" ] && [ "$NORMAL_COMPILATION" = 1 ]; then
+            printf "\n%bYou cannot do normal compilation with Clang.%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+    }
+
+    check_the_toggles() {
         if [ "$USE_CCACHE" != 0 ] && [ "$USE_CCACHE" != 1 ]; then
             printf "\n%bIncorrect USE_CCACHE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            die_22
+            exit 1
         fi
 
         if [ "$ZIP_BUILDER" != 0 ] && [ "$ZIP_BUILDER" != 1 ]; then
             printf "\n%bIncorrect ZIP_BUILDER variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            die_22
+            exit 1
         fi
 
         if [ "$RECURSIVE_KERNEL_CLONE" != 0 ] && [ "$RECURSIVE_KERNEL_CLONE" != 1 ]; then
             printf "\n%bIncorrect RECURSIVE_KERNEL_CLONE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            die_22
+            exit 1
         fi
 
         if [ "$NORMAL_COMPILATION" != 0 ] && [ "$NORMAL_COMPILATION" != 1 ]; then
             printf "\n%bIncorrect NORMAL_COMPILATION variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            die_22
+            exit 1
         fi
 
         if [ "$APPEND_DATE" != 0 ] && [ "$APPEND_DATE" != 1 ]; then
             printf "\n%bIncorrect APPEND_DATE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            die_22
+            exit 1
         fi
     }
 
-    slash_check() {
+    check_for_slash() {
         tcd_first_char=$(printf "%s" "$TOOLCHAIN_DIR" | cut -c -1)
         tcd_last_char=$(printf "%s" "$TOOLCHAIN_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
         kld_first_char=$(printf "%s" "$KERNEL_DIR" | cut -c -1)
@@ -277,26 +322,26 @@ function configuration_checker() {
 
         if [ "$tcd_first_char" = "/" ]; then
             printf "\n%bRemove the first slash (/) in TOOLCHAIN_DIR variable.%b\n\n" "$red" "$darkwhite"
-            die_21
+            exit 1
         elif [ "$tcd_last_char" = "/" ]; then
             printf "\n%bRemove the last slash (/) in TOOLCHAIN_DIR variable.%b\n\n" "$red" "$darkwhite"
-            die_21
+            exit 1
         fi
 
         if [ "$kld_first_char" = "/" ]; then
             printf "\n%bRemove the first slash (/) in KERNEL_DIR variable.%b\n\n" "$red" "$darkwhite"
-            die_21
+            exit 1
         elif [ "$kld_last_char" = "/" ]; then
             printf "\n%bRemove the last slash (/) in KERNEL_DIR variable.%b\n\n" "$red" "$darkwhite"
-            die_21
+            exit 1
         fi
 
         if [ "$kldo_first_char" = "/" ]; then
             printf "\n%bRemove the first slash (/) in KERNEL_OUTPUT_DIR variable.%b\n\n" "$red" "$darkwhite"
-            die_21
+            exit 1
         elif [ "$kldo_last_char" = "/" ]; then
             printf "\n%bRemove the last slash (/) in KERNEL_OUTPUT_DIR variable.%b\n\n" "$red" "$darkwhite"
-            die_21
+            exit 1
         fi
 
         if [ -n "$AK_DIR" ]; then
@@ -305,10 +350,10 @@ function configuration_checker() {
 
             if [ "$akd_first_char" = "/" ]; then
                 printf "\n%bRemove the first slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
-                die_21
+                exit 1
             elif [ "$akd_last_char" = "/" ]; then
                 printf "\n%bRemove the last slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
-                die_21
+                exit 1
             fi
         fi
 
@@ -318,68 +363,20 @@ function configuration_checker() {
 
             if [ "$cgd_first_char" = "/" ]; then
                 printf "\n%bRemove the first slash (/) in CLANG_DIR variable.%b\n\n" "$red" "$darkwhite"
-                die_21
+                exit 1
             elif [ "$cgd_last_char" = "/" ]; then
                 printf "\n%bRemove the last slash (/) in CLANG_DIR variable.%b\n\n" "$red" "$darkwhite"
-                die_21
+                exit 1
             fi
         fi
     }
 
-    incorrect_variables_check() {
-        if [ "$KERNEL_ARCH" != "arm64" ] && [ "$KERNEL_ARCH" != "arm" ]; then
-            printf "\n%bIncorrect input for KERNEL_ARCH variable.%b\n\n" "$red" "$darkwhite"
-            die_21
-        fi
-
-        if [ -n "$CLANG_DIR" ] && [ "$NORMAL_COMPILATION" = 1 ]; then
-            printf "\n%bYou cannot make normal compilation with Clang...%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-
-        if [ "$ZIP_BUILDER" = 1 ] && [ -z "$AK_DIR" ]; then
-            printf "\n%bZip builder is enabled, but AnyKernel is not defined...%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-
-        if [ "$ZIP_BUILDER" = 1 ] && [ -z "$KERNEL_NAME" ]; then
-            printf "\n%bKERNEL_NAME is not defined...%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-    }
-
-    missing_and_undefined_variables_check() {
-        if [ ! -d "$tc_dir" ] && [ -z "$TOOLCHAIN_REPO" ] && [ -z "$TOOLCHAIN_BRANCH" ]; then
-            printf "\n%bToolchain is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-
-        if [ ! -d "$kl_dir" ] && [ -z "$KERNEL_REPO" ] && [ -z "$KERNEL_BRANCH" ]; then
-            printf "\n%bKernel is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
-            die_22
-        fi
-
-        if [ -n "$AK_DIR" ]; then
-            if [ ! -d "$ak_dir" ] && [ -z "$AK_REPO" ] && [ -z "$AK_BRANCH" ]; then
-                printf "\n%bAnyKernel is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
-                die_22
-            fi
-        fi
-
-        if [ -n "$CLANG_DIR" ]; then
-            if [ ! -d "$cg_dir" ] && [ -z "$CLANG_REPO" ] && [ -z "$CLANG_BRANCH" ]; then
-                printf "\n%bClang is missing, and you did not define repo and branch variables for it.%b\n\n" "$red" "$darkwhite"
-                die_22
-            fi
-        fi
-    }
-
-    changed_variables_check
-    undefined_variables_check
-    toggles_check
-    slash_check
-    incorrect_variables_check
-    missing_and_undefined_variables_check
+    changed_variables
+    undefined_variables
+    missing_variables
+    incorrect_variables
+    check_the_toggles
+    check_for_slash
 }
 
 function package_checker() {
