@@ -157,11 +157,6 @@ function traps() {
 
 function die_codes() {
 
-    die_10() {
-        # Package not found
-        exit 10
-    }
-
     die_20() {
         printf "\n%bYou did not define all building essential variables.%b\n\n" "$red" "$darkwhite"
         exit 20
@@ -387,7 +382,34 @@ function package_checker() {
         if [ "$USE_CCACHE" = 1 ]; then
             if ! command -v ccache > /dev/null 2>&1; then
                 printf "\n%bccache not found.%b\n\n" "$red" "$darkwhite"
-                die_10
+
+                if command -v sudo > /dev/null 2>&1; then
+                    if command -v apt > /dev/null 2>&1; then
+                        printf "%bTIP: sudo apt install ccache%b\n\n" "$white" "$darkwhite"
+                    elif command -v pacman > /dev/null 2>&1; then
+                        printf "%bTIP: sudo pacman -S ccache%b\n\n" "$white" "$darkwhite"
+                    elif command -v dnf > /dev/null 2>&1; then
+                        printf "%bTIP: sudo dnf install ccache%b\n\n" "$white" "$darkwhite"
+                    elif command -v zypper > /dev/null 2>&1; then
+                        printf "%bTIP: sudo zypper install ccache%b\n\n" "$white" "$darkwhite"
+                    elif command -v emerge > /dev/null 2>&1; then
+                        printf "%bTIP: sudo emerge -a ccache%b\n\n" "$white" "$darkwhite"
+                    fi
+                else
+                    if command -v apt > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'apt install ccache'%b\n\n" "$white" "$darkwhite"
+                    elif command -v pacman > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'pacman -S ccache'%b\n\n" "$white" "$darkwhite"
+                    elif command -v dnf > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'dnf install ccache'%b\n\n" "$white" "$darkwhite"
+                    elif command -v zypper > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'zypper install ccache'%b\n\n" "$white" "$darkwhite"
+                    elif command -v emerge > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'emerge -a ccache'%b\n\n" "$white" "$darkwhite"
+                    fi
+                fi
+
+                exit 1
             fi
         fi
     }
@@ -399,7 +421,34 @@ function package_checker() {
         [ -n "$KERNEL_REPO" ] || [ -n "$KERNEL_BRANCH" ]; then
             if ! command -v git > /dev/null 2>&1; then
                 printf "\n%bgit not found.%b\n\n" "$red" "$darkwhite"
-                die_10
+
+                if command -v sudo > /dev/null 2>&1; then
+                    if command -v apt > /dev/null 2>&1; then
+                        printf "%bTIP: sudo apt install git%b\n\n" "$white" "$darkwhite"
+                    elif command -v pacman > /dev/null 2>&1; then
+                        printf "%bTIP: sudo pacman -S git%b\n\n" "$white" "$darkwhite"
+                    elif command -v dnf > /dev/null 2>&1; then
+                        printf "%bTIP: sudo dnf install git%b\n\n" "$white" "$darkwhite"
+                    elif command -v zypper > /dev/null 2>&1; then
+                        printf "%bTIP: sudo zypper install git%b\n\n" "$white" "$darkwhite"
+                    elif command -v emerge > /dev/null 2>&1; then
+                        printf "%bTIP: sudo emerge -a git%b\n\n" "$white" "$darkwhite"
+                    fi
+                else
+                    if command -v apt > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'apt install git'%b\n\n" "$white" "$darkwhite"
+                    elif command -v pacman > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'pacman -S git'%b\n\n" "$white" "$darkwhite"
+                    elif command -v dnf > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'dnf install git'%b\n\n" "$white" "$darkwhite"
+                    elif command -v zypper > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'zypper install git'%b\n\n" "$white" "$darkwhite"
+                    elif command -v emerge > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'emerge -a git'%b\n\n" "$white" "$darkwhite"
+                    fi
+                fi
+
+                exit 1
             fi
         fi
     }
@@ -408,7 +457,34 @@ function package_checker() {
         if [ "$ZIP_BUILDER" = 1 ]; then
             if ! command -v zip > /dev/null 2>&1; then
                 printf "\n%bzip not found.%b\n\n" "$red" "$darkwhite"
-                die_10
+
+                if command -v sudo > /dev/null 2>&1; then
+                    if command -v apt > /dev/null 2>&1; then
+                        printf "%bTIP: sudo apt install zip%b\n\n" "$white" "$darkwhite"
+                    elif command -v pacman > /dev/null 2>&1; then
+                        printf "%bTIP: sudo pacman -S zip%b\n\n" "$white" "$darkwhite"
+                    elif command -v dnf > /dev/null 2>&1; then
+                        printf "%bTIP: sudo dnf install zip%b\n\n" "$white" "$darkwhite"
+                    elif command -v zypper > /dev/null 2>&1; then
+                        printf "%bTIP: sudo zypper install zip%b\n\n" "$white" "$darkwhite"
+                    elif command -v emerge > /dev/null 2>&1; then
+                        printf "%bTIP: sudo emerge -a zip%b\n\n" "$white" "$darkwhite"
+                    fi
+                else
+                    if command -v apt > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'apt install zip'%b\n\n" "$white" "$darkwhite"
+                    elif command -v pacman > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'pacman -S zip'%b\n\n" "$white" "$darkwhite"
+                    elif command -v dnf > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'dnf install zip'%b\n\n" "$white" "$darkwhite"
+                    elif command -v zypper > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'zypper install zip'%b\n\n" "$white" "$darkwhite"
+                    elif command -v emerge > /dev/null 2>&1; then
+                        printf "%bTIP: su root -c 'emerge -a zip'%b\n\n" "$white" "$darkwhite"
+                    fi
+                fi
+
+                exit 1
             fi
         fi
     }
