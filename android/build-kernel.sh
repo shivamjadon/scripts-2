@@ -178,7 +178,7 @@ function die_codes() {
     }
 
     die_40() {
-        printf "\n%bThe kernel was not compiled correctly, check the log for errors.%b\n\n" "$red" "$darkwhite"
+        printf "\n%bThe kernel was not compiled correctly.%b\n\n" "$red" "$darkwhite"
         exit 40
     }
 }
