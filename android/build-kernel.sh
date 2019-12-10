@@ -503,7 +503,7 @@ function cloning() {
         if [ -n "$AK_DIR" ]; then
             if [ ! -d "$ak_dir" ]; then
                 printf "\n%bStarting clone of AK with depth %d...%b\n" "$white" "$ak_clone_depth" "$darkwhite"
-                git clone --branch ${AK_BRANCH} --depth ${ak_clone_depth} ${AK_REPO} "${ak_dir}"
+                git clone --branch "${AK_BRANCH}" --depth ${ak_clone_depth} "${AK_REPO}" "${ak_dir}"
             fi
         fi
     }
@@ -511,7 +511,7 @@ function cloning() {
     toolchain() {
         if [ ! -d "$tc_dir" ]; then
             printf "\n%bStarting clone of the toolchain with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
-            git clone --branch ${TOOLCHAIN_BRANCH} --depth ${tc_clone_depth} ${TOOLCHAIN_REPO} "${tc_dir}"
+            git clone --branch "${TOOLCHAIN_BRANCH}" --depth ${tc_clone_depth} "${TOOLCHAIN_REPO}" "${tc_dir}"
         fi
     }
 
@@ -519,7 +519,7 @@ function cloning() {
         if [ -n "$CLANG_DIR" ]; then
             if [ ! -d "$cg_dir" ]; then
                 printf "\n%bStarting clone of Clang with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
-                git clone --branch ${CLANG_BRANCH} --depth ${tc_clone_depth} ${CLANG_REPO} "${cg_dir}"
+                git clone --branch "${CLANG_BRANCH}" --depth ${tc_clone_depth} "${CLANG_REPO}" "${cg_dir}"
             fi
         fi
     }
@@ -528,9 +528,9 @@ function cloning() {
         if [ ! -d "$kl_dir" ]; then
             printf "\n%bStarting clone of the kernel with depth %d...%b\n" "$white" "$kl_clone_depth" "$darkwhite"
             if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
-                git clone --recursive --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
+                git clone --recursive --branch "${KERNEL_BRANCH}" --depth ${kl_clone_depth} "${KERNEL_REPO}" "${kl_dir}"
             else
-                git clone --branch ${KERNEL_BRANCH} --depth ${kl_clone_depth} ${KERNEL_REPO} "${kl_dir}"
+                git clone --branch "${KERNEL_BRANCH}" --depth ${kl_clone_depth} "${KERNEL_REPO}" "${kl_dir}"
             fi
         fi
     }
@@ -655,8 +655,8 @@ function compilation() {
             export SUBARCH=${kernel_subarch}
 
             make O="${out_dir}" \
-                ARCH=${KERNEL_ARCH} \
-                ${KERNEL_DEFCONFIG}
+                ARCH="${KERNEL_ARCH}" \
+                "${KERNEL_DEFCONFIG}"
 
             if [ "$USE_CCACHE" = 1 ]; then
                 cpaths="${ccache_loc} ${cg_dir}/bin:${tc_dir}/bin:${PATH}"
@@ -666,9 +666,9 @@ function compilation() {
 
             tc_paths=${cpaths} \
             make O="${out_dir}" \
-                ARCH=${KERNEL_ARCH} \
-                CC=${CLANG_BIN} \
-                CLANG_TRIPLE=${CLANG_PREFIX} \
+                ARCH="${KERNEL_ARCH}" \
+                CC="${CLANG_BIN}" \
+                CLANG_TRIPLE="${CLANG_PREFIX}" \
                 CROSS_COMPILE="${tc_prefix}" \
                 -j"$(nproc --all)"
 
@@ -706,11 +706,11 @@ function compilation() {
             fi
 
             make O="${out_dir}" \
-                ARCH=${KERNEL_ARCH} \
-                ${KERNEL_DEFCONFIG}
+                ARCH="${KERNEL_ARCH}" \
+                "${KERNEL_DEFCONFIG}"
 
             make O="${out_dir}" \
-                ARCH=${KERNEL_ARCH} \
+                ARCH="${KERNEL_ARCH}" \
                 -j"$(nproc --all)"
 
             makeexit2=$(printf "%d" "$?")
@@ -746,7 +746,7 @@ function compilation() {
                 CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
             fi
 
-            make ${KERNEL_DEFCONFIG}
+            make "${KERNEL_DEFCONFIG}"
 
             CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
 
@@ -909,7 +909,7 @@ function zip_builder() {
     }
 
     remove_old_zip() {
-        rm -f "${ak_dir}"/${KERNEL_NAME}*.zip
+        rm -f "${ak_dir}"/"${KERNEL_NAME}"*.zip
 
         aggressive_removal() {
             agrsv_rm=1
