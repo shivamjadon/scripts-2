@@ -878,17 +878,74 @@ function stats() {
     }
 
     image_stats() {
-        if [ "$out" = 1 ]; then
-            printf "%b> Image size: %s\n" "$white" "$sizeoutimg"
-        else
-            printf "%b> Image size: %s\n" "$white" "$sizenmlimg"
-        fi
 
-        if [ "$out" = 1 ]; then
-            printf "%b> Image location: %s\n\n" "$white" "$out_kl_img"
-        else
-            printf "%b> Image location: %s\n\n" "$white" "$nml_kl_img"
-        fi
+        read_stored_image_size() {
+            cachefile="$HOME"/.bkcache
+
+            if [ -f "$cachefile" ]; then
+                grep -Fq "directory=$kl_dir" "$cachefile"
+                grepexit=$(printf "%d" "$?")
+
+                if [ "$grepexit" = 1 ]; then
+                    rm -f "$cachefile"
+                fi
+            fi
+
+            if [ -f "$cachefile" ]; then
+                if [ "$out" = 1 ]; then
+                    if grep -Fq "out.kernel.image.size" "$cachefile"; then
+                        sizestoredoutimg=$(grep out.kernel.image.size "$cachefile" | cut -d "=" -f2)
+                    fi
+                else
+                    if grep -Fq "nml.kernel.image.size" "$cachefile"; then
+                        sizestorednmlimg=$(grep nml.kernel.image.size "$cachefile" | cut -d "=" -f2)
+                    fi
+                fi
+            fi
+        }
+
+        output_image_stats() {
+            if [ -f "$cachefile" ]; then
+                if [ "$out" = 1 ]; then
+                    if grep -Fq out.kernel.image.size "$cachefile"; then
+                        printf "%b> Image size: %s (PREVIOUSLY: %s)\n" "$white" "$sizeoutimg" "$sizestoredoutimg"
+                    fi
+                else
+                    if grep -Fq nml.kernel.image.size "$cachefile"; then
+                        printf "%b> Image size: %s (PREVIOUSLY: %s)\n" "$white" "$sizenmlimg" "$sizestorednmlimg"
+                    fi
+                fi
+            else
+                if [ "$out" = 1 ]; then
+                    printf "%b> Image size: %s\n" "$white" "$sizeoutimg"
+                else
+                    printf "%b> Image size: %s\n" "$white" "$sizenmlimg"
+                fi
+            fi
+
+            if [ "$out" = 1 ]; then
+                printf "%b> Image location: %s\n\n" "$white" "$out_kl_img"
+            else
+                printf "%b> Image location: %s\n\n" "$white" "$nml_kl_img"
+            fi
+        }
+
+        store_image_size() {
+            rm -f "$cachefile"
+            touch "$cachefile"
+
+            printf "directory=%s\n" "$kl_dir" >> "$cachefile"
+
+            if [ "$out" = 1 ]; then
+                printf "out.kernel.image.size=%s\n" "$sizeoutimg" >> "$cachefile"
+            else
+                printf "nml.kernel.image.size=%s\n" "$sizenmlimg" >> "$cachefile"
+            fi
+        }
+
+        read_stored_image_size
+        output_image_stats
+        store_image_size
     }
 
     get_size_of_image_in_bytes
