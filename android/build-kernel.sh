@@ -129,14 +129,14 @@ function env_checks() {
         bash_ver_cut=$(printf "%s" "$bash_ver" | cut -c -1)
 
         if [ "$bash_ver_cut" = "2" ] || [ "$bash_ver_cut" = "3" ]; then
-            printf "\n%bThis script requires bash 4+%b\n\n" "\033[1;31m" "\033[0;37m"
+            printf "\n%bThis script requires bash 4+%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
     }
 
     root_check() {
         if [ $EUID = 0 ]; then
-            printf "\n%bYou should not run this script as root.%b\n\n" "\033[1;31m" "\033[0;37m"
+            printf "\n%bYou should not run this script as root.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
     }
@@ -148,7 +148,7 @@ function env_checks() {
 function traps() {
 
     abort() {
-        printf "\n\n%bThe script was forcefully aborted.\n\n" "\033[1;37m"
+        printf "\n\n%bThe script was forcefully aborted.%b\n\n" "$white" "$darkwhite"
         exit 130
     }
 
@@ -503,7 +503,7 @@ function cloning() {
         if [ -n "$AK_DIR" ]; then
             if [ ! -d "$ak_dir" ]; then
                 printf "\n%bStarting clone of AK with depth %d...%b\n" "$white" "$ak_clone_depth" "$darkwhite"
-                git clone --branch "${AK_BRANCH}" --depth ${ak_clone_depth} "${AK_REPO}" "${ak_dir}"
+                git clone --branch "${AK_BRANCH}" --depth "${ak_clone_depth}" "${AK_REPO}" "${ak_dir}"
             fi
         fi
     }
@@ -511,7 +511,7 @@ function cloning() {
     toolchain() {
         if [ ! -d "$tc_dir" ]; then
             printf "\n%bStarting clone of the toolchain with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
-            git clone --branch "${TOOLCHAIN_BRANCH}" --depth ${tc_clone_depth} "${TOOLCHAIN_REPO}" "${tc_dir}"
+            git clone --branch "${TOOLCHAIN_BRANCH}" --depth "${tc_clone_depth}" "${TOOLCHAIN_REPO}" "${tc_dir}"
         fi
     }
 
@@ -519,7 +519,7 @@ function cloning() {
         if [ -n "$CLANG_DIR" ]; then
             if [ ! -d "$cg_dir" ]; then
                 printf "\n%bStarting clone of Clang with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
-                git clone --branch "${CLANG_BRANCH}" --depth ${tc_clone_depth} "${CLANG_REPO}" "${cg_dir}"
+                git clone --branch "${CLANG_BRANCH}" --depth "${tc_clone_depth}" "${CLANG_REPO}" "${cg_dir}"
             fi
         fi
     }
@@ -528,9 +528,9 @@ function cloning() {
         if [ ! -d "$kl_dir" ]; then
             printf "\n%bStarting clone of the kernel with depth %d...%b\n" "$white" "$kl_clone_depth" "$darkwhite"
             if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
-                git clone --recursive --branch "${KERNEL_BRANCH}" --depth ${kl_clone_depth} "${KERNEL_REPO}" "${kl_dir}"
+                git clone --recursive --branch "${KERNEL_BRANCH}" --depth "${kl_clone_depth}" "${KERNEL_REPO}" "${kl_dir}"
             else
-                git clone --branch "${KERNEL_BRANCH}" --depth ${kl_clone_depth} "${KERNEL_REPO}" "${kl_dir}"
+                git clone --branch "${KERNEL_BRANCH}" --depth "${kl_clone_depth}" "${KERNEL_REPO}" "${kl_dir}"
             fi
         fi
     }
@@ -569,16 +569,14 @@ function choices() {
     compilation_method() {
         if [ -n "$CLANG_DIR" ]; then
             clg=1
-            printf "\n%bClang detected, starting compilation.%b" "$white" "$darkwhite"
+            printf "\n%bClang detected, starting compilation.%b\n\n" "$white" "$darkwhite"
         elif [ "$NORMAL_COMPILATION" = 0 ]; then
             out=1
-            printf "\n%bStarting output folder compilation.%b" "$white" "$darkwhite"
+            printf "\n%bStarting output folder compilation.%b\n\n" "$white" "$darkwhite"
         else
             nml=1
-            printf "\n%bStarting normal compilation.%b" "$white" "$darkwhite"
+            printf "\n%bStarting normal compilation.%b\n\n" "$white" "$darkwhite"
         fi
-
-        printf "\n\n"
     }
 
     compilation_method
@@ -823,22 +821,22 @@ function stats() {
     }
 
     kernel_stats() {
-        printf "%b> Defconfig: %s\n" "$white" "$KERNEL_DEFCONFIG"
+        printf "%b> Defconfig: %s%b\n" "$white" "$KERNEL_DEFCONFIG" "$darkwhite"
 
         if [ -n "$KERNEL_LOCALVERSION" ]; then
-            printf "%b> Localversion: %s\n" "$white" "$KERNEL_LOCALVERSION"
+            printf "%b> Localversion: %s%b\n" "$white" "$KERNEL_LOCALVERSION" "$darkwhite"
         fi
 
         if [ -n "$KERNEL_BUILD_USER" ]; then
-            printf "%b> User: %s\n" "$white" "$KERNEL_BUILD_USER"
+            printf "%b> User: %s%b\n" "$white" "$KERNEL_BUILD_USER" "$darkwhite"
         else
-            printf "%b> User: %s\n" "$white" "$idkme"
+            printf "%b> User: %s%b\n" "$white" "$idkme" "$darkwhite"
         fi
 
         if [ -n "$KERNEL_BUILD_HOST" ]; then
-            printf "%b> Host: %s\n" "$white" "$KERNEL_BUILD_HOST"
+            printf "%b> Host: %s%b\n" "$white" "$KERNEL_BUILD_HOST" "$darkwhite"
         else
-            printf "%b> Host: %s\n" "$white" "$idkmy"
+            printf "%b> Host: %s%b\n" "$white" "$idkmy" "$darkwhite"
         fi
     }
 
@@ -858,21 +856,21 @@ function stats() {
 
         if [ "$clg" = 1 ]; then
             if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: out-%s-ccache\n" "$white" "$CLANG_BIN"
+                printf "%b> Compilation details: out-%s-ccache%b\n" "$white" "$CLANG_BIN" "$darkwhite"
             else
-                printf "%b> Compilation details: out-%s\n" "$white" "$CLANG_BIN"
+                printf "%b> Compilation details: out-%s%b\n" "$white" "$CLANG_BIN" "$darkwhite"
             fi
         elif [ "$out" = 1 ]; then
             if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: out-gcc-ccache\n" "$white"
+                printf "%b> Compilation details: out-gcc-ccache%b\n" "$white" "$darkwhite"
             else
-                printf "%b> Compilation details: out-gcc\n" "$white"
+                printf "%b> Compilation details: out-gcc%b\n" "$white" "$darkwhite"
             fi
         elif [ "$nml" = 1 ]; then
             if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: normal-gcc-ccache\n" "$white"
+                printf "%b> Compilation details: normal-gcc-ccache%b\n" "$white" "$darkwhite"
             else
-                printf "%b> Compilation details: normal-gcc\n" "$white"
+                printf "%b> Compilation details: normal-gcc%b\n" "$white" "$darkwhite"
             fi
         fi
     }
@@ -887,18 +885,18 @@ function stats() {
                 grepexit=$(printf "%d" "$?")
 
                 if [ "$grepexit" = 1 ]; then
-                    rm -f "$cachefile"
+                    rm -f "${cachefile}"
                 fi
             fi
 
             if [ -f "$cachefile" ]; then
                 if [ "$out" = 1 ]; then
-                    if grep -Fq "out.kernel.image.size" "$cachefile"; then
-                        sizestoredoutimg=$(grep out.kernel.image.size "$cachefile" | cut -d "=" -f2)
+                    if grep -Fq "out.kernel.image.size" "${cachefile}"; then
+                        sizestoredoutimg=$(grep out.kernel.image.size "${cachefile}" | cut -d "=" -f2)
                     fi
                 else
-                    if grep -Fq "nml.kernel.image.size" "$cachefile"; then
-                        sizestorednmlimg=$(grep nml.kernel.image.size "$cachefile" | cut -d "=" -f2)
+                    if grep -Fq "nml.kernel.image.size" "${cachefile}"; then
+                        sizestorednmlimg=$(grep nml.kernel.image.size "${cachefile}" | cut -d "=" -f2)
                     fi
                 fi
             fi
@@ -907,39 +905,39 @@ function stats() {
         output_image_stats() {
             if [ -f "$cachefile" ]; then
                 if [ "$out" = 1 ]; then
-                    if grep -Fq out.kernel.image.size "$cachefile"; then
-                        printf "%b> Image size: %s (PREVIOUSLY: %s)\n" "$white" "$sizeoutimg" "$sizestoredoutimg"
+                    if grep -Fq out.kernel.image.size "${cachefile}"; then
+                        printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$sizeoutimg" "$sizestoredoutimg" "$darkwhite"
                     fi
                 else
-                    if grep -Fq nml.kernel.image.size "$cachefile"; then
-                        printf "%b> Image size: %s (PREVIOUSLY: %s)\n" "$white" "$sizenmlimg" "$sizestorednmlimg"
+                    if grep -Fq nml.kernel.image.size "${cachefile}"; then
+                        printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$sizenmlimg" "$sizestorednmlimg" "$darkwhite"
                     fi
                 fi
             else
                 if [ "$out" = 1 ]; then
-                    printf "%b> Image size: %s\n" "$white" "$sizeoutimg"
+                    printf "%b> Image size: %s%b\n" "$white" "$sizeoutimg" "$darkwhite"
                 else
-                    printf "%b> Image size: %s\n" "$white" "$sizenmlimg"
+                    printf "%b> Image size: %s%b\n" "$white" "$sizenmlimg" "$darkwhite"
                 fi
             fi
 
             if [ "$out" = 1 ]; then
-                printf "%b> Image location: %s\n\n" "$white" "$out_kl_img"
+                printf "%b> Image location: %s%b\n\n" "$white" "$out_kl_img" "$darkwhite"
             else
-                printf "%b> Image location: %s\n\n" "$white" "$nml_kl_img"
+                printf "%b> Image location: %s%b\n\n" "$white" "$nml_kl_img" "$darkwhite"
             fi
         }
 
         store_image_size() {
-            rm -f "$cachefile"
-            touch "$cachefile"
+            rm -f "${cachefile}"
+            touch "${cachefile}"
 
-            printf "directory=%s\n" "$kl_dir" >> "$cachefile"
+            printf "directory=%s\n" "$kl_dir" >> "${cachefile}"
 
             if [ "$out" = 1 ]; then
-                printf "out.kernel.image.size=%s\n" "$sizeoutimg" >> "$cachefile"
+                printf "out.kernel.image.size=%s\n" "$sizeoutimg" >> "${cachefile}"
             else
-                printf "nml.kernel.image.size=%s\n" "$sizenmlimg" >> "$cachefile"
+                printf "nml.kernel.image.size=%s\n" "$sizenmlimg" >> "${cachefile}"
             fi
         }
 
@@ -1036,8 +1034,8 @@ function zip_builder() {
     }
 
     zip_stats() {
-        printf "%b> Zip size: %s\n" "$white" "$sizezip"
-        printf "%b> Zip location: %s/%s\n\n" "$white" "$ak_dir" "$filename"
+        printf "%b> Zip size: %s%b\n" "$white" "$sizezip" "$darkwhite"
+        printf "%b> Zip location: %s/%s%b\n\n" "$white" "$ak_dir" "$filename" "$darkwhite"
     }
 
     copy_image
