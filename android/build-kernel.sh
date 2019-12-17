@@ -112,6 +112,7 @@ function additional_variables() {
     clg=bad
     out=and
     nml=boujee
+    agrsv_rm=1
     ak_dir="$HOME"/${AK_DIR}
     tc_dir="$HOME"/${TOOLCHAIN_DIR}
     cg_dir="$HOME"/${CLANG_DIR}
@@ -967,18 +968,6 @@ function zip_builder() {
         rm -f "${ak_dir}"/"${KERNEL_NAME}"*.zip
 
         aggressive_removal() {
-            agrsv_rm=1
-
-            if [ ! -v agrsv_rm ]; then
-                printf "\n%bYou changed the name of agrsv_rm variable.%b\n\n" "$red" "$darkwhite"
-                exit 20
-            fi
-
-            if [ "$agrsv_rm" != 0 ] && [ "$agrsv_rm" != 1 ]; then
-                printf "\n%bIncorrect agrsv_rm variable, only 0 or 1 is allowed as input.%b\n\n" "$red" "$darkwhite"
-                exit 1
-            fi
-
             if [ "$agrsv_rm" = 1 ]; then
                 ls "${ak_dir}"/*.zip > /dev/null 2>&1
                 lsexit=$(printf "%d" "$?")
