@@ -114,6 +114,7 @@ function additional_variables() {
     kl_clone_depth=10
     current_date=$(date +'%Y%m%d')
     scachefile="$HOME"/.bkscache
+    scachefile2="$HOME"/.bkscache2
     ak_dir="$HOME"/${AK_DIR}
     tc_dir="$HOME"/${TOOLCHAIN_DIR}
     cg_dir="$HOME"/${CLANG_DIR}
@@ -1022,8 +1023,47 @@ function zip_builder() {
     }
 
     zip_stats() {
-        printf "%b> Zip size: %s%b\n" "$white" "$sizezip" "$darkwhite"
-        printf "%b> Zip location: %s/%s%b\n\n" "$white" "$ak_dir" "$filename" "$darkwhite"
+
+        read_stored_zip_size() {
+            if [ -f "$scachefile2" ]; then
+                grep -Fq "directory=$kl_dir" "$scachefile2"
+                grepexit2=$(printf "%d" "$?")
+
+                if [ "$grepexit2" = 1 ]; then
+                    rm -f "${scachefile2}"
+                fi
+            fi
+
+            if [ -f "$scachefile2" ]; then
+                if grep -Fq "kernel.zip.size" "${scachefile2}"; then
+                    sizestoredzip=$(grep kernel.zip.size "${scachefile2}" | cut -d "=" -f2)
+                fi
+            fi
+        }
+
+        output_zip_stats() {
+            if [ -f "$scachefile2" ]; then
+                if grep -Fq kernel.zip.size "${scachefile2}"; then
+                    printf "%b> Zip size: %s (PREVIOUSLY: %s)%b\n" "$white" "$sizezip" "$sizestoredzip" "$darkwhite"
+                fi
+            else
+                printf "%b> Zip size: %s%b\n" "$white" "$sizezip" "$darkwhite"
+            fi
+
+            printf "%b> Zip location: %s/%s%b\n\n" "$white" "$ak_dir" "$filename" "$darkwhite"
+        }
+
+        store_zip_size() {
+            rm -f "${scachefile2}"
+            touch "${scachefile2}"
+
+            printf "directory=%s\n" "$kl_dir" >> "${scachefile2}"
+            printf "kernel.zip.size=%s\n" "$sizezip" >> "${scachefile2}"
+        }
+
+        read_stored_zip_size
+        output_zip_stats
+        store_zip_size
     }
 
     copy_image
