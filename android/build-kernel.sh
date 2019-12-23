@@ -113,6 +113,7 @@ function additional_variables() {
     tc_clone_depth=1
     kl_clone_depth=10
     current_date=$(date +'%Y%m%d')
+    scachefile="$HOME"/.bkscache
     ak_dir="$HOME"/${AK_DIR}
     tc_dir="$HOME"/${TOOLCHAIN_DIR}
     cg_dir="$HOME"/${CLANG_DIR}
@@ -879,38 +880,36 @@ function stats() {
     image_stats() {
 
         read_stored_image_size() {
-            cachefile="$HOME"/.bkcache
-
-            if [ -f "$cachefile" ]; then
-                grep -Fq "directory=$kl_dir" "$cachefile"
+            if [ -f "$scachefile" ]; then
+                grep -Fq "directory=$kl_dir" "$scachefile"
                 grepexit=$(printf "%d" "$?")
 
                 if [ "$grepexit" = 1 ]; then
-                    rm -f "${cachefile}"
+                    rm -f "${scachefile}"
                 fi
             fi
 
-            if [ -f "$cachefile" ]; then
+            if [ -f "$scachefile" ]; then
                 if [ "$out" = 1 ]; then
-                    if grep -Fq "out.kernel.image.size" "${cachefile}"; then
-                        sizestoredoutimg=$(grep out.kernel.image.size "${cachefile}" | cut -d "=" -f2)
+                    if grep -Fq "out.kernel.image.size" "${scachefile}"; then
+                        sizestoredoutimg=$(grep out.kernel.image.size "${scachefile}" | cut -d "=" -f2)
                     fi
                 else
-                    if grep -Fq "nml.kernel.image.size" "${cachefile}"; then
-                        sizestorednmlimg=$(grep nml.kernel.image.size "${cachefile}" | cut -d "=" -f2)
+                    if grep -Fq "nml.kernel.image.size" "${scachefile}"; then
+                        sizestorednmlimg=$(grep nml.kernel.image.size "${scachefile}" | cut -d "=" -f2)
                     fi
                 fi
             fi
         }
 
         output_image_stats() {
-            if [ -f "$cachefile" ]; then
+            if [ -f "$scachefile" ]; then
                 if [ "$out" = 1 ]; then
-                    if grep -Fq out.kernel.image.size "${cachefile}"; then
+                    if grep -Fq out.kernel.image.size "${scachefile}"; then
                         printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$sizeoutimg" "$sizestoredoutimg" "$darkwhite"
                     fi
                 else
-                    if grep -Fq nml.kernel.image.size "${cachefile}"; then
+                    if grep -Fq nml.kernel.image.size "${scachefile}"; then
                         printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$sizenmlimg" "$sizestorednmlimg" "$darkwhite"
                     fi
                 fi
@@ -930,15 +929,15 @@ function stats() {
         }
 
         store_image_size() {
-            rm -f "${cachefile}"
-            touch "${cachefile}"
+            rm -f "${scachefile}"
+            touch "${scachefile}"
 
-            printf "directory=%s\n" "$kl_dir" >> "${cachefile}"
+            printf "directory=%s\n" "$kl_dir" >> "${scachefile}"
 
             if [ "$out" = 1 ]; then
-                printf "out.kernel.image.size=%s\n" "$sizeoutimg" >> "${cachefile}"
+                printf "out.kernel.image.size=%s\n" "$sizeoutimg" >> "${scachefile}"
             else
-                printf "nml.kernel.image.size=%s\n" "$sizenmlimg" >> "${cachefile}"
+                printf "nml.kernel.image.size=%s\n" "$sizenmlimg" >> "${scachefile}"
             fi
         }
 
