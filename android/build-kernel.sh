@@ -88,10 +88,21 @@ function variables() {
             options
         }
 
+        miscellaneous() {
+            sync_variables() {
+                # NOTE: True sync. Any local changes are discarded. All remote changes are pulled.
+                SYNC_AK_DIR=0
+                SYNC_TC_DIR=0
+                SYNC_KERNEL_DIR=0
+            }
+            sync_variables
+        }
+
         anykernel
         toolchain
         clang
         kernel
+        miscellaneous
     }
 
     ESSENTIAL_VARIABLES
@@ -106,6 +117,10 @@ function additional_variables() {
     darkwhite='\033[0;37m'
     cyan='\033[1;36m'
     agrsv_rm=1
+    akc=nah
+    tcc=nope
+    cgc=no
+    klc=noway
     clg=bad
     out=and
     nml=boujee
@@ -223,6 +238,11 @@ function configuration_checker() {
         [ ! -v KERNEL_LOCALVERSION ]; then
             die_20
         fi
+
+        if [ ! -v SYNC_AK_DIR ] || [ ! -v SYNC_TC_DIR ] || \
+        [ ! -v SYNC_KERNEL_DIR ]; then
+            die_20
+        fi
     }
 
     undefined_variables() {
@@ -286,6 +306,11 @@ function configuration_checker() {
             printf "\n%bYou cannot do normal compilation with Clang.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
+
+        if [ "$SYNC_AK_DIR" = 1 ] && [ -z "$AK_DIR" ]; then
+            printf "\n%bSync for AK is enabled, but AK directory is not defined...%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
     }
 
     check_the_toggles() {
@@ -311,6 +336,21 @@ function configuration_checker() {
 
         if [ "$APPEND_DATE" != 0 ] && [ "$APPEND_DATE" != 1 ]; then
             printf "\n%bIncorrect APPEND_DATE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+
+        if [ "$SYNC_AK_DIR" != 0 ] && [ "$SYNC_AK_DIR" != 1 ]; then
+            printf "\n%bIncorrect SYNC_AK_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+
+        if [ "$SYNC_TC_DIR" != 0 ] && [ "$SYNC_TC_DIR" != 1 ]; then
+            printf "\n%bIncorrect SYNC_TC_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+
+        if [ "$SYNC_KERNEL_DIR" != 0 ] && [ "$SYNC_KERNEL_DIR" != 1 ]; then
+            printf "\n%bIncorrect SYNC_KERNEL_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
     }
@@ -424,7 +464,9 @@ function package_checker() {
         if [ -n "$AK_REPO" ] || [ -n "$AK_BRANCH" ] || \
         [ -n "$TOOLCHAIN_REPO" ] || [ -n "$TOOLCHAIN_BRANCH" ] || \
         [ -n "$CLANG_REPO" ] || [ -n "$CLANG_BRANCH" ] || \
-        [ -n "$KERNEL_REPO" ] || [ -n "$KERNEL_BRANCH" ]; then
+        [ -n "$KERNEL_REPO" ] || [ -n "$KERNEL_BRANCH" ] || \
+        [ "$SYNC_AK_DIR" = 1 ] || [ "$SYNC_TC_DIR" = 1 ] || \
+        [ "$SYNC_KERNEL_DIR" = 1 ]; then
             if ! command -v git > /dev/null 2>&1; then
                 printf "\n%bgit not found.%b\n\n" "$red" "$darkwhite"
 
@@ -505,6 +547,7 @@ function cloning() {
     anykernel() {
         if [ -n "$AK_DIR" ]; then
             if [ ! -d "$ak_dir" ]; then
+                akc=y
                 printf "\n%bStarting clone of AK with depth %d...%b\n" "$white" "$ak_clone_depth" "$darkwhite"
                 git clone --branch "${AK_BRANCH}" --depth "${ak_clone_depth}" "${AK_REPO}" "${ak_dir}"
             fi
@@ -513,6 +556,7 @@ function cloning() {
 
     toolchain() {
         if [ ! -d "$tc_dir" ]; then
+            tcc=y
             printf "\n%bStarting clone of the toolchain with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
             git clone --branch "${TOOLCHAIN_BRANCH}" --depth "${tc_clone_depth}" "${TOOLCHAIN_REPO}" "${tc_dir}"
         fi
@@ -521,6 +565,7 @@ function cloning() {
     clang() {
         if [ -n "$CLANG_DIR" ]; then
             if [ ! -d "$cg_dir" ]; then
+                cgc=y
                 printf "\n%bStarting clone of Clang with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
                 git clone --branch "${CLANG_BRANCH}" --depth "${tc_clone_depth}" "${CLANG_REPO}" "${cg_dir}"
             fi
@@ -529,6 +574,7 @@ function cloning() {
 
     kernel() {
         if [ ! -d "$kl_dir" ]; then
+            klc=y
             printf "\n%bStarting clone of the kernel with depth %d...%b\n" "$white" "$kl_clone_depth" "$darkwhite"
             if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
                 git clone --recursive --branch "${KERNEL_BRANCH}" --depth "${kl_clone_depth}" "${KERNEL_REPO}" "${kl_dir}"
@@ -560,11 +606,54 @@ function cloning() {
         fi
     }
 
+    sync_directories() {
+        if [ "$SYNC_AK_DIR" = 1 ]; then
+            if [ "$akc" != y ]; then
+                printf "\n%bStarting sync of AK...%b\n" "$white" "$darkwhite"
+                cd "${ak_dir}" || die_30
+                git reset --hard "@{upstream}"
+                git clean -fd
+                git pull --rebase=preserve
+            fi
+        fi
+
+        if [ "$SYNC_TC_DIR" = 1 ]; then
+            if [ "$tcc" != y ]; then
+                printf "\n%bStarting sync of the toolchain...%b\n" "$white" "$darkwhite"
+                cd "${tc_dir}" || die_30
+                git reset --hard "@{upstream}"
+                git clean -fd
+                git pull --rebase=preserve
+            fi
+
+            if [ -n "$CLANG_DIR" ]; then
+                if [ "$cgc" != y ]; then
+                    printf "\n%bStarting sync of Clang...%b\n" "$white" "$darkwhite"
+                    cd "${cg_dir}" || die_30
+                    git reset --hard "@{upstream}"
+                    git clean -fd
+                    git pull --rebase=preserve
+                fi
+            fi
+        fi
+
+        if [ "$SYNC_KERNEL_DIR" = 1 ]; then
+            if [ "$klc" != y ]; then
+                printf "\n%bStarting sync of the kernel...%b\n" "$white" "$darkwhite"
+                cd "${kl_dir}" || die_30
+                git reset --hard "@{upstream}"
+                git clean -fd
+                git pull --rebase=preserve
+            fi
+        fi
+    }
+
     anykernel
     toolchain
     clang
     kernel
     check_directories
+    sync_directories
 }
 
 function choices() {
