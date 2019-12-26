@@ -609,7 +609,7 @@ function cloning() {
     sync_directories() {
         if [ "$SYNC_AK_DIR" = 1 ]; then
             if [ "$akc" != y ]; then
-                printf "\n%bStarting sync of AK...%b\n" "$white" "$darkwhite"
+                printf "\n%bStarting sync of AK source...%b\n" "$white" "$darkwhite"
                 cd "${ak_dir}" || die_30
                 git reset --hard "@{upstream}"
                 git clean -fd
@@ -619,7 +619,7 @@ function cloning() {
 
         if [ "$SYNC_TC_DIR" = 1 ]; then
             if [ "$tcc" != y ]; then
-                printf "\n%bStarting sync of the toolchain...%b\n" "$white" "$darkwhite"
+                printf "\n%bStarting sync of the toolchain source...%b\n" "$white" "$darkwhite"
                 cd "${tc_dir}" || die_30
                 git reset --hard "@{upstream}"
                 git clean -fd
@@ -628,7 +628,7 @@ function cloning() {
 
             if [ -n "$CLANG_DIR" ]; then
                 if [ "$cgc" != y ]; then
-                    printf "\n%bStarting sync of Clang...%b\n" "$white" "$darkwhite"
+                    printf "\n%bStarting sync of Clang source...%b\n" "$white" "$darkwhite"
                     cd "${cg_dir}" || die_30
                     git reset --hard "@{upstream}"
                     git clean -fd
@@ -639,7 +639,7 @@ function cloning() {
 
         if [ "$SYNC_KERNEL_DIR" = 1 ]; then
             if [ "$klc" != y ]; then
-                printf "\n%bStarting sync of the kernel...%b\n" "$white" "$darkwhite"
+                printf "\n%bStarting sync of the kernel source...%b\n" "$white" "$darkwhite"
                 cd "${kl_dir}" || die_30
                 git reset --hard "@{upstream}"
                 git clean -fd
