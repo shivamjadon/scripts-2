@@ -33,15 +33,18 @@ function variables() {
     }
 
     misc() {
-        white='\033[1;37m'
-        darkwhite='\033[0;37m'
-        work_dir=$(pwd)
         start1=$(date +'%s')
     }
 
     tweak
     script
     misc
+}
+
+function additional_variables() {
+    white='\033[1;37m'
+    darkwhite='\033[0;37m'
+    work_dir=$(pwd)
 }
 
 function log_file() {
@@ -184,6 +187,7 @@ function finish() {
 
 get_sudo "$@"
 variables
+additional_variables
 log_file
 compatibility_check
 if [ "$tweak_memory" = 1 ]; then
