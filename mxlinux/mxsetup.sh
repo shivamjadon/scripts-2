@@ -17,13 +17,13 @@ function get_sudo() {
 
 function variables() {
 
-    function tweak() {
+    tweak() {
         # VM
         swappiness=10
         vfs_cache_pressure=50
     }
 
-    function script() {
+    script() {
         # Toggles
         tweak_memory=0
         install_software=0
@@ -32,7 +32,7 @@ function variables() {
         verbose_operations=0
     }
 
-    function misc() {
+    misc() {
         white='\033[1;37m'
         darkwhite='\033[0;37m'
         work_dir=$(pwd)
