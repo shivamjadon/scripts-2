@@ -1113,6 +1113,12 @@ function zip_builder() {
 
     zip_stats() {
 
+        md5_of_zip() {
+            md5ofzip=$(md5sum "${ak_dir}"/"${filename}" | cut -d ' ' -f 1)
+
+            printf "%b> Zip MD5: %s%b\n" "$white" "$md5ofzip" "$darkwhite"
+        }
+
         read_stored_zip_size() {
             if [ -f "$scachefile2" ]; then
                 grep -Fq "directory=$kl_dir" "$scachefile2"
@@ -1150,6 +1156,7 @@ function zip_builder() {
             printf "kernel.zip.size=%s\n" "$sizezip" >> "${scachefile2}"
         }
 
+        md5_of_zip
         read_stored_zip_size
         output_zip_stats
         store_zip_size
