@@ -37,6 +37,7 @@ function variables() {
                 KERNEL_NAME=
             }
             remote_variables() {
+                # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 AK_REPO=
                 AK_BRANCH=
             }
@@ -54,6 +55,7 @@ function variables() {
 
         toolchain() {
             remote_variables() {
+                # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 TOOLCHAIN_REPO=
                 TOOLCHAIN_BRANCH=
             }
@@ -67,6 +69,7 @@ function variables() {
                 CLANG_PREFIX=
             }
             remote_variables() {
+                # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 CLANG_REPO=
                 CLANG_BRANCH=
             }
@@ -76,6 +79,7 @@ function variables() {
 
         kernel() {
             remote_variables() {
+                # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 KERNEL_REPO=
                 KERNEL_BRANCH=
             }
