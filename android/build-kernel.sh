@@ -115,38 +115,75 @@ function variables() {
 }
 
 function additional_variables() {
-    red='\033[1;31m'
-    green='\033[1;32m'
-    white='\033[1;37m'
-    darkwhite='\033[0;37m'
-    cyan='\033[1;36m'
-    agrsv_rm=1
-    akc=nah
-    tcc=nope
-    cgc=no
-    klc=noway
-    clg=bad
-    out=and
-    nml=boujee
-    ak_clone_depth=1
-    tc_clone_depth=1
-    kl_clone_depth=10
-    current_date=$(date +'%Y%m%d')
-    scachefile="$HOME"/.bkscache
-    scachefile2="$HOME"/.bkscache2
-    ak_dir="$HOME"/${AK_DIR}
-    tc_dir="$HOME"/${TOOLCHAIN_DIR}
-    cg_dir="$HOME"/${CLANG_DIR}
-    kl_dir="$HOME"/${KERNEL_DIR}
-    out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
-    ak_kl_img="$HOME"/${AK_DIR}/Image.gz-dtb
-    out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
-    nml_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+
+    colors() {
+        red='\033[1;31m'
+        green='\033[1;32m'
+        white='\033[1;37m'
+        darkwhite='\033[0;37m'
+        cyan='\033[1;36m'
+    }
+
+    sync_decisions() {
+        # NOTE: Cosmetic variables.
+        akc=nah
+        tcc=nope
+        cgc=no
+        klc=noway
+    }
+
+    compilation_methods() {
+        # NOTE: Cosmetic variables.
+        clg=bad
+        out=and
+        nml=boujee
+    }
+
+    clone_depth() {
+        ak_clone_depth=1
+        tc_clone_depth=1
+        kl_clone_depth=10
+    }
+
+    persistent_cache() {
+        scachefile="$HOME"/.bkscache
+        scachefile2="$HOME"/.bkscache2
+    }
+
+    location_shortcuts() {
+        ak_dir="$HOME"/${AK_DIR}
+        tc_dir="$HOME"/${TOOLCHAIN_DIR}
+        cg_dir="$HOME"/${CLANG_DIR}
+        kl_dir="$HOME"/${KERNEL_DIR}
+        out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
+        ak_kl_img="$HOME"/${AK_DIR}/Image.gz-dtb
+        out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
+        nml_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+    }
+
+    zip_builder_options() {
+        agrsv_rm=1
+    }
+
+    date_call() {
+        current_date=$(date +'%Y%m%d')
+    }
+
+    colors
+    sync_decisions
+    compilation_methods
+    clone_depth
+    persistent_cache
+    location_shortcuts
+    zip_builder_options
+    date_call
 }
 
 function env_checks() {
 
     bash_check() {
+        local bash_ver
+        local bash_ver_cut
         bash_ver=${BASH_VERSION}
         bash_ver_cut=$(printf "%s" "$bash_ver" | cut -c -1)
 
@@ -165,6 +202,20 @@ function env_checks() {
 
     bash_check
     root_check
+}
+
+function helpers() {
+
+    command_available() {
+        local get_input
+        get_input=$(printf "%s" "$1")
+
+        if command -v "${get_input}" > /dev/null 2>&1; then
+            return 0
+        else
+            return 1
+        fi
+    }
 }
 
 function traps() {
@@ -360,6 +411,12 @@ function configuration_checker() {
     }
 
     check_for_slash() {
+        local tcd_first_char
+        local tcd_last_char
+        local kld_first_char
+        local kld_last_char
+        local kldo_first_char
+        local kldo_last_char
         tcd_first_char=$(printf "%s" "$TOOLCHAIN_DIR" | cut -c -1)
         tcd_last_char=$(printf "%s" "$TOOLCHAIN_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
         kld_first_char=$(printf "%s" "$KERNEL_DIR" | cut -c -1)
@@ -392,6 +449,8 @@ function configuration_checker() {
         fi
 
         if [ -n "$AK_DIR" ]; then
+            local akd_first_char
+            local akd_last_char
             akd_first_char=$(printf "%s" "$AK_DIR" | cut -c -1)
             akd_last_char=$(printf "%s" "$AK_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
 
@@ -405,6 +464,8 @@ function configuration_checker() {
         fi
 
         if [ -n "$CLANG_DIR" ]; then
+            local cgd_first_char
+            local cgd_last_char
             cgd_first_char=$(printf "%s" "$CLANG_DIR" | cut -c -1)
             cgd_last_char=$(printf "%s" "$CLANG_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
 
@@ -430,31 +491,31 @@ function package_checker() {
 
     ccache_binary() {
         if [ "$USE_CCACHE" = 1 ]; then
-            if ! command -v ccache > /dev/null 2>&1; then
+            if ! command_available ccache; then
                 printf "\n%bccache not found.%b\n\n" "$red" "$darkwhite"
 
-                if command -v sudo > /dev/null 2>&1; then
-                    if command -v apt > /dev/null 2>&1; then
+                if command_available sudo; then
+                    if command_available apt; then
                         printf "%bTIP: sudo apt install ccache%b\n\n" "$white" "$darkwhite"
-                    elif command -v pacman > /dev/null 2>&1; then
+                    elif command_available pacman; then
                         printf "%bTIP: sudo pacman -S ccache%b\n\n" "$white" "$darkwhite"
-                    elif command -v dnf > /dev/null 2>&1; then
+                    elif command_available dnf; then
                         printf "%bTIP: sudo dnf install ccache%b\n\n" "$white" "$darkwhite"
-                    elif command -v zypper > /dev/null 2>&1; then
+                    elif command_available zypper; then
                         printf "%bTIP: sudo zypper install ccache%b\n\n" "$white" "$darkwhite"
-                    elif command -v emerge > /dev/null 2>&1; then
+                    elif command_available emerge; then
                         printf "%bTIP: sudo emerge -a ccache%b\n\n" "$white" "$darkwhite"
                     fi
                 else
-                    if command -v apt > /dev/null 2>&1; then
+                    if command_available apt; then
                         printf "%bTIP: su root -c 'apt install ccache'%b\n\n" "$white" "$darkwhite"
-                    elif command -v pacman > /dev/null 2>&1; then
+                    elif command_available pacman; then
                         printf "%bTIP: su root -c 'pacman -S ccache'%b\n\n" "$white" "$darkwhite"
-                    elif command -v dnf > /dev/null 2>&1; then
+                    elif command_available dnf; then
                         printf "%bTIP: su root -c 'dnf install ccache'%b\n\n" "$white" "$darkwhite"
-                    elif command -v zypper > /dev/null 2>&1; then
+                    elif command_available zypper; then
                         printf "%bTIP: su root -c 'zypper install ccache'%b\n\n" "$white" "$darkwhite"
-                    elif command -v emerge > /dev/null 2>&1; then
+                    elif command_available emerge; then
                         printf "%bTIP: su root -c 'emerge -a ccache'%b\n\n" "$white" "$darkwhite"
                     fi
                 fi
@@ -471,31 +532,31 @@ function package_checker() {
         [ -n "$KERNEL_REPO" ] || [ -n "$KERNEL_BRANCH" ] || \
         [ "$SYNC_AK_DIR" = 1 ] || [ "$SYNC_TC_DIR" = 1 ] || \
         [ "$SYNC_KERNEL_DIR" = 1 ]; then
-            if ! command -v git > /dev/null 2>&1; then
+            if ! command_available git; then
                 printf "\n%bgit not found.%b\n\n" "$red" "$darkwhite"
 
-                if command -v sudo > /dev/null 2>&1; then
-                    if command -v apt > /dev/null 2>&1; then
+                if command_available sudo; then
+                    if command_available apt; then
                         printf "%bTIP: sudo apt install git%b\n\n" "$white" "$darkwhite"
-                    elif command -v pacman > /dev/null 2>&1; then
+                    elif command_available pacman; then
                         printf "%bTIP: sudo pacman -S git%b\n\n" "$white" "$darkwhite"
-                    elif command -v dnf > /dev/null 2>&1; then
+                    elif command_available dnf; then
                         printf "%bTIP: sudo dnf install git%b\n\n" "$white" "$darkwhite"
-                    elif command -v zypper > /dev/null 2>&1; then
+                    elif command_available zypper; then
                         printf "%bTIP: sudo zypper install git%b\n\n" "$white" "$darkwhite"
-                    elif command -v emerge > /dev/null 2>&1; then
+                    elif command_available emerge; then
                         printf "%bTIP: sudo emerge -a git%b\n\n" "$white" "$darkwhite"
                     fi
                 else
-                    if command -v apt > /dev/null 2>&1; then
+                    if command_available apt; then
                         printf "%bTIP: su root -c 'apt install git'%b\n\n" "$white" "$darkwhite"
-                    elif command -v pacman > /dev/null 2>&1; then
+                    elif command_available pacman; then
                         printf "%bTIP: su root -c 'pacman -S git'%b\n\n" "$white" "$darkwhite"
-                    elif command -v dnf > /dev/null 2>&1; then
+                    elif command_available dnf; then
                         printf "%bTIP: su root -c 'dnf install git'%b\n\n" "$white" "$darkwhite"
-                    elif command -v zypper > /dev/null 2>&1; then
+                    elif command_available zypper; then
                         printf "%bTIP: su root -c 'zypper install git'%b\n\n" "$white" "$darkwhite"
-                    elif command -v emerge > /dev/null 2>&1; then
+                    elif command_available emerge; then
                         printf "%bTIP: su root -c 'emerge -a git'%b\n\n" "$white" "$darkwhite"
                     fi
                 fi
@@ -507,31 +568,31 @@ function package_checker() {
 
     zip_binary() {
         if [ "$ZIP_BUILDER" = 1 ]; then
-            if ! command -v zip > /dev/null 2>&1; then
+            if ! command_available zip; then
                 printf "\n%bzip not found.%b\n\n" "$red" "$darkwhite"
 
-                if command -v sudo > /dev/null 2>&1; then
-                    if command -v apt > /dev/null 2>&1; then
+                if command_available sudo; then
+                    if command_available apt; then
                         printf "%bTIP: sudo apt install zip%b\n\n" "$white" "$darkwhite"
-                    elif command -v pacman > /dev/null 2>&1; then
+                    elif command_available pacman; then
                         printf "%bTIP: sudo pacman -S zip%b\n\n" "$white" "$darkwhite"
-                    elif command -v dnf > /dev/null 2>&1; then
+                    elif command_available dnf; then
                         printf "%bTIP: sudo dnf install zip%b\n\n" "$white" "$darkwhite"
-                    elif command -v zypper > /dev/null 2>&1; then
+                    elif command_available zypper; then
                         printf "%bTIP: sudo zypper install zip%b\n\n" "$white" "$darkwhite"
-                    elif command -v emerge > /dev/null 2>&1; then
+                    elif command_available emerge; then
                         printf "%bTIP: sudo emerge -a zip%b\n\n" "$white" "$darkwhite"
                     fi
                 else
-                    if command -v apt > /dev/null 2>&1; then
+                    if command_available apt; then
                         printf "%bTIP: su root -c 'apt install zip'%b\n\n" "$white" "$darkwhite"
-                    elif command -v pacman > /dev/null 2>&1; then
+                    elif command_available pacman; then
                         printf "%bTIP: su root -c 'pacman -S zip'%b\n\n" "$white" "$darkwhite"
-                    elif command -v dnf > /dev/null 2>&1; then
+                    elif command_available dnf; then
                         printf "%bTIP: su root -c 'dnf install zip'%b\n\n" "$white" "$darkwhite"
-                    elif command -v zypper > /dev/null 2>&1; then
+                    elif command_available zypper; then
                         printf "%bTIP: su root -c 'zypper install zip'%b\n\n" "$white" "$darkwhite"
-                    elif command -v emerge > /dev/null 2>&1; then
+                    elif command_available emerge; then
                         printf "%bTIP: su root -c 'emerge -a zip'%b\n\n" "$white" "$darkwhite"
                     fi
                 fi
@@ -891,7 +952,14 @@ function compilation_report() {
 function stats() {
 
     convert_bytes_func() {
-        b=${1:-0}; d=''; s=0; S=(Bytes {K,M,G,T,P,E,Z,Y}B)
+        local b
+        local d
+        local s
+        local S
+        b=${1:-0};
+        d=''
+        s=0
+        S=(Bytes {K,M,G,T,P,E,Z,Y}B)
         while ((b > 1000)); do
             d="$(printf ".%02d" $((b % 1000 * 100 / 1000)))"
             b=$((b / 1000))
@@ -937,6 +1005,8 @@ function stats() {
     }
 
     compilation_stats() {
+        local comptimemin
+        local comptimesec
         comptimemin=$((comptime / 60))
         comptimesec=$((comptime % 60))
 
@@ -1118,12 +1188,14 @@ function zip_builder() {
     zip_stats() {
 
         md5_of_zip() {
+            local md5ofzip
             md5ofzip=$(md5sum "${ak_dir}"/"${filename}" | cut -d ' ' -f 1)
 
             printf "%b> Zip MD5: %s%b\n" "$white" "$md5ofzip" "$darkwhite"
         }
 
         sha1_of_zip() {
+            local sha1ofzip
             sha1ofzip=$(sha1sum "${ak_dir}"/"${filename}" | cut -d ' ' -f 1)
 
             printf "%b> Zip SHA-1: %s%b\n" "$white" "$sha1ofzip" "$darkwhite"
@@ -1185,6 +1257,7 @@ function zip_builder() {
 variables
 additional_variables
 env_checks
+helpers
 traps
 die_codes
 configuration_checker
