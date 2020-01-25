@@ -207,10 +207,10 @@ function env_checks() {
 function helpers() {
 
     command_available() {
-        local get_input
-        get_input=$(printf "%s" "$1")
+        local get_command
+        get_command=$(printf "%s" "$1")
 
-        if command -v "${get_input}" > /dev/null 2>&1; then
+        if command -v "${get_command}" > /dev/null 2>&1; then
             return 0
         else
             return 1
