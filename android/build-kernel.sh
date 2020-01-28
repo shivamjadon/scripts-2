@@ -146,8 +146,8 @@ function additional_variables() {
     }
 
     persistent_cache() {
-        scachefile="$HOME"/.bkscache
-        scachefile2="$HOME"/.bkscache2
+        cachefile="$HOME"/.bkscache
+        cachefile2="$HOME"/.bkscache2
     }
 
     location_shortcuts() {
@@ -159,6 +159,10 @@ function additional_variables() {
         ak_kl_img="$HOME"/${AK_DIR}/Image.gz-dtb
         out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
         nml_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+    }
+
+    stats_options() {
+        convert_bytes_to_ibi=0
     }
 
     zip_builder_options() {
@@ -175,6 +179,7 @@ function additional_variables() {
     clone_depth
     persistent_cache
     location_shortcuts
+    stats_options
     zip_builder_options
     date_call
 }
@@ -214,6 +219,55 @@ function helpers() {
             return 0
         else
             return 1
+        fi
+    }
+
+    convert_bytes() {
+        local bytes
+        local delimeter
+        local s
+        local S
+        bytes=${1:-0};
+        delimeter=''
+        s=0
+
+        if [ "$convert_bytes_to_ibi" = 0 ]; then
+            S=(Bytes {K,M,G}B)
+        else
+            S=(Bytes {K,M,G}iB)
+        fi
+
+        if [ "$convert_bytes_to_ibi" = 0 ]; then
+            while ((bytes > 1000)); do
+                delimeter="$(printf ".%02d" $((bytes % 1000 * 100 / 1000)))"
+                bytes=$((bytes / 1000))
+                (( s++ ))
+            done
+        else
+            while ((bytes > 1024)); do
+                delimeter="$(printf ".%02d" $((bytes % 1024 * 100 / 1024)))"
+                bytes=$((bytes / 1024))
+                (( s++ ))
+            done
+        fi
+
+        echo "$bytes$delimeter ${S[$s]}"
+    }
+
+    remove_every_zip() {
+        local lsexit
+        local get_dir
+        get_dir=$(printf "%s" "$1")
+
+        ls "${get_dir}"/*.zip > /dev/null 2>&1
+        lsexit=$(printf "%d" "$?")
+
+        if [ "$lsexit" = 2 ]; then
+            return 2
+        fi
+
+        if [ "$lsexit" = 0 ]; then
+            rm -rf "${get_dir}"/*.zip
         fi
     }
 }
@@ -951,23 +1005,6 @@ function compilation_report() {
 
 function stats() {
 
-    convert_bytes_func() {
-        local b
-        local d
-        local s
-        local S
-        b=${1:-0};
-        d=''
-        s=0
-        S=(Bytes {K,M,G,T,P,E,Z,Y}B)
-        while ((b > 1000)); do
-            d="$(printf ".%02d" $((b % 1000 * 100 / 1000)))"
-            b=$((b / 1000))
-            (( s++ ))
-        done
-        echo "$b$d ${S[$s]}"
-    }
-
     get_size_of_image_in_bytes() {
         if [ "$out" = 1 ]; then
             bytesoutimg=$(wc -c < "${out_kl_img}")
@@ -978,9 +1015,9 @@ function stats() {
 
     convert_bytes_of_image() {
         if [ "$out" = 1 ]; then
-            sizeoutimg=$(convert_bytes_func "${bytesoutimg}")
+            sizeoutimg=$(convert_bytes "${bytesoutimg}")
         else
-            sizenmlimg=$(convert_bytes_func "${bytesnmlimg}")
+            sizenmlimg=$(convert_bytes "${bytesnmlimg}")
         fi
     }
 
@@ -1044,36 +1081,36 @@ function stats() {
     image_stats() {
 
         read_stored_image_size() {
-            if [ -f "$scachefile" ]; then
-                grep -Fq "directory=$kl_dir" "$scachefile"
+            if [ -f "$cachefile" ]; then
+                grep -Fq "directory=$kl_dir" "$cachefile"
                 grepexit=$(printf "%d" "$?")
 
                 if [ "$grepexit" = 1 ]; then
-                    rm -f "${scachefile}"
+                    rm -f "${cachefile}"
                 fi
             fi
 
-            if [ -f "$scachefile" ]; then
+            if [ -f "$cachefile" ]; then
                 if [ "$out" = 1 ]; then
-                    if grep -Fq "out.kernel.image.size" "${scachefile}"; then
-                        sizestoredoutimg=$(grep out.kernel.image.size "${scachefile}" | cut -d "=" -f2)
+                    if grep -Fq "out.kernel.image.size" "${cachefile}"; then
+                        sizestoredoutimg=$(grep out.kernel.image.size "${cachefile}" | cut -d "=" -f2)
                     fi
                 else
-                    if grep -Fq "nml.kernel.image.size" "${scachefile}"; then
-                        sizestorednmlimg=$(grep nml.kernel.image.size "${scachefile}" | cut -d "=" -f2)
+                    if grep -Fq "nml.kernel.image.size" "${cachefile}"; then
+                        sizestorednmlimg=$(grep nml.kernel.image.size "${cachefile}" | cut -d "=" -f2)
                     fi
                 fi
             fi
         }
 
         output_image_stats() {
-            if [ -f "$scachefile" ]; then
+            if [ -f "$cachefile" ]; then
                 if [ "$out" = 1 ]; then
-                    if grep -Fq out.kernel.image.size "${scachefile}"; then
+                    if grep -Fq out.kernel.image.size "${cachefile}"; then
                         printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$sizeoutimg" "$sizestoredoutimg" "$darkwhite"
                     fi
                 else
-                    if grep -Fq nml.kernel.image.size "${scachefile}"; then
+                    if grep -Fq nml.kernel.image.size "${cachefile}"; then
                         printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$sizenmlimg" "$sizestorednmlimg" "$darkwhite"
                     fi
                 fi
@@ -1093,15 +1130,15 @@ function stats() {
         }
 
         store_image_size() {
-            rm -f "${scachefile}"
-            touch "${scachefile}"
+            rm -f "${cachefile}"
+            touch "${cachefile}"
 
-            printf "directory=%s\n" "$kl_dir" >> "${scachefile}"
+            printf "directory=%s\n" "$kl_dir" >> "${cachefile}"
 
             if [ "$out" = 1 ]; then
-                printf "out.kernel.image.size=%s\n" "$sizeoutimg" >> "${scachefile}"
+                printf "out.kernel.image.size=%s\n" "$sizeoutimg" >> "${cachefile}"
             else
-                printf "nml.kernel.image.size=%s\n" "$sizenmlimg" >> "${scachefile}"
+                printf "nml.kernel.image.size=%s\n" "$sizenmlimg" >> "${cachefile}"
             fi
         }
 
@@ -1130,18 +1167,9 @@ function zip_builder() {
     remove_old_zip() {
         rm -f "${ak_dir}"/"${KERNEL_NAME}"*.zip
 
-        aggressive_removal() {
-            if [ "$agrsv_rm" = 1 ]; then
-                ls "${ak_dir}"/*.zip > /dev/null 2>&1
-                lsexit=$(printf "%d" "$?")
-
-                if [ "$lsexit" = 0 ]; then
-                    rm -rf "${ak_dir}"/*.zip
-                fi
-            fi
-        }
-
-        aggressive_removal
+        if [ "$agrsv_rm" = 1 ]; then
+            remove_every_zip "${ak_dir}"
+        fi
     }
 
     filename() {
@@ -1182,7 +1210,7 @@ function zip_builder() {
     }
 
     convert_bytes_of_zip() {
-        sizezip=$(convert_bytes_func "${byteszip}")
+        sizezip=$(convert_bytes "${byteszip}")
     }
 
     zip_stats() {
@@ -1202,25 +1230,25 @@ function zip_builder() {
         }
 
         read_stored_zip_size() {
-            if [ -f "$scachefile2" ]; then
-                grep -Fq "directory=$kl_dir" "$scachefile2"
+            if [ -f "$cachefile2" ]; then
+                grep -Fq "directory=$kl_dir" "$cachefile2"
                 grepexit2=$(printf "%d" "$?")
 
                 if [ "$grepexit2" = 1 ]; then
-                    rm -f "${scachefile2}"
+                    rm -f "${cachefile2}"
                 fi
             fi
 
-            if [ -f "$scachefile2" ]; then
-                if grep -Fq "kernel.zip.size" "${scachefile2}"; then
-                    sizestoredzip=$(grep kernel.zip.size "${scachefile2}" | cut -d "=" -f2)
+            if [ -f "$cachefile2" ]; then
+                if grep -Fq "kernel.zip.size" "${cachefile2}"; then
+                    sizestoredzip=$(grep kernel.zip.size "${cachefile2}" | cut -d "=" -f2)
                 fi
             fi
         }
 
         output_zip_stats() {
-            if [ -f "$scachefile2" ]; then
-                if grep -Fq kernel.zip.size "${scachefile2}"; then
+            if [ -f "$cachefile2" ]; then
+                if grep -Fq kernel.zip.size "${cachefile2}"; then
                     printf "%b> Zip size: %s (PREVIOUSLY: %s)%b\n" "$white" "$sizezip" "$sizestoredzip" "$darkwhite"
                 fi
             else
@@ -1231,11 +1259,11 @@ function zip_builder() {
         }
 
         store_zip_size() {
-            rm -f "${scachefile2}"
-            touch "${scachefile2}"
+            rm -f "${cachefile2}"
+            touch "${cachefile2}"
 
-            printf "directory=%s\n" "$kl_dir" >> "${scachefile2}"
-            printf "kernel.zip.size=%s\n" "$sizezip" >> "${scachefile2}"
+            printf "directory=%s\n" "$kl_dir" >> "${cachefile2}"
+            printf "kernel.zip.size=%s\n" "$sizezip" >> "${cachefile2}"
         }
 
         md5_of_zip
