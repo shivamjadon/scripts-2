@@ -95,7 +95,7 @@ function variables() {
     }
 }
 
-function additional_variables() {
+function automatic_variables() {
 
     import_variables_0() {
         ESSENTIAL_VARIABLES
@@ -1295,7 +1295,7 @@ function zip_builder() {
 }
 
 variables
-additional_variables
+automatic_variables
 env_checks
 helpers
 traps
