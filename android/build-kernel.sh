@@ -135,19 +135,15 @@ function automatic_variables() {
         cyan='\033[1;36m'
     }
 
-    sync_decisions() {
-        # NOTE: Cosmetic variables.
+    cosmetic_variables() {
         akc=nah
         tcc=nope
         cgc=no
         klc=noway
-    }
-
-    compilation_methods() {
-        # NOTE: Cosmetic variables.
         clg=bad
         out=and
         nml=boujee
+        dry=seemsno
     }
 
     clone_depth() {
@@ -186,8 +182,7 @@ function automatic_variables() {
 
     import_variables_0
     colors
-    sync_decisions
-    compilation_methods
+    cosmetic_variables
     clone_depth
     persistent_cache
     location_shortcuts
@@ -678,7 +673,7 @@ function cloning() {
     anykernel() {
         if [ -n "$AK_DIR" ]; then
             if [ ! -d "$ak_dir" ]; then
-                akc=y
+                akc=1
                 printf "\n%bStarting clone of AK with depth %d...%b\n" "$white" "$ak_clone_depth" "$darkwhite"
                 git clone --branch "${AK_BRANCH}" --depth "${ak_clone_depth}" "${AK_REPO}" "${ak_dir}"
             fi
@@ -687,7 +682,7 @@ function cloning() {
 
     toolchain() {
         if [ ! -d "$tc_dir" ]; then
-            tcc=y
+            tcc=1
             printf "\n%bStarting clone of the toolchain with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
             git clone --branch "${TOOLCHAIN_BRANCH}" --depth "${tc_clone_depth}" "${TOOLCHAIN_REPO}" "${tc_dir}"
         fi
@@ -696,7 +691,7 @@ function cloning() {
     clang() {
         if [ -n "$CLANG_DIR" ]; then
             if [ ! -d "$cg_dir" ]; then
-                cgc=y
+                cgc=1
                 printf "\n%bStarting clone of Clang with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
                 git clone --branch "${CLANG_BRANCH}" --depth "${tc_clone_depth}" "${CLANG_REPO}" "${cg_dir}"
             fi
@@ -705,7 +700,7 @@ function cloning() {
 
     kernel() {
         if [ ! -d "$kl_dir" ]; then
-            klc=y
+            klc=1
             printf "\n%bStarting clone of the kernel with depth %d...%b\n" "$white" "$kl_clone_depth" "$darkwhite"
             if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
                 git clone --recursive --branch "${KERNEL_BRANCH}" --depth "${kl_clone_depth}" "${KERNEL_REPO}" "${kl_dir}"
@@ -739,7 +734,7 @@ function cloning() {
 
     sync_directories() {
         if [ "$SYNC_AK_DIR" = 1 ]; then
-            if [ "$akc" != y ]; then
+            if [ "$akc" != 1 ]; then
                 printf "\n%bStarting sync of AK source...%b\n" "$white" "$darkwhite"
                 cd "${ak_dir}" || die_30
                 git reset --hard "@{upstream}"
@@ -749,7 +744,7 @@ function cloning() {
         fi
 
         if [ "$SYNC_TC_DIR" = 1 ]; then
-            if [ "$tcc" != y ]; then
+            if [ "$tcc" != 1 ]; then
                 printf "\n%bStarting sync of the toolchain source...%b\n" "$white" "$darkwhite"
                 cd "${tc_dir}" || die_30
                 git reset --hard "@{upstream}"
@@ -758,7 +753,7 @@ function cloning() {
             fi
 
             if [ -n "$CLANG_DIR" ]; then
-                if [ "$cgc" != y ]; then
+                if [ "$cgc" != 1 ]; then
                     printf "\n%bStarting sync of Clang source...%b\n" "$white" "$darkwhite"
                     cd "${cg_dir}" || die_30
                     git reset --hard "@{upstream}"
@@ -769,7 +764,7 @@ function cloning() {
         fi
 
         if [ "$SYNC_KERNEL_DIR" = 1 ]; then
-            if [ "$klc" != y ]; then
+            if [ "$klc" != 1 ]; then
                 printf "\n%bStarting sync of the kernel source...%b\n" "$white" "$darkwhite"
                 cd "${kl_dir}" || die_30
                 git reset --hard "@{upstream}"
@@ -802,7 +797,14 @@ function choices() {
         fi
     }
 
+    build_type() {
+        if [ -d "$out_dir" ]; then
+            dry=1
+        fi
+    }
+
     compilation_method
+    build_type
 }
 
 function automatic_configuration() {
@@ -1059,6 +1061,28 @@ function stats() {
         comptimemin=$((comptime / 60))
         comptimesec=$((comptime % 60))
 
+        read_compilation_details() {
+            if [ "$clg" = 1 ]; then
+                compdetails=clang
+            elif [ "$out" = 1 ]; then
+                compdetails=gcc-out
+            else
+                compdetails=gcc-normal
+            fi
+
+            if [ "$USE_CCACHE" = 1 ]; then
+                compdetails="${compdetails}-ccache"
+            fi
+
+            if [ "$dry" = 1 ]; then
+                compdetails="${compdetails}-dirty"
+            fi
+
+            compdetails="${compdetails}"
+        }
+
+        read_compilation_details
+
         if [ "$comptimemin" = 1 ] && [ "$comptimesec" = 1 ]; then
             printf "%b> Compilation took: %d minute and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
         elif [ "$comptimemin" = 1 ] && [ "$comptimesec" != 1 ]; then
@@ -1069,25 +1093,7 @@ function stats() {
             printf "%b> Compilation took: %d minutes and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
         fi
 
-        if [ "$clg" = 1 ]; then
-            if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: out-%s-ccache%b\n" "$white" "$CLANG_BIN" "$darkwhite"
-            else
-                printf "%b> Compilation details: out-%s%b\n" "$white" "$CLANG_BIN" "$darkwhite"
-            fi
-        elif [ "$out" = 1 ]; then
-            if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: out-gcc-ccache%b\n" "$white" "$darkwhite"
-            else
-                printf "%b> Compilation details: out-gcc%b\n" "$white" "$darkwhite"
-            fi
-        elif [ "$nml" = 1 ]; then
-            if [ "$USE_CCACHE" = 1 ]; then
-                printf "%b> Compilation details: normal-gcc-ccache%b\n" "$white" "$darkwhite"
-            else
-                printf "%b> Compilation details: normal-gcc%b\n" "$white" "$darkwhite"
-            fi
-        fi
+        printf "%b> Compilation details: %s%b\n" "$white" "$compdetails" "$darkwhite"
     }
 
     image_stats() {
