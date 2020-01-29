@@ -32,89 +32,100 @@ function variables() {
     OPTIONAL_VARIABLES() {
 
         anykernel() {
-            essential_variables() {
+            ak_essential_variables() {
                 AK_DIR=
                 KERNEL_NAME=
             }
-            remote_variables() {
+            ak_remote_variables() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 AK_REPO=
                 AK_BRANCH=
             }
-            zip_filename_variables() {
+            ak_zip_filename_variables() {
                 APPEND_VERSION=
                 APPEND_DEVICE=
                 APPEND_ANDROID_TARGET=
                 APPEND_DATE=0
                 CUSTOM_ZIP_NAME=
             }
-            essential_variables
-            remote_variables
-            zip_filename_variables
         }
 
         toolchain() {
-            remote_variables() {
+            tc_remote_variables() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 TOOLCHAIN_REPO=
                 TOOLCHAIN_BRANCH=
             }
-            remote_variables
         }
 
         clang() {
-            essential_variables() {
+            cg_essential_variables() {
                 CLANG_DIR=
                 CLANG_BIN=
                 CLANG_PREFIX=
             }
-            remote_variables() {
+            cg_remote_variables() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 CLANG_REPO=
                 CLANG_BRANCH=
             }
-            essential_variables
-            remote_variables
         }
 
         kernel() {
-            remote_variables() {
+            kl_remote_variables() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 KERNEL_REPO=
                 KERNEL_BRANCH=
             }
-            options() {
+            kl_options() {
                 KERNEL_BUILD_USER=
                 KERNEL_BUILD_HOST=
                 KERNEL_LOCALVERSION=
             }
-            remote_variables
-            options
         }
 
         miscellaneous() {
-            sync_variables() {
+            ms_sync_variables() {
                 # NOTE: True sync. Any local changes are discarded. All remote changes are pulled.
                 SYNC_AK_DIR=0
                 SYNC_TC_DIR=0
                 SYNC_KERNEL_DIR=0
             }
-            sync_variables
         }
-
-        anykernel
-        toolchain
-        clang
-        kernel
-        miscellaneous
     }
-
-    ESSENTIAL_VARIABLES
-    SCRIPT_VARIABLES
-    OPTIONAL_VARIABLES
 }
 
 function additional_variables() {
+
+    import_variables_0() {
+        ESSENTIAL_VARIABLES
+        SCRIPT_VARIABLES
+        OPTIONAL_VARIABLES
+
+        import_variables_1() {
+            anykernel
+            toolchain
+            clang
+            kernel
+            miscellaneous
+
+            import_variables_2() {
+                ak_essential_variables
+                ak_remote_variables
+                ak_zip_filename_variables
+                tc_remote_variables
+                cg_essential_variables
+                cg_remote_variables
+                kl_remote_variables
+                kl_options
+                ms_sync_variables
+            }
+
+            import_variables_2
+        }
+
+        import_variables_1
+    }
 
     colors() {
         red='\033[1;31m'
@@ -173,6 +184,7 @@ function additional_variables() {
         current_date=$(date +'%Y%m%d')
     }
 
+    import_variables_0
     colors
     sync_decisions
     compilation_methods
