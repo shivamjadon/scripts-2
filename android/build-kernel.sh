@@ -173,7 +173,7 @@ function automatic_variables() {
     }
 
     zip_builder_options() {
-        agrsv_rm=1
+        aggressive_zip_rm=1
     }
 
     date_call() {
@@ -191,7 +191,7 @@ function automatic_variables() {
     date_call
 }
 
-function env_checks() {
+function environment_check() {
 
     bash_check() {
         local bash_ver
@@ -807,7 +807,7 @@ function choices() {
     build_type
 }
 
-function automatic_configuration() {
+function pre_compilation_setup() {
 
     set_subarch() {
         if [ "$KERNEL_ARCH" = "arm64" ]; then
@@ -831,13 +831,13 @@ function automatic_configuration() {
 
     user() {
         if [ -z "$KERNEL_BUILD_USER" ]; then
-            idkme=$(id -un)
+            get_username=$(id -un)
         fi
     }
 
     host() {
         if [ -z "$KERNEL_BUILD_HOST" ]; then
-            idkmy=$(uname -n)
+            get_hostname=$(uname -n)
         fi
     }
 
@@ -848,7 +848,7 @@ function automatic_configuration() {
     host
 }
 
-function time_log_start1() {
+function pre_compilation_work() {
     start1=$(date +'%s')
 }
 
@@ -861,13 +861,13 @@ function compilation() {
             if [ -n "$KERNEL_BUILD_USER" ]; then
                 export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
             else
-                export KBUILD_BUILD_USER=${idkme}
+                export KBUILD_BUILD_USER=${get_username}
             fi
 
             if [ -n "$KERNEL_BUILD_HOST" ]; then
                 export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
             else
-                export KBUILD_BUILD_HOST=${idkmy}
+                export KBUILD_BUILD_HOST=${get_hostname}
             fi
 
             if [ -n "$KERNEL_LOCALVERSION" ]; then
@@ -906,13 +906,13 @@ function compilation() {
             if [ -n "$KERNEL_BUILD_USER" ]; then
                 export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
             else
-                export KBUILD_BUILD_USER=${idkme}
+                export KBUILD_BUILD_USER=${get_username}
             fi
 
             if [ -n "$KERNEL_BUILD_HOST" ]; then
                 export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
             else
-                export KBUILD_BUILD_HOST=${idkmy}
+                export KBUILD_BUILD_HOST=${get_hostname}
             fi
 
             if [ -n "$KERNEL_LOCALVERSION" ]; then
@@ -947,13 +947,13 @@ function compilation() {
             if [ -n "$KERNEL_BUILD_USER" ]; then
                 export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
             else
-                export KBUILD_BUILD_USER=${idkme}
+                export KBUILD_BUILD_USER=${get_username}
             fi
 
             if [ -n "$KERNEL_BUILD_HOST" ]; then
                 export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
             else
-                export KBUILD_BUILD_HOST=${idkmy}
+                export KBUILD_BUILD_HOST=${get_hostname}
             fi
 
             if [ -n "$KERNEL_LOCALVERSION" ]; then
@@ -982,7 +982,7 @@ function compilation() {
     normal
 }
 
-function time_log_end1() {
+function post_compilation_work() {
     end1=$(date +'%s')
     comptime=$((end1-start1))
 }
@@ -1045,13 +1045,13 @@ function stats() {
         if [ -n "$KERNEL_BUILD_USER" ]; then
             printf "%b> User: %s%b\n" "$white" "$KERNEL_BUILD_USER" "$darkwhite"
         else
-            printf "%b> User: %s%b\n" "$white" "$idkme" "$darkwhite"
+            printf "%b> User: %s%b\n" "$white" "$get_username" "$darkwhite"
         fi
 
         if [ -n "$KERNEL_BUILD_HOST" ]; then
             printf "%b> Host: %s%b\n" "$white" "$KERNEL_BUILD_HOST" "$darkwhite"
         else
-            printf "%b> Host: %s%b\n" "$white" "$idkmy" "$darkwhite"
+            printf "%b> Host: %s%b\n" "$white" "$get_hostname" "$darkwhite"
         fi
     }
 
@@ -1194,7 +1194,7 @@ function zip_builder() {
     remove_old_zip() {
         rm -f "${ak_dir}"/"${KERNEL_NAME}"*.zip
 
-        if [ "$agrsv_rm" = 1 ]; then
+        if [ "$aggressive_zip_rm" = 1 ]; then
             remove_every_zip "${ak_dir}"
         fi
     }
@@ -1311,7 +1311,7 @@ function zip_builder() {
 
 variables
 automatic_variables
-env_checks
+environment_check
 helpers
 traps
 die_codes
@@ -1319,10 +1319,10 @@ configuration_checker
 package_checker
 cloning
 choices
-automatic_configuration
-time_log_start1
+pre_compilation_setup
+pre_compilation_work
 compilation
-time_log_end1
+post_compilation_work
 compilation_report
 stats
 
