@@ -1056,10 +1056,23 @@ function stats() {
     }
 
     compilation_stats() {
-        local comptimemin
-        local comptimesec
-        comptimemin=$((comptime / 60))
-        comptimesec=$((comptime % 60))
+
+        read_compilation_time() {
+            comptimemin=$((comptime / 60))
+            comptimesec=$((comptime % 60))
+
+            if [ "$comptimemin" = 1 ]; then
+                ctm=minute
+            else
+                ctm=minutes
+            fi
+
+            if [ "$comptimesec" = 1 ]; then
+                cts=second
+            else
+                cts=seconds
+            fi
+        }
 
         read_compilation_details() {
             if [ "$clg" = 1 ]; then
@@ -1081,19 +1094,15 @@ function stats() {
             compdetails="${compdetails}"
         }
 
+        output_compilation_stats() {
+            printf "%b> Compilation took: %d %s and %d %s%b\n" "$white" "$comptimemin" "$ctm" "$comptimesec" "$cts" "$darkwhite"
+
+            printf "%b> Compilation details: %s%b\n" "$white" "$compdetails" "$darkwhite"
+        }
+
+        read_compilation_time
         read_compilation_details
-
-        if [ "$comptimemin" = 1 ] && [ "$comptimesec" = 1 ]; then
-            printf "%b> Compilation took: %d minute and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-        elif [ "$comptimemin" = 1 ] && [ "$comptimesec" != 1 ]; then
-            printf "%b> Compilation took: %d minute and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-        elif [ "$comptimemin" != 1 ] && [ "$comptimesec" = 1 ]; then
-            printf "%b> Compilation took: %d minutes and %d second%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-        elif [ "$comptimemin" != 1 ] && [ "$comptimesec" != 1 ]; then
-            printf "%b> Compilation took: %d minutes and %d seconds%b\n" "$white" "$comptimemin" "$comptimesec" "$darkwhite"
-        fi
-
-        printf "%b> Compilation details: %s%b\n" "$white" "$compdetails" "$darkwhite"
+        output_compilation_stats
     }
 
     image_stats() {
