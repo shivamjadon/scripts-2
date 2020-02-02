@@ -858,6 +858,12 @@ function compilation() {
         if [ "$clg" = 1 ]; then
             cd "${kl_dir}" || die_30
 
+            if [ "$USE_CCACHE" = 1 ]; then
+                paths="${ccache_loc}:${cg_dir}/bin:${tc_dir}/bin:${PATH}"
+            else
+                paths="${cg_dir}/bin:${tc_dir}/bin:${PATH}"
+            fi
+
             if [ -n "$KERNEL_BUILD_USER" ]; then
                 export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
             else
@@ -881,13 +887,7 @@ function compilation() {
                 ARCH="${KERNEL_ARCH}" \
                 "${KERNEL_DEFCONFIG}"
 
-            if [ "$USE_CCACHE" = 1 ]; then
-                cpaths="${ccache_loc} ${cg_dir}/bin:${tc_dir}/bin:${PATH}"
-            else
-                cpaths="${cg_dir}/bin:${tc_dir}/bin:${PATH}"
-            fi
-
-            tc_paths=${cpaths} \
+            PATH="${paths}" \
             make O="${out_dir}" \
                 ARCH="${KERNEL_ARCH}" \
                 CC="${CLANG_BIN}" \
