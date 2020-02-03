@@ -95,6 +95,132 @@ function variables() {
     }
 }
 
+function fix_bad_input() {
+
+    tc_dir_input() {
+        if [[ ${TOOLCHAIN_DIR} == "/home/"* ]] || [[ ${TOOLCHAIN_DIR} == "$HOME/"* ]]; then
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
+        elif [[ ${TOOLCHAIN_DIR} == "home/"* ]]; then
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
+        fi
+
+        if [[ ${TOOLCHAIN_DIR} == "/"* ]]; then
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
+        fi
+
+        if [[ ${TOOLCHAIN_DIR} == *"/" ]]; then
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR%?}
+        fi
+    }
+
+    kl_dir_input() {
+        if [[ ${KERNEL_DIR} == "/home/"* ]] || [[ ${KERNEL_DIR} == "/$HOME/"* ]]; then
+            KERNEL_DIR=${KERNEL_DIR#*/}
+            KERNEL_DIR=${KERNEL_DIR#*/}
+            KERNEL_DIR=${KERNEL_DIR#*/}
+        elif [[ ${KERNEL_DIR} == "home/"* ]] || [[ ${KERNEL_DIR} == "$HOME/"* ]]; then
+            KERNEL_DIR=${KERNEL_DIR#*/}
+            KERNEL_DIR=${KERNEL_DIR#*/}
+        fi
+
+        if [[ ${KERNEL_DIR} == "/"* ]]; then
+            KERNEL_DIR=${KERNEL_DIR#*/}
+        fi
+
+        if [[ ${KERNEL_DIR} == *"/" ]]; then
+            KERNEL_DIR=${KERNEL_DIR%?}
+        fi
+    }
+
+    out_dir_input() {
+        if [[ ${KERNEL_OUTPUT_DIR} == "/home/"* ]] || [[ ${KERNEL_OUTPUT_DIR} == "/$HOME/"* ]]; then
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
+        elif [[ ${KERNEL_OUTPUT_DIR} == "home/"* ]] || [[ ${KERNEL_OUTPUT_DIR} == "$HOME/"* ]]; then
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
+        fi
+
+        if [[ ${KERNEL_OUTPUT_DIR} == "/"* ]]; then
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
+        fi
+
+        if [[ ${KERNEL_OUTPUT_DIR} == *"/" ]]; then
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR%?}
+        fi
+    }
+
+    ak_dir_input() {
+        if [[ ${AK_DIR} == "/home/"* ]] || [[ ${AK_DIR} == "/$HOME/"* ]]; then
+            AK_DIR=${AK_DIR#*/}
+            AK_DIR=${AK_DIR#*/}
+            AK_DIR=${AK_DIR#*/}
+        elif [[ ${AK_DIR} == "home/"* ]] || [[ ${AK_DIR} == "$HOME/"* ]]; then
+            AK_DIR=${AK_DIR#*/}
+            AK_DIR=${AK_DIR#*/}
+        fi
+
+        if [[ ${AK_DIR} == "/"* ]]; then
+            AK_DIR=${AK_DIR#*/}
+        fi
+
+        if [[ ${AK_DIR} == *"/" ]]; then
+            AK_DIR=${AK_DIR%?}
+        fi
+    }
+
+    cg_dir_input() {
+        if [[ ${CLANG_DIR} == "/home/"* ]] || [[ ${CLANG_DIR} == "/$HOME/"* ]]; then
+            CLANG_DIR=${CLANG_DIR#*/}
+            CLANG_DIR=${CLANG_DIR#*/}
+            CLANG_DIR=${CLANG_DIR#*/}
+        elif [[ ${CLANG_DIR} == "home/"* ]] || [[ ${CLANG_DIR} == "$HOME/"* ]]; then
+            CLANG_DIR=${CLANG_DIR#*/}
+            CLANG_DIR=${CLANG_DIR#*/}
+        fi
+
+        if [[ ${CLANG_DIR} == "/"* ]]; then
+            CLANG_DIR=${CLANG_DIR#*/}
+        fi
+
+        if [[ ${CLANG_DIR} == *"/" ]]; then
+            CLANG_DIR=${CLANG_DIR%?}
+        fi
+    }
+
+    defconfig_input() {
+        if [[ ${KERNEL_DEFCONFIG} == "/"* ]]; then
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG#*/}
+        fi
+
+        if [[ ${KERNEL_DEFCONFIG} == *"/" ]]; then
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG%?}
+        fi
+
+        if [[ ${KERNEL_DEFCONFIG} == *"/"* ]]; then
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG##*/}
+        fi
+    }
+
+    tc_dir_input
+    kl_dir_input
+    out_dir_input
+
+    if [ -n "$AK_DIR" ]; then
+        ak_dir_input
+    fi
+
+    if [ -n "$CLANG_DIR" ]; then
+        cg_dir_input
+    fi
+
+    defconfig_input
+}
+
 function automatic_variables() {
 
     import_variables_0() {
@@ -166,6 +292,19 @@ function automatic_variables() {
         ak_kl_img="$HOME"/${AK_DIR}/Image.gz-dtb
         out_kl_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/arm64/boot/Image.gz-dtb
         nml_kl_img="$HOME"/${KERNEL_DIR}/arch/arm64/boot/Image.gz-dtb
+        kl_config_path="$HOME"/${KERNEL_DIR}/arch/arm64/configs/${KERNEL_DEFCONFIG}
+        vendor_kl_config_path="$HOME"/${KERNEL_DIR}/arch/arm64/configs/vendor/${KERNEL_DEFCONFIG}
+        make_kl_config_path=${KERNEL_DEFCONFIG}
+        make_vendor_kl_config=vendor/${KERNEL_DEFCONFIG}
+
+        if [ ! -f "$kl_config_path" ]; then
+            if [ -f "$vendor_kl_config_path" ]; then
+                make_kl_config_path=${make_vendor_kl_config}
+            else
+                printf "\n%bPlease put your defconfig in /configs or /configs/vendor%b\n\n" "$red" "$darkwhite"
+                exit 1
+            fi
+        fi
     }
 
     stats_options() {
@@ -471,81 +610,11 @@ function configuration_checker() {
         fi
     }
 
-    check_for_slash() {
-        local tcd_first_char
-        local tcd_last_char
-        local kld_first_char
-        local kld_last_char
-        local kldo_first_char
-        local kldo_last_char
-        tcd_first_char=$(printf "%s" "$TOOLCHAIN_DIR" | cut -c -1)
-        tcd_last_char=$(printf "%s" "$TOOLCHAIN_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
-        kld_first_char=$(printf "%s" "$KERNEL_DIR" | cut -c -1)
-        kld_last_char=$(printf "%s" "$KERNEL_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
-        kldo_first_char=$(printf "%s" "$KERNEL_OUTPUT_DIR" | cut -c -1)
-        kldo_last_char=$(printf "%s" "$KERNEL_OUTPUT_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
-
-        if [ "$tcd_first_char" = "/" ]; then
-            printf "\n%bRemove the first slash (/) in TOOLCHAIN_DIR variable.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        elif [ "$tcd_last_char" = "/" ]; then
-            printf "\n%bRemove the last slash (/) in TOOLCHAIN_DIR variable.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        fi
-
-        if [ "$kld_first_char" = "/" ]; then
-            printf "\n%bRemove the first slash (/) in KERNEL_DIR variable.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        elif [ "$kld_last_char" = "/" ]; then
-            printf "\n%bRemove the last slash (/) in KERNEL_DIR variable.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        fi
-
-        if [ "$kldo_first_char" = "/" ]; then
-            printf "\n%bRemove the first slash (/) in KERNEL_OUTPUT_DIR variable.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        elif [ "$kldo_last_char" = "/" ]; then
-            printf "\n%bRemove the last slash (/) in KERNEL_OUTPUT_DIR variable.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        fi
-
-        if [ -n "$AK_DIR" ]; then
-            local akd_first_char
-            local akd_last_char
-            akd_first_char=$(printf "%s" "$AK_DIR" | cut -c -1)
-            akd_last_char=$(printf "%s" "$AK_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
-
-            if [ "$akd_first_char" = "/" ]; then
-                printf "\n%bRemove the first slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
-                exit 1
-            elif [ "$akd_last_char" = "/" ]; then
-                printf "\n%bRemove the last slash (/) in AK_DIR variable.%b\n\n" "$red" "$darkwhite"
-                exit 1
-            fi
-        fi
-
-        if [ -n "$CLANG_DIR" ]; then
-            local cgd_first_char
-            local cgd_last_char
-            cgd_first_char=$(printf "%s" "$CLANG_DIR" | cut -c -1)
-            cgd_last_char=$(printf "%s" "$CLANG_DIR" | sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' | cut -c -1)
-
-            if [ "$cgd_first_char" = "/" ]; then
-                printf "\n%bRemove the first slash (/) in CLANG_DIR variable.%b\n\n" "$red" "$darkwhite"
-                exit 1
-            elif [ "$cgd_last_char" = "/" ]; then
-                printf "\n%bRemove the last slash (/) in CLANG_DIR variable.%b\n\n" "$red" "$darkwhite"
-                exit 1
-            fi
-        fi
-    }
-
     changed_variables
     undefined_variables
     missing_variables
     incorrect_variables
     check_the_toggles
-    check_for_slash
 }
 
 function package_checker() {
@@ -885,7 +954,7 @@ function compilation() {
 
             make O="${out_dir}" \
                 ARCH="${KERNEL_ARCH}" \
-                "${KERNEL_DEFCONFIG}"
+                "${make_kl_config_path}"
 
             PATH="${paths}" \
             make O="${out_dir}" \
@@ -930,7 +999,7 @@ function compilation() {
 
             make O="${out_dir}" \
                 ARCH="${KERNEL_ARCH}" \
-                "${KERNEL_DEFCONFIG}"
+                "${make_kl_config_path}"
 
             make O="${out_dir}" \
                 ARCH="${KERNEL_ARCH}" \
@@ -969,7 +1038,7 @@ function compilation() {
                 CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
             fi
 
-            make "${KERNEL_DEFCONFIG}"
+            make "${make_kl_config_path}"
 
             CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
 
@@ -1310,6 +1379,7 @@ function zip_builder() {
 }
 
 variables
+fix_bad_input
 automatic_variables
 environment_check
 helpers
