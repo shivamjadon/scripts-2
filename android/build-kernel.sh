@@ -514,8 +514,14 @@ function configuration_checker() {
         fi
 
         if [ -n "$CLANG_DIR" ]; then
-            if [ -z "$CLANG_BIN" ] || [ -z "$CLANG_PREFIX" ]; then
+            if [ -z "$CLANG_BIN" ]; then
                 die_21
+            fi
+
+            if [ -z "$CLANG_PREFIX" ]; then
+                printf "\n%bYou did not define CLANG_PREFIX (CLANG_TRIPLE), and that is okay, %b" "$white" "$darkwhite"
+                printf "%bbut if you are using AOSP's Clang, then stop this compilation and define it.%b" "$white" "$darkwhite"
+                printf "\n%bTIP: aarch64-linux-gnu-%b\n" "$white" "$darkwhite"
             fi
         fi
     }
