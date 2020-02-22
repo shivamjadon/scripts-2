@@ -95,7 +95,37 @@ function variables() {
     }
 }
 
-function fix_bad_input() {
+function automatic_configuration() {
+
+    import_variables_0() {
+        ESSENTIAL_VARIABLES
+        SCRIPT_VARIABLES
+        OPTIONAL_VARIABLES
+
+        import_variables_1() {
+            anykernel
+            toolchain
+            clang
+            kernel
+            miscellaneous
+
+            import_variables_2() {
+                ak_essential_variables
+                ak_remote_variables
+                ak_zip_filename_variables
+                tc_remote_variables
+                cg_essential_variables
+                cg_remote_variables
+                kl_remote_variables
+                kl_options
+                ms_sync_variables
+            }
+
+            import_variables_2
+        }
+
+        import_variables_1
+    }
 
     tc_dir_input() {
         if [[ ${TOOLCHAIN_DIR} == "/home/"* ]] || [[ ${TOOLCHAIN_DIR} == "$HOME/"* ]]; then
@@ -206,6 +236,7 @@ function fix_bad_input() {
         fi
     }
 
+    import_variables_0
     tc_dir_input
     kl_dir_input
     out_dir_input
@@ -222,36 +253,6 @@ function fix_bad_input() {
 }
 
 function automatic_variables() {
-
-    import_variables_0() {
-        ESSENTIAL_VARIABLES
-        SCRIPT_VARIABLES
-        OPTIONAL_VARIABLES
-
-        import_variables_1() {
-            anykernel
-            toolchain
-            clang
-            kernel
-            miscellaneous
-
-            import_variables_2() {
-                ak_essential_variables
-                ak_remote_variables
-                ak_zip_filename_variables
-                tc_remote_variables
-                cg_essential_variables
-                cg_remote_variables
-                kl_remote_variables
-                kl_options
-                ms_sync_variables
-            }
-
-            import_variables_2
-        }
-
-        import_variables_1
-    }
 
     colors() {
         red='\033[1;31m'
@@ -319,7 +320,6 @@ function automatic_variables() {
         current_date=$(date +'%Y%m%d')
     }
 
-    import_variables_0
     colors
     cosmetic_variables
     clone_depth
@@ -1385,7 +1385,7 @@ function zip_builder() {
 }
 
 variables
-fix_bad_input
+automatic_configuration
 automatic_variables
 environment_check
 helpers
