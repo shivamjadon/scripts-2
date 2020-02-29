@@ -282,6 +282,7 @@ function automatic_variables() {
     persistent_cache() {
         cache_file_0="$HOME"/.bkscache0
         cache_file_1="$HOME"/.bkscache1
+        cache_file_2="$HOME"/.bkscache2
     }
 
     location_shortcuts() {
@@ -1365,11 +1366,93 @@ function stats() {
         store_size_of_images
     }
 
+    export_compilation_stats() {
+
+        prepare_compilation_stats_file_for_export() {
+            if [ -f "$cache_file_2" ]; then
+                rm -f "${cache_file_2}"
+            fi
+
+            touch "${cache_file_2}"
+        }
+
+        prepare_compilation_stats_for_export() {
+            ecs_compilation_time=$(printf "%d %s %d %s" "$compilation_time_minutes" "$compilation_time_minutes_noun" "$compilation_time_seconds" "$compilation_time_seconds_noun")
+
+            if [ -n "$KERNEL_LOCALVERSION" ]; then
+                ecs_localversion=${KERNEL_LOCALVERSION}
+            else
+                ecs_localversion="(none)"
+            fi
+
+            if [ -n "$KERNEL_BUILD_USER" ]; then
+                ecs_user=${KERNEL_BUILD_USER}
+            else
+                ecs_user=${get_username}
+            fi
+
+            if [ -n "$KERNEL_BUILD_HOST" ]; then
+                ecs_host=${KERNEL_BUILD_HOST}
+            else
+                ecs_host=${get_hostname}
+            fi
+
+            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
+                ecs_image_size=${kl_out_img_size}
+            else
+                ecs_image_size=${kl_nml_img_size}
+            fi
+
+            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
+                ecs_image_location=${kl_out_img}
+            else
+                ecs_image_location=${kl_nml_img}
+            fi
+
+            if [ -f "$kl_nml_img_dtb" ]; then
+                if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
+                    ecs_image_dtb_size=${kl_out_img_dtb_size}
+                else
+                    ecs_image_dtb_size=${kl_nml_img_dtb_size}
+                fi
+            else
+                ecs_image_dtb_size="(none)"
+            fi
+
+            if [ -f "$kl_nml_img_dtb" ]; then
+                if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
+                    ecs_dtb_image_location=${kl_out_img_dtb}
+                else
+                    ecs_dtb_image_location=${kl_nml_img_dtb}
+                fi
+            else
+                ecs_dtb_image_location="(none)"
+            fi
+        }
+
+        prepare_compilation_stats_file_for_export
+        prepare_compilation_stats_for_export
+
+        {
+            printf "defconfig=%s\n" "$KERNEL_DEFCONFIG"
+            printf "localversion=%s\n" "$ecs_localversion"
+            printf "user=%s\n" "$ecs_user"
+            printf "host=%s\n" "$ecs_host"
+            printf "compilation.time=%s\n" "$ecs_compilation_time"
+            printf "compilation.details=%s\n" "$compilation_details"
+            printf "image.size=%s\n" "$ecs_image_size"
+            printf "image.dtb.size=%s\n" "$ecs_image_dtb_size"
+            printf "image.location=%s\n" "$ecs_image_location"
+            printf "image.dtb.location=%s\n" "$ecs_dtb_image_location"
+        } >> "${cache_file_2}"
+    }
+
     get_bytes_of_images
     convert_bytes_of_images
     kernel_stats
     compilation_stats
     images_stats
+    export_compilation_stats
 }
 
 function zip_builder() {
