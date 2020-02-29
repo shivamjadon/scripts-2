@@ -263,14 +263,14 @@ function automatic_variables() {
     }
 
     cosmetic_variables() {
-        akc=nah
-        tcc=nope
-        cgc=no
-        klc=noway
-        clg=ahno
-        out=justno
-        dry=seemsno
-        ncf=maybeno
+        akc=0
+        tcc=0
+        cgc=0
+        klc=0
+        clg=0
+        out=0
+        dry=0
+        ncf=0
     }
 
     clone_depth() {
