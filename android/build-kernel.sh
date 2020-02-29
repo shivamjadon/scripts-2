@@ -1341,7 +1341,10 @@ function stats() {
         }
 
         store_size_of_images() {
-            rm -f "${cache_file_0}"
+            if [ -f "$cache_file_0" ]; then
+                rm -f "${cache_file_0}"
+            fi
+
             touch "${cache_file_0}"
 
             printf "directory=%s\n" "$kl_dir" >> "${cache_file_0}"
@@ -1591,7 +1594,10 @@ function zip_builder() {
         }
 
         store_size_of_zip() {
-            rm -f "${cache_file_1}"
+            if [ -f "$cache_file_1" ]; then
+                rm -f "${cache_file_1}"
+            fi
+
             touch "${cache_file_1}"
 
             printf "directory=%s\n" "$kl_dir" >> "${cache_file_1}"
