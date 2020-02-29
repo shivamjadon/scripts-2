@@ -280,8 +280,8 @@ function automatic_variables() {
     }
 
     persistent_cache() {
-        cachefile="$HOME"/.bkscache
-        cachefile2="$HOME"/.bkscache2
+        cache_file_0="$HOME"/.bkscache0
+        cache_file_1="$HOME"/.bkscache1
     }
 
     location_shortcuts() {
@@ -1241,34 +1241,34 @@ function stats() {
     images_stats() {
 
         read_stored_size_of_images() {
-            if [ -f "$cachefile" ]; then
-                grep -Fq "directory=$kl_dir" "$cachefile"
+            if [ -f "$cache_file_0" ]; then
+                grep -Fq "directory=$kl_dir" "$cache_file_0"
                 grepexit=$(printf "%d" "$?")
 
                 if [ "$grepexit" = 1 ]; then
-                    rm -f "${cachefile}"
+                    rm -f "${cache_file_0}"
                 fi
             fi
 
-            if [ -f "$cachefile" ]; then
+            if [ -f "$cache_file_0" ]; then
                 if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                    if grep -Fq "kernel.out.image.size" "${cachefile}"; then
-                        kl_out_img_size_stored=$(grep kernel.out.image.size "${cachefile}" | cut -d "=" -f2)
+                    if grep -Fq "kernel.out.image.size" "${cache_file_0}"; then
+                        kl_out_img_size_stored=$(grep kernel.out.image.size "${cache_file_0}" | cut -d "=" -f2)
                     fi
 
                     if [ -f "$kl_out_img_dtb" ]; then
-                        if grep -Fq "kernel.out.image.dtb.size" "${cachefile}"; then
-                            kl_out_img_dtb_size_stored=$(grep kernel.out.image.dtb.size "${cachefile}" | cut -d "=" -f2)
+                        if grep -Fq "kernel.out.image.dtb.size" "${cache_file_0}"; then
+                            kl_out_img_dtb_size_stored=$(grep kernel.out.image.dtb.size "${cache_file_0}" | cut -d "=" -f2)
                         fi
                     fi
                 else
-                    if grep -Fq "kernel.nml.image.size" "${cachefile}"; then
-                        kl_nml_img_size_stored=$(grep kernel.nml.image.size "${cachefile}" | cut -d "=" -f2)
+                    if grep -Fq "kernel.nml.image.size" "${cache_file_0}"; then
+                        kl_nml_img_size_stored=$(grep kernel.nml.image.size "${cache_file_0}" | cut -d "=" -f2)
                     fi
 
                     if [ -f "$kl_nml_img_dtb" ]; then
-                        if grep -Fq "kernel.nml.image.dtb.size" "${cachefile}"; then
-                            kl_nml_img_dtb_size_stored=$(grep kernel.nml.image.dtb.size "${cachefile}" | cut -d "=" -f2)
+                        if grep -Fq "kernel.nml.image.dtb.size" "${cache_file_0}"; then
+                            kl_nml_img_dtb_size_stored=$(grep kernel.nml.image.dtb.size "${cache_file_0}" | cut -d "=" -f2)
                         fi
                     fi
                 fi
@@ -1276,7 +1276,7 @@ function stats() {
         }
 
         output_stats_of_images() {
-            if [ -f "$cachefile" ]; then
+            if [ -f "$cache_file_0" ]; then
                 if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
                     if [ -n "$kl_out_img_size_stored" ]; then
                         printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$kl_out_img_size" "$kl_out_img_size_stored" "$darkwhite"
@@ -1340,22 +1340,22 @@ function stats() {
         }
 
         store_size_of_images() {
-            rm -f "${cachefile}"
-            touch "${cachefile}"
+            rm -f "${cache_file_0}"
+            touch "${cache_file_0}"
 
-            printf "directory=%s\n" "$kl_dir" >> "${cachefile}"
+            printf "directory=%s\n" "$kl_dir" >> "${cache_file_0}"
 
             if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                printf "kernel.out.image.size=%s\n" "$kl_out_img_size" >> "${cachefile}"
+                printf "kernel.out.image.size=%s\n" "$kl_out_img_size" >> "${cache_file_0}"
 
                 if [ -f "$kl_out_img_dtb" ]; then
-                    printf "kernel.out.image.dtb.size=%s\n" "$kl_out_img_dtb_size" >> "${cachefile}"
+                    printf "kernel.out.image.dtb.size=%s\n" "$kl_out_img_dtb_size" >> "${cache_file_0}"
                 fi
             else
-                printf "kernel.nml.image.size=%s\n" "$kl_nml_img_size" >> "${cachefile}"
+                printf "kernel.nml.image.size=%s\n" "$kl_nml_img_size" >> "${cache_file_0}"
 
                 if [ -f "$kl_nml_img_dtb" ]; then
-                    printf "kernel.nml.image.dtb.size=%s\n" "$kl_nml_img_dtb_size" >> "${cachefile}"
+                    printf "kernel.nml.image.dtb.size=%s\n" "$kl_nml_img_dtb_size" >> "${cache_file_0}"
                 fi
             fi
         }
@@ -1469,18 +1469,18 @@ function zip_builder() {
     zip_stats() {
 
         read_stored_size_of_zip() {
-            if [ -f "$cachefile2" ]; then
-                grep -Fq "directory=$kl_dir" "$cachefile2"
+            if [ -f "$cache_file_1" ]; then
+                grep -Fq "directory=$kl_dir" "$cache_file_1"
                 grepexit2=$(printf "%d" "$?")
 
                 if [ "$grepexit2" = 1 ]; then
-                    rm -f "${cachefile2}"
+                    rm -f "${cache_file_1}"
                 fi
             fi
 
-            if [ -f "$cachefile2" ]; then
-                if grep -Fq "zip.size" "${cachefile2}"; then
-                    zip_size_stored=$(grep zip.size "${cachefile2}" | cut -d "=" -f2)
+            if [ -f "$cache_file_1" ]; then
+                if grep -Fq "zip.size" "${cache_file_1}"; then
+                    zip_size_stored=$(grep zip.size "${cache_file_1}" | cut -d "=" -f2)
                 fi
             fi
         }
@@ -1494,7 +1494,7 @@ function zip_builder() {
                 printf "%b> Zip SHA-1: %s%b\n" "$white" "$zip_sha1" "$darkwhite"
             fi
 
-            if [ -f "$cachefile2" ]; then
+            if [ -f "$cache_file_1" ]; then
                 if [ -n "$zip_size_stored" ]; then
                     printf "%b> Zip size: %s (PREVIOUSLY: %s)%b\n" "$white" "$zip_size" "$zip_size_stored" "$darkwhite"
                 else
@@ -1508,11 +1508,11 @@ function zip_builder() {
         }
 
         store_size_of_zip() {
-            rm -f "${cachefile2}"
-            touch "${cachefile2}"
+            rm -f "${cache_file_1}"
+            touch "${cache_file_1}"
 
-            printf "directory=%s\n" "$kl_dir" >> "${cachefile2}"
-            printf "zip.size=%s\n" "$zip_size" >> "${cachefile2}"
+            printf "directory=%s\n" "$kl_dir" >> "${cache_file_1}"
+            printf "zip.size=%s\n" "$zip_size" >> "${cache_file_1}"
         }
 
         read_stored_size_of_zip
