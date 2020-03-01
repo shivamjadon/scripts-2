@@ -283,6 +283,7 @@ function automatic_variables() {
         cache_file_0="$HOME"/.bkscache0
         cache_file_1="$HOME"/.bkscache1
         cache_file_2="$HOME"/.bkscache2
+        cache_file_3="$HOME"/.bkscache3
     }
 
     location_shortcuts() {
@@ -1609,6 +1610,31 @@ function zip_builder() {
         store_size_of_zip
     }
 
+    export_zip_stats() {
+
+        prepare_zip_stats_file_for_export() {
+            if [ -f "$cache_file_3" ]; then
+                rm -f "${cache_file_3}"
+            fi
+
+            touch "${cache_file_3}"
+        }
+
+        prepare_zip_stats_for_export() {
+            ezs_zip_location=$(printf "%s/%s" "ak_dir" "filename")
+        }
+
+        prepare_zip_stats_file_for_export
+        prepare_zip_stats_for_export
+
+        {
+            printf "zip.md5=%s\n" "$zip_md5"
+            printf "zip.sha1=%s\n" "$zip_sha1"
+            printf "zip.size=%s\n" "$zip_size"
+            printf "zip.location=%s\n" "$ezs_zip_location"
+        } >> "${cache_file_3}"
+    }
+
     copy_image
     remove_old_zip
     filename
@@ -1617,6 +1643,7 @@ function zip_builder() {
     convert_bytes_of_zip
     get_hash_of_zip
     zip_stats
+    export_zip_stats
 }
 
 variables
