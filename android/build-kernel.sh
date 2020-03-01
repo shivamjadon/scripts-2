@@ -340,11 +340,13 @@ function automatic_variables() {
 
     stats_options() {
         convert_bytes_to_ibi=0
+        export_compilation_stats=1
     }
 
     zip_builder_options() {
         aggressive_zip_rm=1
         copy_dtb_image=1
+        export_zip_stats=1
     }
 
     date_call() {
@@ -1456,7 +1458,10 @@ function stats() {
     kernel_stats
     compilation_stats
     images_stats
-    export_compilation_stats
+
+    if [ "$export_compilation_stats" = 1 ]; then
+        export_compilation_stats
+    fi
 }
 
 function zip_builder() {
@@ -1643,7 +1648,10 @@ function zip_builder() {
     convert_bytes_of_zip
     get_hash_of_zip
     zip_stats
-    export_zip_stats
+
+    if [ "$export_zip_stats" = 1 ]; then
+        export_zip_stats
+    fi
 }
 
 variables
