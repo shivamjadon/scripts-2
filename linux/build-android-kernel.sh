@@ -1415,24 +1415,32 @@ function stats() {
                 ecs_image_location=${kl_nml_img}
             fi
 
-            if [ -f "$kl_nml_img_dtb" ]; then
-                if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
+            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
+                if [ -f "$kl_out_img_dtb" ]; then
                     ecs_image_dtb_size=${kl_out_img_dtb_size}
                 else
-                    ecs_image_dtb_size=${kl_nml_img_dtb_size}
+                    ecs_image_dtb_size="(none)"
                 fi
             else
-                ecs_image_dtb_size="(none)"
+                if [ -f "$kl_nml_img_dtb" ]; then
+                    ecs_image_dtb_size=${kl_nml_img_dtb_size}
+                else
+                    ecs_image_dtb_size="(none)"
+                fi
             fi
 
-            if [ -f "$kl_nml_img_dtb" ]; then
-                if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                    ecs_dtb_image_location=${kl_out_img_dtb}
+            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
+                if [ -f "$kl_out_img_dtb" ]; then
+                    ecs_image_dtb_location=${kl_out_img_dtb}
                 else
-                    ecs_dtb_image_location=${kl_nml_img_dtb}
+                    ecs_image_dtb_location="(none)"
                 fi
             else
-                ecs_dtb_image_location="(none)"
+                if [ -f "$kl_nml_img_dtb" ]; then
+                    ecs_image_dtb_location=${kl_nml_img_dtb}
+                else
+                    ecs_image_dtb_location="(none)"
+                fi
             fi
         }
 
@@ -1449,7 +1457,7 @@ function stats() {
             printf "image.size=%s\n" "$ecs_image_size"
             printf "image.dtb.size=%s\n" "$ecs_image_dtb_size"
             printf "image.location=%s\n" "$ecs_image_location"
-            printf "image.dtb.location=%s\n" "$ecs_dtb_image_location"
+            printf "image.dtb.location=%s\n" "$ecs_image_dtb_location"
         } >> "${cache_file_2}"
     }
 
@@ -1626,7 +1634,7 @@ function zip_builder() {
         }
 
         prepare_zip_stats_for_export() {
-            ezs_zip_location=$(printf "%s/%s" "ak_dir" "filename")
+            ezs_zip_location=$(printf "%s/%s" "$ak_dir" "$filename")
 
             if command_available md5sum; then
                 ezs_zip_md5=$(printf "%s" "$zip_md5")
