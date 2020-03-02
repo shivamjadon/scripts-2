@@ -1627,14 +1627,26 @@ function zip_builder() {
 
         prepare_zip_stats_for_export() {
             ezs_zip_location=$(printf "%s/%s" "ak_dir" "filename")
+
+            if command_available md5sum; then
+                ezs_zip_md5=$(printf "%s" "$zip_md5")
+            else
+                ezs_zip_md5="(none)"
+            fi
+
+            if command_available sha1sum; then
+                ezs_zip_sha1=$(printf "%s" "$zip_sha1")
+            else
+                ezs_zip_sha1="(none)"
+            fi
         }
 
         prepare_zip_stats_file_for_export
         prepare_zip_stats_for_export
 
         {
-            printf "zip.md5=%s\n" "$zip_md5"
-            printf "zip.sha1=%s\n" "$zip_sha1"
+            printf "zip.md5=%s\n" "$ezs_zip_md5"
+            printf "zip.sha1=%s\n" "$ezs_zip_sha1"
             printf "zip.size=%s\n" "$zip_size"
             printf "zip.location=%s\n" "$ezs_zip_location"
         } >> "${cache_file_3}"
