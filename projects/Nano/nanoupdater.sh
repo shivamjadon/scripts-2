@@ -26,7 +26,7 @@ touch $LOG
 if grep -Fq "NANO_KERNEL_PROPERTIES" /system/build.prop; then
     {
         echo "NKP = YES"
-        echo "=========="
+        echo "========="
     } >> $LOG
 else
     {
