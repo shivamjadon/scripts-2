@@ -19,7 +19,7 @@ NANO_DEVICE=
 NANO_RELEASE_DATE=
 NANO_VERSION=
 
-LOG=/cache/NanoFlashLog.log
+LOG=/cache/NanoFlash.log
 rm -f $LOG
 touch $LOG
 
