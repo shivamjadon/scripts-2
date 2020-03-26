@@ -1533,7 +1533,7 @@ function zip_builder() {
     }
 
     create_zip() {
-        printf "%bPacking the kernel...%b\n\n" "$cyan" "$darkwhite"
+        printf "%bPacking %s...%b\n\n" "$cyan" "$KERNEL_NAME" "$darkwhite"
 
         cd "${ak_dir}" || die_30
         zip -qFSr9 "${filename}" ./* -x .git ./*.zip README.md
