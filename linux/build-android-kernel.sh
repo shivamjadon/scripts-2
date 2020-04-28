@@ -1312,8 +1312,6 @@ function stats() {
             if [ "$dry" = 1 ]; then
                 compilation_details="${compilation_details}-dirty"
             fi
-
-            compilation_details="${compilation_details}"
         }
 
         output_compilation_stats() {
