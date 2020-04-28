@@ -788,12 +788,52 @@ function package_checker() {
 
 function cloning() {
 
+    parse_cloning_params() {
+
+        anykernel_params() {
+            ak_params="$AK_REPO"
+            ak_params="$ak_params $ak_dir"
+            ak_params="$ak_params --branch $AK_BRANCH"
+            ak_params="$ak_params --depth $ak_clone_depth"
+        }
+
+        toolchain_params() {
+            tc_params="$TOOLCHAIN_REPO"
+            tc_params="$tc_params $tc_dir"
+            tc_params="$tc_params --branch $TOOLCHAIN_BRANCH"
+            tc_params="$tc_params --depth $tc_clone_depth"
+        }
+
+        clang_params() {
+            cg_params="$CLANG_REPO"
+            cg_params="$cg_params $cg_dir"
+            cg_params="$cg_params --branch $CLANG_BRANCH"
+            cg_params="$cg_params --depth $tc_clone_depth"
+        }
+
+        kernel_params() {
+            kl_params="$KERNEL_REPO"
+            kl_params="$kl_params $kl_dir"
+            kl_params="$kl_params --branch $KERNEL_BRANCH"
+            kl_params="$kl_params --depth $kl_clone_depth"
+
+            if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
+                kl_params="$kl_params --recursive"
+            fi
+        }
+
+        anykernel_params
+        toolchain_params
+        clang_params
+        kernel_params
+    }
+
     anykernel() {
         if [ -n "$AK_DIR" ]; then
             if [ ! -d "$ak_dir" ]; then
                 akc=1
                 printf "\n%bStarting clone of AK with depth %d...%b\n" "$white" "$ak_clone_depth" "$darkwhite"
-                git clone --branch "${AK_BRANCH}" --depth "${ak_clone_depth}" "${AK_REPO}" "${ak_dir}"
+                git clone "${ak_params}"
             fi
         fi
     }
@@ -802,7 +842,7 @@ function cloning() {
         if [ ! -d "$tc_dir" ]; then
             tcc=1
             printf "\n%bStarting clone of the toolchain with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
-            git clone --branch "${TOOLCHAIN_BRANCH}" --depth "${tc_clone_depth}" "${TOOLCHAIN_REPO}" "${tc_dir}"
+            git clone "${tc_params}"
         fi
     }
 
@@ -811,7 +851,7 @@ function cloning() {
             if [ ! -d "$cg_dir" ]; then
                 cgc=1
                 printf "\n%bStarting clone of Clang with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
-                git clone --branch "${CLANG_BRANCH}" --depth "${tc_clone_depth}" "${CLANG_REPO}" "${cg_dir}"
+                git clone "${cg_params}"
             fi
         fi
     }
@@ -820,11 +860,7 @@ function cloning() {
         if [ ! -d "$kl_dir" ]; then
             klc=1
             printf "\n%bStarting clone of the kernel with depth %d...%b\n" "$white" "$kl_clone_depth" "$darkwhite"
-            if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
-                git clone --recursive --branch "${KERNEL_BRANCH}" --depth "${kl_clone_depth}" "${KERNEL_REPO}" "${kl_dir}"
-            else
-                git clone --branch "${KERNEL_BRANCH}" --depth "${kl_clone_depth}" "${KERNEL_REPO}" "${kl_dir}"
-            fi
+            git clone "${kl_params}"
         fi
     }
 
@@ -892,6 +928,7 @@ function cloning() {
         fi
     }
 
+    parse_cloning_params
     anykernel
     toolchain
     clang
