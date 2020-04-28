@@ -25,7 +25,6 @@ function variables() {
     SCRIPT_VARIABLES() {
         USE_CCACHE=0
         ZIP_BUILDER=0
-        NORMAL_COMPILATION=0
     }
 
     OPTIONAL_VARIABLES() {
@@ -271,7 +270,6 @@ function automatic_variables() {
         cgc=0
         klc=0
         clg=0
-        out=0
         dry=0
         ncf=0
     }
@@ -318,10 +316,7 @@ function automatic_variables() {
             kl_dir="$HOME"/${KERNEL_DIR}
             kl_out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
             kl_out_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/${KERNEL_ARCH}/boot/Image.gz
-            kl_nml_img="$HOME"/${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/Image.gz
             kl_out_img_dtb="$HOME"/${KERNEL_OUTPUT_DIR}/arch/${KERNEL_ARCH}/boot/Image.gz-dtb
-            kl_nml_img_dtb="$HOME"/${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/Image.gz-dtb
-            kl_conf_object="$HOME"/${KERNEL_DIR}/scripts/kconfig/conf.o
         }
 
         ak_locations() {
@@ -511,8 +506,7 @@ function configuration_checker() {
             die_20
         fi
 
-        if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ] || \
-        [ ! -v NORMAL_COMPILATION ]; then
+        if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ]; then
             die_20
         fi
 
@@ -610,11 +604,6 @@ function configuration_checker() {
             exit 1
         fi
 
-        if [ -n "$CLANG_DIR" ] && [ "$NORMAL_COMPILATION" = 1 ]; then
-            printf "\n%bYou cannot do normal compilation with Clang.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        fi
-
         if [ "$SYNC_AK_DIR" = 1 ] && [ -z "$AK_DIR" ]; then
             printf "\n%bSync for AK is enabled, but AK directory is not defined...%b\n\n" "$red" "$darkwhite"
             exit 1
@@ -634,11 +623,6 @@ function configuration_checker() {
 
         if [ "$ZIP_BUILDER" != 0 ] && [ "$ZIP_BUILDER" != 1 ]; then
             printf "\n%bIncorrect ZIP_BUILDER variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        fi
-
-        if [ "$NORMAL_COMPILATION" != 0 ] && [ "$NORMAL_COMPILATION" != 1 ]; then
-            printf "\n%bIncorrect NORMAL_COMPILATION variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
@@ -991,23 +975,14 @@ function choices() {
         if [ -n "$CLANG_DIR" ]; then
             clg=1
             printf "\n%bClang detected, starting compilation.%b\n\n" "$white" "$darkwhite"
-        elif [ "$NORMAL_COMPILATION" = 0 ]; then
-            out=1
-            printf "\n%bStarting output folder compilation.%b\n\n" "$white" "$darkwhite"
         else
-            printf "\n%bStarting normal compilation.%b\n\n" "$white" "$darkwhite"
+            printf "\n%bStarting output folder compilation.%b\n\n" "$white" "$darkwhite"
         fi
     }
 
     build_type() {
-        if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-            if [ -d "$kl_out_dir" ]; then
-                dry=1
-            fi
-        else
-            if [ -f "$kl_conf_object" ]; then
-                dry=1
-            fi
+        if [ -d "$kl_out_dir" ]; then
+            dry=1
         fi
     }
 
@@ -1144,47 +1119,10 @@ function compilation() {
         makeexit2=$(printf "%d" "$?")
     }
 
-    normal() {
-        cd "${kl_dir}" || die_30
-
-        if [ -n "$KERNEL_BUILD_USER" ]; then
-            export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
-        else
-            export KBUILD_BUILD_USER=${get_username}
-        fi
-
-        if [ -n "$KERNEL_BUILD_HOST" ]; then
-            export KBUILD_BUILD_HOST=${KERNEL_BUILD_HOST}
-        else
-            export KBUILD_BUILD_HOST=${get_hostname}
-        fi
-
-        if [ -n "$KERNEL_LOCALVERSION" ]; then
-            export LOCALVERSION=${KERNEL_LOCALVERSION}
-        fi
-
-        export ARCH=${KERNEL_ARCH}
-        export SUBARCH=${kernel_subarch}
-
-        if [ "$USE_CCACHE" = 1 ]; then
-            CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${tc_prefix}"
-        else
-            CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
-        fi
-
-        make "${kl_make_config}"
-
-        CROSS_COMPILE=${CROSS_COMPILE} make -j"$(nproc --all)"
-
-        makeexit3=$(printf "%d" "$?")
-    }
-
     if [ "$clg" = 1 ]; then
         clang
-    elif [ "$out" = 1 ]; then
-        output_folder
     else
-        normal
+        output_folder
     fi
 }
 
@@ -1198,62 +1136,34 @@ function compilation_report() {
         if [ "$makeexit1" != 0 ]; then
             die_40
         fi
-    elif [ "$out" = 1 ]; then
-        if [ "$makeexit2" != 0 ]; then
-            die_40
-        fi
     else
-        if [ "$makeexit3" != 0 ]; then
+        if [ "$makeexit2" != 0 ]; then
             die_40
         fi
     fi
 
-    if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-        if [ -f "$kl_out_img" ]; then
-            printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
-        else
-            die_40
-        fi
+    if [ -f "$kl_out_img" ]; then
+        printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
     else
-        if [ -f "$kl_nml_img" ]; then
-            printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
-        else
-            die_40
-        fi
+        die_40
     fi
 }
 
 function stats() {
 
     get_bytes_of_images() {
-        if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-            kl_out_img_bytes=$(wc -c < "${kl_out_img}")
+        kl_out_img_bytes=$(wc -c < "${kl_out_img}")
 
-            if [ -f "$kl_out_img_dtb" ]; then
-                kl_out_img_dtb_bytes=$(wc -c < "${kl_out_img_dtb}")
-            fi
-        else
-            kl_nml_img_bytes=$(wc -c < "${kl_nml_img}")
-
-            if [ -f "$kl_nml_img_dtb" ]; then
-                kl_nml_img_dtb_bytes=$(wc -c < "${kl_nml_img_dtb}")
-            fi
+        if [ -f "$kl_out_img_dtb" ]; then
+            kl_out_img_dtb_bytes=$(wc -c < "${kl_out_img_dtb}")
         fi
     }
 
     convert_bytes_of_images() {
-        if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-            kl_out_img_size=$(convert_bytes "${kl_out_img_bytes}")
+        kl_out_img_size=$(convert_bytes "${kl_out_img_bytes}")
 
-            if [ -f "$kl_out_img_dtb" ]; then
-                kl_out_img_dtb_size=$(convert_bytes "${kl_out_img_dtb_bytes}")
-            fi
-        else
-            kl_nml_img_size=$(convert_bytes "${kl_nml_img_bytes}")
-
-            if [ -f "$kl_nml_img_dtb" ]; then
-                kl_nml_img_dtb_size=$(convert_bytes "${kl_nml_img_dtb_bytes}")
-            fi
+        if [ -f "$kl_out_img_dtb" ]; then
+            kl_out_img_dtb_size=$(convert_bytes "${kl_out_img_dtb_bytes}")
         fi
     }
 
@@ -1299,10 +1209,8 @@ function stats() {
         read_compilation_details() {
             if [ "$clg" = 1 ]; then
                 compilation_details=clang
-            elif [ "$out" = 1 ]; then
-                compilation_details=gcc-out
             else
-                compilation_details=gcc-normal
+                compilation_details=gcc-out
             fi
 
             if [ "$USE_CCACHE" = 1 ]; then
@@ -1338,25 +1246,13 @@ function stats() {
             fi
 
             if [ -f "$cache_file_0" ]; then
-                if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                    if grep -Fq "kernel.out.image.size" "${cache_file_0}"; then
-                        kl_out_img_size_stored=$(grep kernel.out.image.size "${cache_file_0}" | cut -d "=" -f2)
-                    fi
+                if grep -Fq "kernel.out.image.size" "${cache_file_0}"; then
+                    kl_out_img_size_stored=$(grep kernel.out.image.size "${cache_file_0}" | cut -d "=" -f2)
+                fi
 
-                    if [ -f "$kl_out_img_dtb" ]; then
-                        if grep -Fq "kernel.out.image.dtb.size" "${cache_file_0}"; then
-                            kl_out_img_dtb_size_stored=$(grep kernel.out.image.dtb.size "${cache_file_0}" | cut -d "=" -f2)
-                        fi
-                    fi
-                else
-                    if grep -Fq "kernel.nml.image.size" "${cache_file_0}"; then
-                        kl_nml_img_size_stored=$(grep kernel.nml.image.size "${cache_file_0}" | cut -d "=" -f2)
-                    fi
-
-                    if [ -f "$kl_nml_img_dtb" ]; then
-                        if grep -Fq "kernel.nml.image.dtb.size" "${cache_file_0}"; then
-                            kl_nml_img_dtb_size_stored=$(grep kernel.nml.image.dtb.size "${cache_file_0}" | cut -d "=" -f2)
-                        fi
+                if [ -f "$kl_out_img_dtb" ]; then
+                    if grep -Fq "kernel.out.image.dtb.size" "${cache_file_0}"; then
+                        kl_out_img_dtb_size_stored=$(grep kernel.out.image.dtb.size "${cache_file_0}" | cut -d "=" -f2)
                     fi
                 fi
             fi
@@ -1364,63 +1260,31 @@ function stats() {
 
         output_stats_of_images() {
             if [ -f "$cache_file_0" ]; then
-                if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                    if [ -n "$kl_out_img_size_stored" ]; then
-                        printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$kl_out_img_size" "$kl_out_img_size_stored" "$darkwhite"
-                    else
-                        printf "%b> Image size: %s%b\n" "$white" "$kl_out_img_size" "$darkwhite"
-                    fi
-
-                    if [ -n "$kl_out_img_dtb_size_stored" ]; then
-                        printf "%b> Image-dtb size: %s (PREVIOUSLY: %s)%b\n" "$white" "$kl_out_img_dtb_size" "$kl_out_img_dtb_size_stored" "$darkwhite"
-                    else
-                        if [ -f "$kl_out_img_dtb" ]; then
-                            printf "%b> Image-dtb size: %s%b\n" "$white" "$kl_out_img_dtb_size" "$darkwhite"
-                        fi
-                    fi
+                if [ -n "$kl_out_img_size_stored" ]; then
+                    printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$kl_out_img_size" "$kl_out_img_size_stored" "$darkwhite"
                 else
-                    if [ -n "$kl_nml_img_size_stored" ]; then
-                        printf "%b> Image size: %s (PREVIOUSLY: %s)%b\n" "$white" "$kl_nml_img_size" "$kl_nml_img_size_stored" "$darkwhite"
-                    else
-                        printf "%b> Image size: %s%b\n" "$white" "$kl_nml_img_size" "$darkwhite"
-                    fi
-
-                    if [ -n "$kl_nml_img_dtb_size_stored" ]; then
-                        printf "%b> Image-dtb size: %s (PREVIOUSLY: %s)%b\n" "$white" "$kl_nml_img_dtb_size" "$kl_nml_img_dtb_size_stored" "$darkwhite"
-                    else
-                        if [ -f "$kl_nml_img_dtb" ]; then
-                            printf "%b> Image-dtb size: %s%b\n" "$white" "$kl_nml_img_dtb_size" "$darkwhite"
-                        fi
-                    fi
-                fi
-            else
-                if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
                     printf "%b> Image size: %s%b\n" "$white" "$kl_out_img_size" "$darkwhite"
+                fi
 
+                if [ -n "$kl_out_img_dtb_size_stored" ]; then
+                    printf "%b> Image-dtb size: %s (PREVIOUSLY: %s)%b\n" "$white" "$kl_out_img_dtb_size" "$kl_out_img_dtb_size_stored" "$darkwhite"
+                else
                     if [ -f "$kl_out_img_dtb" ]; then
                         printf "%b> Image-dtb size: %s%b\n" "$white" "$kl_out_img_dtb_size" "$darkwhite"
                     fi
-                else
-                    printf "%b> Image size: %s%b\n" "$white" "$kl_nml_img_size" "$darkwhite"
+                fi
+            else
+                printf "%b> Image size: %s%b\n" "$white" "$kl_out_img_size" "$darkwhite"
 
-                    if [ -f "$kl_nml_img_dtb" ]; then
-                        printf "%b> Image-dtb size: %s%b\n" "$white" "$kl_nml_img_dtb_size" "$darkwhite"
-                    fi
+                if [ -f "$kl_out_img_dtb" ]; then
+                    printf "%b> Image-dtb size: %s%b\n" "$white" "$kl_out_img_dtb_size" "$darkwhite"
                 fi
             fi
 
-            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                printf "%b> Image location: %s%b\n" "$white" "$kl_out_img" "$darkwhite"
+            printf "%b> Image location: %s%b\n" "$white" "$kl_out_img" "$darkwhite"
 
-                if [ -f "$kl_out_img_dtb" ]; then
-                    printf "%b> Image-dtb location: %s%b\n" "$white" "$kl_out_img_dtb" "$darkwhite"
-                fi
-            else
-                printf "%b> Image location: %s%b\n" "$white" "$kl_nml_img" "$darkwhite"
-
-                if [ -f "$kl_nml_img_dtb" ]; then
-                    printf "%b> Image-dtb location: %s%b\n" "$white" "$kl_nml_img_dtb" "$darkwhite"
-                fi
+            if [ -f "$kl_out_img_dtb" ]; then
+                printf "%b> Image-dtb location: %s%b\n" "$white" "$kl_out_img_dtb" "$darkwhite"
             fi
 
             printf "\n"
@@ -1433,20 +1297,13 @@ function stats() {
 
             touch "${cache_file_0}"
 
-            printf "directory=%s\n" "$kl_dir" >> "${cache_file_0}"
+            {
+                printf "directory=%s\n" "$kl_dir"
+                printf "kernel.out.image.size=%s\n" "$kl_out_img_size"
+            } >> "${cache_file_0}"
 
-            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                printf "kernel.out.image.size=%s\n" "$kl_out_img_size" >> "${cache_file_0}"
-
-                if [ -f "$kl_out_img_dtb" ]; then
-                    printf "kernel.out.image.dtb.size=%s\n" "$kl_out_img_dtb_size" >> "${cache_file_0}"
-                fi
-            else
-                printf "kernel.nml.image.size=%s\n" "$kl_nml_img_size" >> "${cache_file_0}"
-
-                if [ -f "$kl_nml_img_dtb" ]; then
-                    printf "kernel.nml.image.dtb.size=%s\n" "$kl_nml_img_dtb_size" >> "${cache_file_0}"
-                fi
+            if [ -f "$kl_out_img_dtb" ]; then
+                printf "kernel.out.image.dtb.size=%s\n" "$kl_out_img_dtb_size" >> "${cache_file_0}"
             fi
         }
 
@@ -1467,6 +1324,8 @@ function stats() {
 
         prepare_compilation_stats_for_export() {
             ecs_compilation_time=$(printf "%d %s %d %s" "$compilation_time_minutes" "$compilation_time_minutes_noun" "$compilation_time_seconds" "$compilation_time_seconds_noun")
+            ecs_image_size=${kl_out_img_size}
+            ecs_image_location=${kl_out_img}
 
             if [ -n "$KERNEL_LOCALVERSION" ]; then
                 ecs_localversion=${KERNEL_LOCALVERSION}
@@ -1486,44 +1345,16 @@ function stats() {
                 ecs_host=${get_hostname}
             fi
 
-            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                ecs_image_size=${kl_out_img_size}
+            if [ -f "$kl_out_img_dtb" ]; then
+                ecs_image_dtb_size=${kl_out_img_dtb_size}
             else
-                ecs_image_size=${kl_nml_img_size}
+                ecs_image_dtb_size="(none)"
             fi
 
-            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                ecs_image_location=${kl_out_img}
+            if [ -f "$kl_out_img_dtb" ]; then
+                ecs_image_dtb_location=${kl_out_img_dtb}
             else
-                ecs_image_location=${kl_nml_img}
-            fi
-
-            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                if [ -f "$kl_out_img_dtb" ]; then
-                    ecs_image_dtb_size=${kl_out_img_dtb_size}
-                else
-                    ecs_image_dtb_size="(none)"
-                fi
-            else
-                if [ -f "$kl_nml_img_dtb" ]; then
-                    ecs_image_dtb_size=${kl_nml_img_dtb_size}
-                else
-                    ecs_image_dtb_size="(none)"
-                fi
-            fi
-
-            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                if [ -f "$kl_out_img_dtb" ]; then
-                    ecs_image_dtb_location=${kl_out_img_dtb}
-                else
-                    ecs_image_dtb_location="(none)"
-                fi
-            else
-                if [ -f "$kl_nml_img_dtb" ]; then
-                    ecs_image_dtb_location=${kl_nml_img_dtb}
-                else
-                    ecs_image_dtb_location="(none)"
-                fi
+                ecs_image_dtb_location="(none)"
             fi
         }
 
@@ -1559,25 +1390,13 @@ function zip_builder() {
 
     copy_image() {
         if [ "$copy_dtb_image" = 1 ]; then
-            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                if [ -f "$kl_out_img_dtb" ]; then
-                    cp "${kl_out_img_dtb}" "${ak_kl_img_dtb}"
-                else
-                    die_41
-                fi
+            if [ -f "$kl_out_img_dtb" ]; then
+                cp "${kl_out_img_dtb}" "${ak_kl_img_dtb}"
             else
-                if [ -f "$kl_nml_img_dtb" ]; then
-                    cp "${kl_nml_img_dtb}" "${ak_kl_img_dtb}"
-                else
-                    die_41
-                fi
+                die_41
             fi
         else
-            if [ "$clg" = 1 ] || [ "$out" = 1 ]; then
-                cp "${kl_out_img}" "${ak_kl_img}"
-            else
-                cp "${kl_nml_img}" "${ak_kl_img}"
-            fi
+            cp "${kl_out_img}" "${ak_kl_img}"
         fi
     }
 
