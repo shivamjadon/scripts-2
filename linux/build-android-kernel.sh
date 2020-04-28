@@ -25,7 +25,6 @@ function variables() {
     SCRIPT_VARIABLES() {
         USE_CCACHE=0
         ZIP_BUILDER=0
-        RECURSIVE_KERNEL_CLONE=0
         NORMAL_COMPILATION=0
     }
 
@@ -283,6 +282,10 @@ function automatic_variables() {
         kl_clone_depth=10
     }
 
+    clone_options() {
+        clone_submodules_a=1
+    }
+
     persistent_cache() {
         cache_file_0="$HOME"/.bkscache0
         cache_file_1="$HOME"/.bkscache1
@@ -360,6 +363,7 @@ function automatic_variables() {
     colors
     cosmetic_variables
     clone_depth
+    clone_options
     persistent_cache
     location_shortcuts
     stats_options
@@ -508,7 +512,7 @@ function configuration_checker() {
         fi
 
         if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ] || \
-        [ ! -v RECURSIVE_KERNEL_CLONE ] || [ ! -v NORMAL_COMPILATION ]; then
+        [ ! -v NORMAL_COMPILATION ]; then
             die_20
         fi
 
@@ -633,11 +637,6 @@ function configuration_checker() {
             exit 1
         fi
 
-        if [ "$RECURSIVE_KERNEL_CLONE" != 0 ] && [ "$RECURSIVE_KERNEL_CLONE" != 1 ]; then
-            printf "\n%bIncorrect RECURSIVE_KERNEL_CLONE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        fi
-
         if [ "$NORMAL_COMPILATION" != 0 ] && [ "$NORMAL_COMPILATION" != 1 ]; then
             printf "\n%bIncorrect NORMAL_COMPILATION variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
@@ -715,7 +714,7 @@ function package_checker() {
         [ -n "$CLANG_REPO" ] || [ -n "$CLANG_BRANCH" ] || \
         [ -n "$KERNEL_REPO" ] || [ -n "$KERNEL_BRANCH" ] || \
         [ "$SYNC_AK_DIR" = 1 ] || [ "$SYNC_TC_DIR" = 1 ] || \
-        [ "$SYNC_KERNEL_DIR" = 1 ]; then
+        [ "$SYNC_KERNEL_DIR" = 1 ] || [ "$clone_submodules_a" = 1 ]; then
             if ! command_available git; then
                 printf "\n%bgit not found.%b\n\n" "$red" "$darkwhite"
 
@@ -834,10 +833,6 @@ function cloning() {
             kl_params="$kl_params --branch $KERNEL_BRANCH"
             kl_params="$kl_params --depth $kl_clone_depth"
 
-            if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
-                kl_params="$kl_params --recursive"
-            fi
-
             if [ "$KERNEL_BRANCH_IS_A_TAG" = 1 ]; then
                 kl_params="$kl_params --single-branch"
             fi
@@ -949,6 +944,34 @@ function cloning() {
         fi
     }
 
+    clone_submodules() {
+
+        anykernel_submodules() {
+            cd "${ak_dir}" || die_30
+            git submodule update --init --recursive
+        }
+
+        toolchain_submodules() {
+            cd "${tc_dir}" || die_30
+            git submodule update --init --recursive
+        }
+
+        clang_submodules() {
+            cd "${cg_dir}" || die_30
+            git submodule update --init --recursive
+        }
+
+        kernel_submodules() {
+            cd "${kl_dir}" || die_30
+            git submodule update --init --recursive
+        }
+
+        anykernel_submodules
+        toolchain_submodules
+        clang_submodules
+        kernel_submodules
+    }
+
     parse_cloning_params
     anykernel
     toolchain
@@ -956,6 +979,10 @@ function cloning() {
     kernel
     check_directories
     sync_directories
+
+    if [ "$clone_submodules_a" = 1 ]; then
+        clone_submodules
+    fi
 }
 
 function choices() {
