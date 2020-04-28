@@ -40,6 +40,7 @@ function variables() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 AK_REPO=
                 AK_BRANCH=
+                AK_BRANCH_IS_A_TAG=0
             }
             ak_zip_filename_variables() {
                 APPEND_VERSION=
@@ -55,6 +56,7 @@ function variables() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 TOOLCHAIN_REPO=
                 TOOLCHAIN_BRANCH=
+                TOOLCHAIN_BRANCH_IS_A_TAG=0
             }
         }
 
@@ -68,6 +70,7 @@ function variables() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 CLANG_REPO=
                 CLANG_BRANCH=
+                CLANG_BRANCH_IS_A_TAG=0
             }
         }
 
@@ -76,6 +79,7 @@ function variables() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 KERNEL_REPO=
                 KERNEL_BRANCH=
+                KERNEL_BRANCH_IS_A_TAG=0
             }
             kl_options() {
                 KERNEL_BUILD_USER=
@@ -510,25 +514,26 @@ function configuration_checker() {
 
         if [ ! -v AK_DIR ] || [ ! -v KERNEL_NAME ] || \
         [ ! -v AK_REPO ] || [ ! -v AK_BRANCH ] || \
-        [ ! -v APPEND_VERSION ] || [ ! -v APPEND_DEVICE ] || \
-        [ ! -v APPEND_ANDROID_TARGET ] || [ ! -v APPEND_DATE ] || \
-        [ ! -v CUSTOM_ZIP_NAME ]; then
+        [ ! -v AK_BRANCH_IS_A_TAG ] || [ ! -v APPEND_VERSION ] || \
+        [ ! -v APPEND_DEVICE ] || [ ! -v APPEND_ANDROID_TARGET ] || \
+        [ ! -v APPEND_DATE ] || [ ! -v CUSTOM_ZIP_NAME ]; then
             die_20
         fi
 
-        if [ ! -v TOOLCHAIN_REPO ] || [ ! -v TOOLCHAIN_BRANCH ]; then
+        if [ ! -v TOOLCHAIN_REPO ] || [ ! -v TOOLCHAIN_BRANCH ] || \
+        [ ! -v TOOLCHAIN_BRANCH_IS_A_TAG ]; then
             die_20
         fi
 
         if [ ! -v CLANG_DIR ] || [ ! -v CLANG_BIN ] || \
         [ ! -v CLANG_PREFIX ] || [ ! -v CLANG_REPO ] || \
-        [ ! -v CLANG_BRANCH ]; then
+        [ ! -v CLANG_BRANCH ] || [ ! -v CLANG_BRANCH_IS_A_TAG ]; then
             die_20
         fi
 
         if [ ! -v KERNEL_REPO ] || [ ! -v KERNEL_BRANCH ] || \
-        [ ! -v KERNEL_BUILD_USER ] || [ ! -v KERNEL_BUILD_HOST ] || \
-        [ ! -v KERNEL_LOCALVERSION ]; then
+        [ ! -v KERNEL_BRANCH_IS_A_TAG ] || [ ! -v KERNEL_BUILD_USER ] || \
+        [ ! -v KERNEL_BUILD_HOST ] || [ ! -v KERNEL_LOCALVERSION ]; then
             die_20
         fi
 
@@ -795,6 +800,10 @@ function cloning() {
             ak_params="$ak_params $ak_dir"
             ak_params="$ak_params --branch $AK_BRANCH"
             ak_params="$ak_params --depth $ak_clone_depth"
+
+            if [ "$AK_BRANCH_IS_A_TAG" = 1 ]; then
+                ak_params="$ak_params --single-branch"
+            fi
         }
 
         toolchain_params() {
@@ -802,6 +811,10 @@ function cloning() {
             tc_params="$tc_params $tc_dir"
             tc_params="$tc_params --branch $TOOLCHAIN_BRANCH"
             tc_params="$tc_params --depth $tc_clone_depth"
+
+            if [ "$TOOLCHAIN_BRANCH_IS_A_TAG" = 1 ]; then
+                tc_params="$tc_params --single-branch"
+            fi
         }
 
         clang_params() {
@@ -809,6 +822,10 @@ function cloning() {
             cg_params="$cg_params $cg_dir"
             cg_params="$cg_params --branch $CLANG_BRANCH"
             cg_params="$cg_params --depth $tc_clone_depth"
+
+            if [ "$CLANG_BRANCH_IS_A_TAG" = 1 ]; then
+                cg_params="$cg_params --single-branch"
+            fi
         }
 
         kernel_params() {
@@ -819,6 +836,10 @@ function cloning() {
 
             if [ "$RECURSIVE_KERNEL_CLONE" = 1 ]; then
                 kl_params="$kl_params --recursive"
+            fi
+
+            if [ "$KERNEL_BRANCH_IS_A_TAG" = 1 ]; then
+                kl_params="$kl_params --single-branch"
             fi
         }
 
