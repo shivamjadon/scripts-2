@@ -91,6 +91,7 @@ function variables() {
                 # NOTE: True sync. Any local changes are discarded. All remote changes are pulled.
                 SYNC_AK_DIR=0
                 SYNC_TC_DIR=0
+                SYNC_CG_DIR=0
                 SYNC_KERNEL_DIR=0
             }
         }
@@ -314,6 +315,7 @@ function automatic_variables() {
 
         kl_locations() {
             kl_dir="$HOME"/${KERNEL_DIR}
+            kl_git_dir="$HOME"/${KERNEL_DIR}/.git
             kl_out_dir="$HOME"/${KERNEL_OUTPUT_DIR}
             kl_out_img="$HOME"/${KERNEL_OUTPUT_DIR}/arch/${KERNEL_ARCH}/boot/Image.gz
             kl_out_img_dtb="$HOME"/${KERNEL_OUTPUT_DIR}/arch/${KERNEL_ARCH}/boot/Image.gz-dtb
@@ -321,16 +323,19 @@ function automatic_variables() {
 
         ak_locations() {
             ak_dir="$HOME"/${AK_DIR}
+            ak_git_dir="$HOME"/${AK_DIR}/.git
             ak_kl_img="$HOME"/${AK_DIR}/Image.gz
             ak_kl_img_dtb="$HOME"/${AK_DIR}/Image.gz-dtb
         }
 
         tc_locations() {
             tc_dir="$HOME"/${TOOLCHAIN_DIR}
+            tc_git_dir="$HOME"/${TOOLCHAIN_DIR}/.git
         }
 
         cg_locations() {
             cg_dir="$HOME"/${CLANG_DIR}
+            cg_git_dir="$HOME"/${CLANG_DIR}/.git
         }
 
         config_locations
@@ -536,7 +541,7 @@ function configuration_checker() {
         fi
 
         if [ ! -v SYNC_AK_DIR ] || [ ! -v SYNC_TC_DIR ] || \
-        [ ! -v SYNC_KERNEL_DIR ]; then
+        [ ! -v SYNC_CG_DIR ] || [ ! -v SYNC_KERNEL_DIR ]; then
             die_20
         fi
     }
@@ -609,6 +614,11 @@ function configuration_checker() {
             exit 1
         fi
 
+        if [ "$SYNC_CG_DIR" = 1 ] && [ -z "$CLANG_DIR" ]; then
+            printf "\n%bSync for Clang is enabled, but clang directory is not defined...%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+
         if [ "$ncf" = 1 ]; then
             printf "\n%bPlease put your defconfig in /configs or /configs/vendor%b\n\n" "$red" "$darkwhite"
             exit 1
@@ -638,6 +648,11 @@ function configuration_checker() {
 
         if [ "$SYNC_TC_DIR" != 0 ] && [ "$SYNC_TC_DIR" != 1 ]; then
             printf "\n%bIncorrect SYNC_TC_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+            exit 1
+        fi
+
+        if [ "$SYNC_CG_DIR" != 0 ] && [ "$SYNC_CG_DIR" != 1 ]; then
+            printf "\n%bIncorrect SYNC_CG_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
@@ -698,7 +713,8 @@ function package_checker() {
         [ -n "$CLANG_REPO" ] || [ -n "$CLANG_BRANCH" ] || \
         [ -n "$KERNEL_REPO" ] || [ -n "$KERNEL_BRANCH" ] || \
         [ "$SYNC_AK_DIR" = 1 ] || [ "$SYNC_TC_DIR" = 1 ] || \
-        [ "$SYNC_KERNEL_DIR" = 1 ] || [ "$clone_submodules_a" = 1 ]; then
+        [ "$SYNC_CG_DIR" = 1 ] || [ "$SYNC_KERNEL_DIR" = 1 ] || \
+        [ "$clone_submodules_a" = 1 ]; then
             if ! command_available git; then
                 printf "\n%bgit not found.%b\n\n" "$red" "$darkwhite"
 
@@ -887,26 +903,33 @@ function cloning() {
     }
 
     sync_directories() {
-        if [ "$SYNC_AK_DIR" = 1 ]; then
-            if [ "$akc" != 1 ]; then
-                printf "\n%bStarting sync of AK source...%b\n" "$white" "$darkwhite"
-                cd "${ak_dir}" || die_30
-                git reset --hard "@{upstream}"
-                git clean -fd
-                git pull --rebase=preserve
-            fi
-        fi
 
-        if [ "$SYNC_TC_DIR" = 1 ]; then
-            if [ "$tcc" != 1 ]; then
-                printf "\n%bStarting sync of the toolchain source...%b\n" "$white" "$darkwhite"
-                cd "${tc_dir}" || die_30
-                git reset --hard "@{upstream}"
-                git clean -fd
-                git pull --rebase=preserve
+        anykernel_sync() {
+            if [ "$SYNC_AK_DIR" = 1 ]; then
+                if [ "$akc" != 1 ]; then
+                    printf "\n%bStarting sync of AK source...%b\n" "$white" "$darkwhite"
+                    cd "${ak_dir}" || die_30
+                    git reset --hard "@{upstream}"
+                    git clean -fd
+                    git pull --rebase=preserve
+                fi
             fi
+        }
 
-            if [ -n "$CLANG_DIR" ]; then
+        toolchain_sync() {
+            if [ "$SYNC_TC_DIR" = 1 ]; then
+                if [ "$tcc" != 1 ]; then
+                    printf "\n%bStarting sync of the toolchain source...%b\n" "$white" "$darkwhite"
+                    cd "${tc_dir}" || die_30
+                    git reset --hard "@{upstream}"
+                    git clean -fd
+                    git pull --rebase=preserve
+                fi
+            fi
+        }
+
+        clang_sync() {
+            if [ "$SYNC_CG_DIR" = 1 ]; then
                 if [ "$cgc" != 1 ]; then
                     printf "\n%bStarting sync of Clang source...%b\n" "$white" "$darkwhite"
                     cd "${cg_dir}" || die_30
@@ -915,16 +938,34 @@ function cloning() {
                     git pull --rebase=preserve
                 fi
             fi
+        }
+
+        kernel_sync() {
+            if [ "$SYNC_KERNEL_DIR" = 1 ]; then
+                if [ "$klc" != 1 ]; then
+                    printf "\n%bStarting sync of the kernel source...%b\n" "$white" "$darkwhite"
+                    cd "${kl_dir}" || die_30
+                    git reset --hard "@{upstream}"
+                    git clean -fd
+                    git pull --rebase=preserve
+                fi
+            fi
+        }
+
+        if [ -d "$ak_git_dir" ]; then
+            anykernel_sync
         fi
 
-        if [ "$SYNC_KERNEL_DIR" = 1 ]; then
-            if [ "$klc" != 1 ]; then
-                printf "\n%bStarting sync of the kernel source...%b\n" "$white" "$darkwhite"
-                cd "${kl_dir}" || die_30
-                git reset --hard "@{upstream}"
-                git clean -fd
-                git pull --rebase=preserve
-            fi
+        if [ -d "$tc_git_dir" ]; then
+            toolchain_sync
+        fi
+
+        if [ -d "$cg_git_dir" ]; then
+            clang_sync
+        fi
+
+        if [ -d "$kl_git_dir" ]; then
+            kernel_sync
         fi
     }
 
@@ -950,10 +991,21 @@ function cloning() {
             git submodule update --init --recursive
         }
 
-        anykernel_submodules
-        toolchain_submodules
-        clang_submodules
-        kernel_submodules
+        if [ -d "$ak_git_dir" ]; then
+            anykernel_submodules
+        fi
+
+        if [ -d "$tc_git_dir" ]; then
+            toolchain_submodules
+        fi
+
+        if [ -d "$cg_git_dir" ]; then
+            clang_submodules
+        fi
+
+        if [ -d "$kl_git_dir" ]; then
+            kernel_submodules
+        fi
     }
 
     parse_cloning_params
