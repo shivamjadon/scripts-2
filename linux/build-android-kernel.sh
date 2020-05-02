@@ -278,7 +278,7 @@ function automatic_variables() {
     clone_depth() {
         ak_clone_depth=1
         tc_clone_depth=1
-        kl_clone_depth=10
+        kl_clone_depth=1
     }
 
     clone_options() {
