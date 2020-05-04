@@ -472,32 +472,62 @@ function traps() {
 function die_codes() {
 
     die_20() {
-        printf "\n%bYou changed one or more variables' names.%b\n\n" "$red" "$darkwhite"
+        local d20_str
+        d20_str=$(printf "%s" "$1")
+
+        printf "\n%bYou changed one or more variables' names.%b\n" "$red" "$darkwhite"
+        printf "%bScript returned: %s%b\n\n" "$red" "$d20_str" "$darkwhite"
+
         exit 20
     }
 
     die_21() {
-        printf "\n%bYou did not define all essential variables for the current configuration.%b\n\n" "$red" "$darkwhite"
+        local d21_str
+        d21_str=$(printf "%s" "$1")
+
+        printf "\n%bYou did not define all essential variables for the current configuration.%b\n" "$red" "$darkwhite"
+        printf "%bScript returned: %s%b\n\n" "$red" "$d21_str" "$darkwhite"
+
         exit 21
     }
 
     die_30() {
-        printf "\n%bUnexpected path issue.%b\n\n" "$red" "$darkwhite"
+        local d30_str
+        d30_str=$(printf "%s" "$1")
+
+        printf "\n%bUnexpected path issue.%b\n" "$red" "$darkwhite"
+        printf "%bScript returned: %s%b\n\n" "$red" "$d30_str" "$darkwhite"
+
         exit 30
     }
 
     die_31() {
-        printf "\n%bThe cloning of a source failed.%b\n\n" "$red" "$darkwhite"
+        local d31_str
+        d31_str=$(printf "%s" "$1")
+
+        printf "\n%bThe cloning of a source failed.%b\n" "$red" "$darkwhite"
+        printf "%bScript returned: %s%b\n\n" "$red" "$d31_str" "$darkwhite"
+
         exit 31
     }
 
     die_40() {
-        printf "\n%bThe kernel was not compiled correctly.%b\n\n" "$red" "$darkwhite"
+        local d40_str
+        d40_str=$(printf "%s" "$1")
+
+        printf "\n%bThe kernel was not compiled correctly.%b\n" "$red" "$darkwhite"
+        printf "%bScript returned: %s%b\n\n" "$red" "$d40_str" "$darkwhite"
+
         exit 40
     }
 
     die_41() {
-        printf "\n%bImage.gz-dtb is selected to be copied, but only Image.gz was compiled.%b\n\n" "$red" "$darkwhite"
+        local d41_str
+        d41_str=$(printf "%s" "$1")
+
+        printf "\n%bImage.gz-dtb is selected to be copied, but only Image.gz was compiled.%b\n" "$red" "$darkwhite"
+        printf "%bScript returned: %s%b\n\n" "$red" "$d41_str" "$darkwhite"
+
         exit 41
     }
 }
@@ -508,11 +538,11 @@ function configuration_checker() {
         if [ ! -v TOOLCHAIN_DIR ] || [ ! -v KERNEL_DIR ] || \
         [ ! -v KERNEL_OUTPUT_DIR ] || [ ! -v KERNEL_DEFCONFIG ] || \
         [ ! -v KERNEL_ARCH ]; then
-            die_20
+            die_20 "d20 r=0"
         fi
 
         if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ]; then
-            die_20
+            die_20 "d20 r=1"
         fi
 
         if [ ! -v AK_DIR ] || [ ! -v KERNEL_NAME ] || \
@@ -520,29 +550,29 @@ function configuration_checker() {
         [ ! -v AK_BRANCH_IS_A_TAG ] || [ ! -v APPEND_VERSION ] || \
         [ ! -v APPEND_DEVICE ] || [ ! -v APPEND_ANDROID_TARGET ] || \
         [ ! -v APPEND_DATE ] || [ ! -v CUSTOM_ZIP_NAME ]; then
-            die_20
+            die_20 "d20 r=2"
         fi
 
         if [ ! -v TOOLCHAIN_REPO ] || [ ! -v TOOLCHAIN_BRANCH ] || \
         [ ! -v TOOLCHAIN_BRANCH_IS_A_TAG ]; then
-            die_20
+            die_20 "d20 r=3"
         fi
 
         if [ ! -v CLANG_DIR ] || [ ! -v CLANG_BIN ] || \
         [ ! -v CLANG_PREFIX ] || [ ! -v CLANG_REPO ] || \
         [ ! -v CLANG_BRANCH ] || [ ! -v CLANG_BRANCH_IS_A_TAG ]; then
-            die_20
+            die_20 "d20 r=4"
         fi
 
         if [ ! -v KERNEL_REPO ] || [ ! -v KERNEL_BRANCH ] || \
         [ ! -v KERNEL_BRANCH_IS_A_TAG ] || [ ! -v KERNEL_BUILD_USER ] || \
         [ ! -v KERNEL_BUILD_HOST ] || [ ! -v KERNEL_LOCALVERSION ]; then
-            die_20
+            die_20 "d20 r=5"
         fi
 
         if [ ! -v SYNC_AK_DIR ] || [ ! -v SYNC_TC_DIR ] || \
         [ ! -v SYNC_CG_DIR ] || [ ! -v SYNC_KERNEL_DIR ]; then
-            die_20
+            die_20 "d20 r=6"
         fi
     }
 
@@ -550,18 +580,18 @@ function configuration_checker() {
         if [ -z "$TOOLCHAIN_DIR" ] || [ -z "$KERNEL_DIR" ] || \
         [ -z "$KERNEL_OUTPUT_DIR" ] || [ -z "$KERNEL_DEFCONFIG" ] || \
         [ -z "$KERNEL_ARCH" ]; then
-            die_21
+            die_21 "d21 r=0"
         fi
 
         if [ -n "$AK_DIR" ]; then
             if [ -z "$KERNEL_NAME" ]; then
-                die_21
+                die_21 "d21 r=1"
             fi
         fi
 
         if [ -n "$CLANG_DIR" ]; then
             if [ -z "$CLANG_BIN" ]; then
-                die_21
+                die_21 "d21 r=2"
             fi
 
             if [ -z "$CLANG_PREFIX" ]; then
@@ -883,22 +913,22 @@ function cloning() {
     check_directories() {
         if [ -n "$AK_DIR" ]; then
             if [ ! -d "$ak_dir" ]; then
-                die_31
+                die_31 "${ak_dir} has not been cloned"
             fi
         fi
 
         if [ ! -d "$tc_dir" ]; then
-            die_31
+            die_31 "${tc_dir} has not been cloned"
         fi
 
         if [ -n "$CLANG_DIR" ]; then
             if [ ! -d "$cg_dir" ]; then
-                die_31
+                die_31 "${cg_dir} has not been cloned"
             fi
         fi
 
         if [ ! -d "$kl_dir" ]; then
-            die_31
+            die_31 "${kl_dir} has not been cloned"
         fi
     }
 
@@ -908,7 +938,7 @@ function cloning() {
             if [ "$SYNC_AK_DIR" = 1 ]; then
                 if [ "$akc" != 1 ]; then
                     printf "\n%bStarting sync of AK source...%b\n" "$white" "$darkwhite"
-                    cd "${ak_dir}" || die_30
+                    cd "${ak_dir}" || die_30 "cd ${ak_dir} failed"
                     git reset --hard "@{upstream}"
                     git clean -fd
                     git pull --rebase=preserve
@@ -920,7 +950,7 @@ function cloning() {
             if [ "$SYNC_TC_DIR" = 1 ]; then
                 if [ "$tcc" != 1 ]; then
                     printf "\n%bStarting sync of the toolchain source...%b\n" "$white" "$darkwhite"
-                    cd "${tc_dir}" || die_30
+                    cd "${tc_dir}" || die_30 "cd ${tc_dir} failed"
                     git reset --hard "@{upstream}"
                     git clean -fd
                     git pull --rebase=preserve
@@ -932,7 +962,7 @@ function cloning() {
             if [ "$SYNC_CG_DIR" = 1 ]; then
                 if [ "$cgc" != 1 ]; then
                     printf "\n%bStarting sync of Clang source...%b\n" "$white" "$darkwhite"
-                    cd "${cg_dir}" || die_30
+                    cd "${cg_dir}" || die_30 "cd ${cg_dir} failed"
                     git reset --hard "@{upstream}"
                     git clean -fd
                     git pull --rebase=preserve
@@ -944,7 +974,7 @@ function cloning() {
             if [ "$SYNC_KERNEL_DIR" = 1 ]; then
                 if [ "$klc" != 1 ]; then
                     printf "\n%bStarting sync of the kernel source...%b\n" "$white" "$darkwhite"
-                    cd "${kl_dir}" || die_30
+                    cd "${kl_dir}" || die_30 "cd ${kl_dir} failed"
                     git reset --hard "@{upstream}"
                     git clean -fd
                     git pull --rebase=preserve
@@ -972,22 +1002,22 @@ function cloning() {
     clone_submodules() {
 
         anykernel_submodules() {
-            cd "${ak_dir}" || die_30
+            cd "${ak_dir}" || die_30 "cd ${ak_dir} failed"
             git submodule update --init --recursive
         }
 
         toolchain_submodules() {
-            cd "${tc_dir}" || die_30
+            cd "${tc_dir}" || die_30 "cd ${tc_dir} failed"
             git submodule update --init --recursive
         }
 
         clang_submodules() {
-            cd "${cg_dir}" || die_30
+            cd "${cg_dir}" || die_30 "cd ${cg_dir} failed"
             git submodule update --init --recursive
         }
 
         kernel_submodules() {
-            cd "${kl_dir}" || die_30
+            cd "${kl_dir}" || die_30 "cd ${kl_dir} failed"
             git submodule update --init --recursive
         }
 
@@ -1053,8 +1083,8 @@ function pre_compilation_setup() {
     }
 
     get_toolchain_prefix() {
-        cd "${tc_dir}"/lib/gcc || die_30
-        cd -- * || die_30
+        cd "${tc_dir}"/lib/gcc || die_30 "cd ${tc_dir}/lib/gcc failed"
+        cd -- * || die_30 "cannot determine toolchain prefix"
         tc_prefix=$(basename "$PWD")-
     }
 
@@ -1090,7 +1120,7 @@ function pre_compilation_work() {
 function compilation() {
 
     clang() {
-        cd "${kl_dir}" || die_30
+        cd "${kl_dir}" || die_30 "cd ${kl_dir} failed"
 
         if [ "$USE_CCACHE" = 1 ]; then
             paths="${ccache_loc}:${cg_dir}/bin:${tc_dir}/bin:${PATH}"
@@ -1133,7 +1163,7 @@ function compilation() {
     }
 
     output_folder() {
-        cd "${kl_dir}" || die_30
+        cd "${kl_dir}" || die_30 "cd ${kl_dir} failed"
 
         if [ -n "$KERNEL_BUILD_USER" ]; then
             export KBUILD_BUILD_USER=${KERNEL_BUILD_USER}
@@ -1186,18 +1216,18 @@ function post_compilation_work() {
 function compilation_report() {
     if [ "$clg" = 1 ]; then
         if [ "$makeexit1" != 0 ]; then
-            die_40
+            die_40 "make return code is not 0"
         fi
     else
         if [ "$makeexit2" != 0 ]; then
-            die_40
+            die_40 "make return code is not 0"
         fi
     fi
 
     if [ -f "$kl_out_img" ]; then
         printf "\n%bThe kernel is compiled successfully!%b\n\n" "$green" "$darkwhite"
     else
-        die_40
+        die_40 "kernel image not found"
     fi
 }
 
@@ -1445,7 +1475,7 @@ function zip_builder() {
             if [ -f "$kl_out_img_dtb" ]; then
                 cp "${kl_out_img_dtb}" "${ak_kl_img_dtb}"
             else
-                die_41
+                die_41 "${kl_out_img_dtb} does not exist"
             fi
         else
             cp "${kl_out_img}" "${ak_kl_img}"
@@ -1489,7 +1519,7 @@ function zip_builder() {
     create_zip() {
         printf "%bPacking %s...%b\n\n" "$cyan" "$KERNEL_NAME" "$darkwhite"
 
-        cd "${ak_dir}" || die_30
+        cd "${ak_dir}" || die_30 "cd ${ak_dir} failed"
         zip -qFSr9 "${filename}" ./* -x .git ./*.zip README.md
     }
 
