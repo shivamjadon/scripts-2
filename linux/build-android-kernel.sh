@@ -24,7 +24,6 @@ function variables() {
 
     SCRIPT_VARIABLES() {
         USE_CCACHE=0
-        ZIP_BUILDER=0
     }
 
     OPTIONAL_VARIABLES() {
@@ -541,7 +540,7 @@ function configuration_checker() {
             die_20 "d20 r=0"
         fi
 
-        if [ ! -v USE_CCACHE ] || [ ! -v ZIP_BUILDER ]; then
+        if [ ! -v USE_CCACHE ]; then
             die_20 "d20 r=1"
         fi
 
@@ -634,11 +633,6 @@ function configuration_checker() {
             exit 1
         fi
 
-        if [ "$ZIP_BUILDER" = 1 ] && [ -z "$AK_DIR" ]; then
-            printf "\n%bZip builder is enabled, but AK directory is not defined...%b\n\n" "$red" "$darkwhite"
-            exit 1
-        fi
-
         if [ "$SYNC_AK_DIR" = 1 ] && [ -z "$AK_DIR" ]; then
             printf "\n%bSync for AK is enabled, but AK directory is not defined...%b\n\n" "$red" "$darkwhite"
             exit 1
@@ -658,11 +652,6 @@ function configuration_checker() {
     check_the_toggles() {
         if [ "$USE_CCACHE" != 0 ] && [ "$USE_CCACHE" != 1 ]; then
             printf "\n%bIncorrect USE_CCACHE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
-            exit 1
-        fi
-
-        if [ "$ZIP_BUILDER" != 0 ] && [ "$ZIP_BUILDER" != 1 ]; then
-            printf "\n%bIncorrect ZIP_BUILDER variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
@@ -780,7 +769,7 @@ function package_checker() {
     }
 
     zip_binary() {
-        if [ "$ZIP_BUILDER" = 1 ]; then
+        if [ -n "$AK_DIR" ]; then
             if ! command_available zip; then
                 printf "\n%bzip not found.%b\n\n" "$red" "$darkwhite"
 
@@ -1676,6 +1665,6 @@ post_compilation_work
 compilation_report
 stats
 
-if [ "$ZIP_BUILDER" = 1 ]; then
+if [ -n "$AK_DIR" ]; then
     zip_builder
 fi
