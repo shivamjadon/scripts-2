@@ -378,14 +378,14 @@ function environment_check() {
         bash_ver=${BASH_VERSION}
         bash_ver_cut=$(printf "%s" "$bash_ver" | cut -c -1)
 
-        if [ "$bash_ver_cut" = "2" ] || [ "$bash_ver_cut" = "3" ]; then
+        if [ "$bash_ver_cut" -eq "2" ] || [ "$bash_ver_cut" -eq "3" ]; then
             printf "\n%bThis script requires bash 4+%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
     }
 
     root_check() {
-        if [ $EUID = 0 ]; then
+        if [ $EUID -eq 0 ]; then
             printf "\n%bYou should not run this script as root.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
@@ -417,13 +417,13 @@ function helpers() {
         delimeter=''
         s=0
 
-        if [ "$convert_bytes_to_ibi" = 0 ]; then
+        if [ "$convert_bytes_to_ibi" -eq 0 ]; then
             S=(Bytes {K,M,G}B)
         else
             S=(Bytes {K,M,G}iB)
         fi
 
-        if [ "$convert_bytes_to_ibi" = 0 ]; then
+        if [ "$convert_bytes_to_ibi" -eq 0 ]; then
             while ((bytes > 1000)); do
                 delimeter="$(printf ".%02d" $((bytes % 1000 * 100 / 1000)))"
                 bytes=$((bytes / 1000))
@@ -448,11 +448,11 @@ function helpers() {
         ls "${get_dir}"/*.zip > /dev/null 2>&1
         lsexit=$(printf "%d" "$?")
 
-        if [ "$lsexit" = 2 ]; then
+        if [ "$lsexit" -eq 2 ]; then
             return 2
         fi
 
-        if [ "$lsexit" = 0 ]; then
+        if [ "$lsexit" -eq 0 ]; then
             rm -rf "${get_dir}"/*.zip
         fi
     }
@@ -633,49 +633,49 @@ function configuration_checker() {
             exit 1
         fi
 
-        if [ "$SYNC_AK_DIR" = 1 ] && [ -z "$AK_DIR" ]; then
+        if [ "$SYNC_AK_DIR" -eq 1 ] && [ -z "$AK_DIR" ]; then
             printf "\n%bSync for AK is enabled, but AK directory is not defined...%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$SYNC_CG_DIR" = 1 ] && [ -z "$CLANG_DIR" ]; then
+        if [ "$SYNC_CG_DIR" -eq 1 ] && [ -z "$CLANG_DIR" ]; then
             printf "\n%bSync for Clang is enabled, but clang directory is not defined...%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$ncf" = 1 ]; then
+        if [ "$ncf" -eq 1 ]; then
             printf "\n%bPlease put your defconfig in /configs or /configs/vendor%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
     }
 
     check_the_toggles() {
-        if [ "$USE_CCACHE" != 0 ] && [ "$USE_CCACHE" != 1 ]; then
+        if [ "$USE_CCACHE" -ne 0 ] && [ "$USE_CCACHE" -ne 1 ]; then
             printf "\n%bIncorrect USE_CCACHE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$APPEND_DATE" != 0 ] && [ "$APPEND_DATE" != 1 ]; then
+        if [ "$APPEND_DATE" -ne 0 ] && [ "$APPEND_DATE" -ne 1 ]; then
             printf "\n%bIncorrect APPEND_DATE variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$SYNC_AK_DIR" != 0 ] && [ "$SYNC_AK_DIR" != 1 ]; then
+        if [ "$SYNC_AK_DIR" -ne 0 ] && [ "$SYNC_AK_DIR" -ne 1 ]; then
             printf "\n%bIncorrect SYNC_AK_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$SYNC_TC_DIR" != 0 ] && [ "$SYNC_TC_DIR" != 1 ]; then
+        if [ "$SYNC_TC_DIR" -ne 0 ] && [ "$SYNC_TC_DIR" -ne 1 ]; then
             printf "\n%bIncorrect SYNC_TC_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$SYNC_CG_DIR" != 0 ] && [ "$SYNC_CG_DIR" != 1 ]; then
+        if [ "$SYNC_CG_DIR" -ne 0 ] && [ "$SYNC_CG_DIR" -ne 1 ]; then
             printf "\n%bIncorrect SYNC_CG_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$SYNC_KERNEL_DIR" != 0 ] && [ "$SYNC_KERNEL_DIR" != 1 ]; then
+        if [ "$SYNC_KERNEL_DIR" -ne 0 ] && [ "$SYNC_KERNEL_DIR" -ne 1 ]; then
             printf "\n%bIncorrect SYNC_KERNEL_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
@@ -691,7 +691,7 @@ function configuration_checker() {
 function package_checker() {
 
     ccache_binary() {
-        if [ "$USE_CCACHE" = 1 ]; then
+        if [ "$USE_CCACHE" -eq 1 ]; then
             if ! command_available ccache; then
                 printf "\n%bccache not found.%b\n\n" "$red" "$darkwhite"
 
@@ -731,9 +731,9 @@ function package_checker() {
         [ -n "$TOOLCHAIN_REPO" ] || [ -n "$TOOLCHAIN_BRANCH" ] || \
         [ -n "$CLANG_REPO" ] || [ -n "$CLANG_BRANCH" ] || \
         [ -n "$KERNEL_REPO" ] || [ -n "$KERNEL_BRANCH" ] || \
-        [ "$SYNC_AK_DIR" = 1 ] || [ "$SYNC_TC_DIR" = 1 ] || \
-        [ "$SYNC_CG_DIR" = 1 ] || [ "$SYNC_KERNEL_DIR" = 1 ] || \
-        [ "$clone_submodules_a" = 1 ]; then
+        [ "$SYNC_AK_DIR" -eq 1 ] || [ "$SYNC_TC_DIR" -eq 1 ] || \
+        [ "$SYNC_CG_DIR" -eq 1 ] || [ "$SYNC_KERNEL_DIR" -eq 1 ] || \
+        [ "$clone_submodules_a" -eq 1 ]; then
             if ! command_available git; then
                 printf "\n%bgit not found.%b\n\n" "$red" "$darkwhite"
 
@@ -819,7 +819,7 @@ function cloning() {
             ak_params="$ak_params --branch $AK_BRANCH"
             ak_params="$ak_params --depth $ak_clone_depth"
 
-            if [ "$AK_BRANCH_IS_A_TAG" = 1 ]; then
+            if [ "$AK_BRANCH_IS_A_TAG" -eq 1 ]; then
                 ak_params="$ak_params --single-branch"
             fi
         }
@@ -830,7 +830,7 @@ function cloning() {
             tc_params="$tc_params --branch $TOOLCHAIN_BRANCH"
             tc_params="$tc_params --depth $tc_clone_depth"
 
-            if [ "$TOOLCHAIN_BRANCH_IS_A_TAG" = 1 ]; then
+            if [ "$TOOLCHAIN_BRANCH_IS_A_TAG" -eq 1 ]; then
                 tc_params="$tc_params --single-branch"
             fi
         }
@@ -841,7 +841,7 @@ function cloning() {
             cg_params="$cg_params --branch $CLANG_BRANCH"
             cg_params="$cg_params --depth $tc_clone_depth"
 
-            if [ "$CLANG_BRANCH_IS_A_TAG" = 1 ]; then
+            if [ "$CLANG_BRANCH_IS_A_TAG" -eq 1 ]; then
                 cg_params="$cg_params --single-branch"
             fi
         }
@@ -852,7 +852,7 @@ function cloning() {
             kl_params="$kl_params --branch $KERNEL_BRANCH"
             kl_params="$kl_params --depth $kl_clone_depth"
 
-            if [ "$KERNEL_BRANCH_IS_A_TAG" = 1 ]; then
+            if [ "$KERNEL_BRANCH_IS_A_TAG" -eq 1 ]; then
                 kl_params="$kl_params --single-branch"
             fi
         }
@@ -924,8 +924,8 @@ function cloning() {
     sync_directories() {
 
         anykernel_sync() {
-            if [ "$SYNC_AK_DIR" = 1 ]; then
-                if [ "$akc" != 1 ]; then
+            if [ "$SYNC_AK_DIR" -eq 1 ]; then
+                if [ "$akc" -ne 1 ]; then
                     printf "\n%bStarting sync of AK source...%b\n" "$white" "$darkwhite"
                     cd "${ak_dir}" || die_30 "cd ${ak_dir} failed"
                     git reset --hard "@{upstream}"
@@ -936,8 +936,8 @@ function cloning() {
         }
 
         toolchain_sync() {
-            if [ "$SYNC_TC_DIR" = 1 ]; then
-                if [ "$tcc" != 1 ]; then
+            if [ "$SYNC_TC_DIR" -eq 1 ]; then
+                if [ "$tcc" -ne 1 ]; then
                     printf "\n%bStarting sync of the toolchain source...%b\n" "$white" "$darkwhite"
                     cd "${tc_dir}" || die_30 "cd ${tc_dir} failed"
                     git reset --hard "@{upstream}"
@@ -948,8 +948,8 @@ function cloning() {
         }
 
         clang_sync() {
-            if [ "$SYNC_CG_DIR" = 1 ]; then
-                if [ "$cgc" != 1 ]; then
+            if [ "$SYNC_CG_DIR" -eq 1 ]; then
+                if [ "$cgc" -ne 1 ]; then
                     printf "\n%bStarting sync of Clang source...%b\n" "$white" "$darkwhite"
                     cd "${cg_dir}" || die_30 "cd ${cg_dir} failed"
                     git reset --hard "@{upstream}"
@@ -960,8 +960,8 @@ function cloning() {
         }
 
         kernel_sync() {
-            if [ "$SYNC_KERNEL_DIR" = 1 ]; then
-                if [ "$klc" != 1 ]; then
+            if [ "$SYNC_KERNEL_DIR" -eq 1 ]; then
+                if [ "$klc" -ne 1 ]; then
                     printf "\n%bStarting sync of the kernel source...%b\n" "$white" "$darkwhite"
                     cd "${kl_dir}" || die_30 "cd ${kl_dir} failed"
                     git reset --hard "@{upstream}"
@@ -1035,7 +1035,7 @@ function cloning() {
     check_directories
     sync_directories
 
-    if [ "$clone_submodules_a" = 1 ]; then
+    if [ "$clone_submodules_a" -eq 1 ]; then
         clone_submodules
     fi
 }
@@ -1078,7 +1078,7 @@ function pre_compilation_setup() {
     }
 
     ccache_path() {
-        if [ "$USE_CCACHE" = 1 ]; then
+        if [ "$USE_CCACHE" -eq 1 ]; then
             ccache_loc=$(command -v ccache)
         fi
     }
@@ -1111,7 +1111,7 @@ function compilation() {
     clang() {
         cd "${kl_dir}" || die_30 "cd ${kl_dir} failed"
 
-        if [ "$USE_CCACHE" = 1 ]; then
+        if [ "$USE_CCACHE" -eq 1 ]; then
             paths="${ccache_loc}:${cg_dir}/bin:${tc_dir}/bin:${PATH}"
         else
             paths="${cg_dir}/bin:${tc_dir}/bin:${PATH}"
@@ -1173,7 +1173,7 @@ function compilation() {
         export ARCH=${KERNEL_ARCH}
         export SUBARCH=${kernel_subarch}
 
-        if [ "$USE_CCACHE" = 1 ]; then
+        if [ "$USE_CCACHE" -eq 1 ]; then
             export CROSS_COMPILE="${ccache_loc} ${tc_dir}/bin/${tc_prefix}"
         else
             export CROSS_COMPILE="${tc_dir}/bin/${tc_prefix}"
@@ -1190,7 +1190,7 @@ function compilation() {
         makeexit2=$(printf "%d" "$?")
     }
 
-    if [ "$clg" = 1 ]; then
+    if [ "$clg" -eq 1 ]; then
         clang
     else
         output_folder
@@ -1203,12 +1203,12 @@ function post_compilation_work() {
 }
 
 function compilation_report() {
-    if [ "$clg" = 1 ]; then
-        if [ "$makeexit1" != 0 ]; then
+    if [ "$clg" -eq 1 ]; then
+        if [ "$makeexit1" -ne 0 ]; then
             die_40 "make return code is not 0"
         fi
     else
-        if [ "$makeexit2" != 0 ]; then
+        if [ "$makeexit2" -ne 0 ]; then
             die_40 "make return code is not 0"
         fi
     fi
@@ -1264,13 +1264,13 @@ function stats() {
             compilation_time_minutes=$((compilation_time / 60))
             compilation_time_seconds=$((compilation_time % 60))
 
-            if [ "$compilation_time_minutes" = 1 ]; then
+            if [ "$compilation_time_minutes" -eq 1 ]; then
                 compilation_time_minutes_noun=minute
             else
                 compilation_time_minutes_noun=minutes
             fi
 
-            if [ "$compilation_time_seconds" = 1 ]; then
+            if [ "$compilation_time_seconds" -eq 1 ]; then
                 compilation_time_seconds_noun=second
             else
                 compilation_time_seconds_noun=seconds
@@ -1278,17 +1278,17 @@ function stats() {
         }
 
         read_compilation_details() {
-            if [ "$clg" = 1 ]; then
+            if [ "$clg" -eq 1 ]; then
                 compilation_details=clang
             else
                 compilation_details=gcc-out
             fi
 
-            if [ "$USE_CCACHE" = 1 ]; then
+            if [ "$USE_CCACHE" -eq 1 ]; then
                 compilation_details="${compilation_details}-ccache"
             fi
 
-            if [ "$dry" = 1 ]; then
+            if [ "$dry" -eq 1 ]; then
                 compilation_details="${compilation_details}-dirty"
             fi
         }
@@ -1311,7 +1311,7 @@ function stats() {
                 grep -Fq "directory=$kl_dir" "$cache_file_0"
                 grepexit=$(printf "%d" "$?")
 
-                if [ "$grepexit" = 1 ]; then
+                if [ "$grepexit" -eq 1 ]; then
                     rm -f "${cache_file_0}"
                 fi
             fi
@@ -1452,7 +1452,7 @@ function stats() {
     compilation_stats
     images_stats
 
-    if [ "$export_compilation_stats" = 1 ]; then
+    if [ "$export_compilation_stats" -eq 1 ]; then
         export_compilation_stats
     fi
 }
@@ -1460,7 +1460,7 @@ function stats() {
 function zip_builder() {
 
     copy_image() {
-        if [ "$copy_dtb_image" = 1 ]; then
+        if [ "$copy_dtb_image" -eq 1 ]; then
             if [ -f "$kl_out_img_dtb" ]; then
                 cp "${kl_out_img_dtb}" "${ak_kl_img_dtb}"
             else
@@ -1474,7 +1474,7 @@ function zip_builder() {
     remove_old_zip() {
         rm -f "${ak_dir}"/"${KERNEL_NAME}"*.zip
 
-        if [ "$aggressive_zip_rm" = 1 ]; then
+        if [ "$aggressive_zip_rm" -eq 1 ]; then
             remove_every_zip "${ak_dir}"
         fi
     }
@@ -1497,7 +1497,7 @@ function zip_builder() {
                 filename="${filename}-${APPEND_ANDROID_TARGET}"
             fi
 
-            if [ "$APPEND_DATE" = 1 ]; then
+            if [ "$APPEND_DATE" -eq 1 ]; then
                 filename="${filename}-${current_date}"
             fi
 
@@ -1546,7 +1546,7 @@ function zip_builder() {
                 grep -Fq "directory=$kl_dir" "$cache_file_1"
                 grepexit2=$(printf "%d" "$?")
 
-                if [ "$grepexit2" = 1 ]; then
+                if [ "$grepexit2" -eq 1 ]; then
                     rm -f "${cache_file_1}"
                 fi
             fi
@@ -1642,7 +1642,7 @@ function zip_builder() {
     get_hash_of_zip
     zip_stats
 
-    if [ "$export_zip_stats" = 1 ]; then
+    if [ "$export_zip_stats" -eq 1 ]; then
         export_zip_stats
     fi
 }
