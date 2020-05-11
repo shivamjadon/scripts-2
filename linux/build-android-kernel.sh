@@ -14,7 +14,7 @@ notice
 
 function variables() {
 
-    ESSENTIAL_VARIABLES() {
+    ESSENTIAL() {
         TOOLCHAIN_DIR=
         KERNEL_DIR=
         KERNEL_OUTPUT_DIR=
@@ -22,34 +22,34 @@ function variables() {
         KERNEL_ARCH=
     }
 
-    SCRIPT_VARIABLES() {
+    SCRIPT() {
         USE_CCACHE=0
     }
 
-    OPTIONAL_VARIABLES() {
+    OPTIONAL() {
 
         anykernel() {
-            ak_essential_variables() {
+            ak_essential() {
                 AK_DIR=
                 KERNEL_NAME=
             }
-            ak_remote_variables() {
+            ak_remote() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 AK_REPO=
                 AK_BRANCH=
                 AK_BRANCH_IS_A_TAG=0
             }
-            ak_zip_filename_variables() {
-                APPEND_VERSION=
-                APPEND_DEVICE=
-                APPEND_ANDROID_TARGET=
+            ak_zip_filename() {
+                VERSION=
+                DEVICE=
+                ANDROID_TARGET=
                 APPEND_DATE=0
                 CUSTOM_ZIP_NAME=
             }
         }
 
         toolchain() {
-            tc_remote_variables() {
+            tc_remote() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 TOOLCHAIN_REPO=
                 TOOLCHAIN_BRANCH=
@@ -58,12 +58,12 @@ function variables() {
         }
 
         clang() {
-            cg_essential_variables() {
+            cg_essential() {
                 CLANG_DIR=
                 CLANG_BIN=
                 CLANG_PREFIX=
             }
-            cg_remote_variables() {
+            cg_remote() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 CLANG_REPO=
                 CLANG_BRANCH=
@@ -72,7 +72,7 @@ function variables() {
         }
 
         kernel() {
-            kl_remote_variables() {
+            kl_remote() {
                 # NOTE: Shallow clone, i.e. limited history. Not recommended for any commit work.
                 KERNEL_REPO=
                 KERNEL_BRANCH=
@@ -86,11 +86,11 @@ function variables() {
         }
 
         miscellaneous() {
-            ms_sync_variables() {
+            ms_sync() {
                 # NOTE: True sync. Any local changes are discarded. All remote changes are pulled.
-                SYNC_AK_DIR=0
-                SYNC_TC_DIR=0
-                SYNC_CG_DIR=0
+                SYNC_ANYKERNEL_DIR=0
+                SYNC_TOOLCHAIN_DIR=0
+                SYNC_CLANG_DIR=0
                 SYNC_KERNEL_DIR=0
             }
         }
@@ -100,9 +100,9 @@ function variables() {
 function automatic_configuration() {
 
     import_variables_0() {
-        ESSENTIAL_VARIABLES
-        SCRIPT_VARIABLES
-        OPTIONAL_VARIABLES
+        ESSENTIAL
+        SCRIPT
+        OPTIONAL
 
         import_variables_1() {
             anykernel
@@ -112,15 +112,15 @@ function automatic_configuration() {
             miscellaneous
 
             import_variables_2() {
-                ak_essential_variables
-                ak_remote_variables
-                ak_zip_filename_variables
-                tc_remote_variables
-                cg_essential_variables
-                cg_remote_variables
-                kl_remote_variables
+                ak_essential
+                ak_remote
+                ak_zip_filename
+                tc_remote
+                cg_essential
+                cg_remote
+                kl_remote
                 kl_options
-                ms_sync_variables
+                ms_sync
             }
 
             import_variables_2
@@ -546,8 +546,8 @@ function configuration_checker() {
 
         if [ ! -v AK_DIR ] || [ ! -v KERNEL_NAME ] || \
         [ ! -v AK_REPO ] || [ ! -v AK_BRANCH ] || \
-        [ ! -v AK_BRANCH_IS_A_TAG ] || [ ! -v APPEND_VERSION ] || \
-        [ ! -v APPEND_DEVICE ] || [ ! -v APPEND_ANDROID_TARGET ] || \
+        [ ! -v AK_BRANCH_IS_A_TAG ] || [ ! -v VERSION ] || \
+        [ ! -v DEVICE ] || [ ! -v ANDROID_TARGET ] || \
         [ ! -v APPEND_DATE ] || [ ! -v CUSTOM_ZIP_NAME ]; then
             die_20 "d20 r=2"
         fi
@@ -569,8 +569,8 @@ function configuration_checker() {
             die_20 "d20 r=5"
         fi
 
-        if [ ! -v SYNC_AK_DIR ] || [ ! -v SYNC_TC_DIR ] || \
-        [ ! -v SYNC_CG_DIR ] || [ ! -v SYNC_KERNEL_DIR ]; then
+        if [ ! -v SYNC_ANYKERNEL_DIR ] || [ ! -v SYNC_TOOLCHAIN_DIR ] || \
+        [ ! -v SYNC_CLANG_DIR ] || [ ! -v SYNC_KERNEL_DIR ]; then
             die_20 "d20 r=6"
         fi
     }
@@ -633,12 +633,12 @@ function configuration_checker() {
             exit 1
         fi
 
-        if [ "$SYNC_AK_DIR" -eq 1 ] && [ -z "$AK_DIR" ]; then
+        if [ "$SYNC_ANYKERNEL_DIR" -eq 1 ] && [ -z "$AK_DIR" ]; then
             printf "\n%bSync for AK is enabled, but AK directory is not defined...%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$SYNC_CG_DIR" -eq 1 ] && [ -z "$CLANG_DIR" ]; then
+        if [ "$SYNC_CLANG_DIR" -eq 1 ] && [ -z "$CLANG_DIR" ]; then
             printf "\n%bSync for Clang is enabled, but clang directory is not defined...%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
@@ -660,18 +660,18 @@ function configuration_checker() {
             exit 1
         fi
 
-        if [ "$SYNC_AK_DIR" -ne 0 ] && [ "$SYNC_AK_DIR" -ne 1 ]; then
-            printf "\n%bIncorrect SYNC_AK_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+        if [ "$SYNC_ANYKERNEL_DIR" -ne 0 ] && [ "$SYNC_ANYKERNEL_DIR" -ne 1 ]; then
+            printf "\n%bIncorrect SYNC_ANYKERNEL_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$SYNC_TC_DIR" -ne 0 ] && [ "$SYNC_TC_DIR" -ne 1 ]; then
-            printf "\n%bIncorrect SYNC_TC_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+        if [ "$SYNC_TOOLCHAIN_DIR" -ne 0 ] && [ "$SYNC_TOOLCHAIN_DIR" -ne 1 ]; then
+            printf "\n%bIncorrect SYNC_TOOLCHAIN_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
-        if [ "$SYNC_CG_DIR" -ne 0 ] && [ "$SYNC_CG_DIR" -ne 1 ]; then
-            printf "\n%bIncorrect SYNC_CG_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
+        if [ "$SYNC_CLANG_DIR" -ne 0 ] && [ "$SYNC_CLANG_DIR" -ne 1 ]; then
+            printf "\n%bIncorrect SYNC_CLANG_DIR variable, only 0 or 1 is allowed as input for toggles.%b\n\n" "$red" "$darkwhite"
             exit 1
         fi
 
@@ -731,8 +731,8 @@ function package_checker() {
         [ -n "$TOOLCHAIN_REPO" ] || [ -n "$TOOLCHAIN_BRANCH" ] || \
         [ -n "$CLANG_REPO" ] || [ -n "$CLANG_BRANCH" ] || \
         [ -n "$KERNEL_REPO" ] || [ -n "$KERNEL_BRANCH" ] || \
-        [ "$SYNC_AK_DIR" -eq 1 ] || [ "$SYNC_TC_DIR" -eq 1 ] || \
-        [ "$SYNC_CG_DIR" -eq 1 ] || [ "$SYNC_KERNEL_DIR" -eq 1 ] || \
+        [ "$SYNC_ANYKERNEL_DIR" -eq 1 ] || [ "$SYNC_TOOLCHAIN_DIR" -eq 1 ] || \
+        [ "$SYNC_CLANG_DIR" -eq 1 ] || [ "$SYNC_KERNEL_DIR" -eq 1 ] || \
         [ "$clone_submodules_a" -eq 1 ]; then
             if ! command_available git; then
                 printf "\n%bgit not found.%b\n\n" "$red" "$darkwhite"
@@ -924,7 +924,7 @@ function cloning() {
     sync_directories() {
 
         anykernel_sync() {
-            if [ "$SYNC_AK_DIR" -eq 1 ]; then
+            if [ "$SYNC_ANYKERNEL_DIR" -eq 1 ]; then
                 if [ "$akc" -ne 1 ]; then
                     printf "\n%bStarting sync of AK source...%b\n" "$white" "$darkwhite"
                     cd "${ak_dir}" || die_30 "cd ${ak_dir} failed"
@@ -936,7 +936,7 @@ function cloning() {
         }
 
         toolchain_sync() {
-            if [ "$SYNC_TC_DIR" -eq 1 ]; then
+            if [ "$SYNC_TOOLCHAIN_DIR" -eq 1 ]; then
                 if [ "$tcc" -ne 1 ]; then
                     printf "\n%bStarting sync of the toolchain source...%b\n" "$white" "$darkwhite"
                     cd "${tc_dir}" || die_30 "cd ${tc_dir} failed"
@@ -948,7 +948,7 @@ function cloning() {
         }
 
         clang_sync() {
-            if [ "$SYNC_CG_DIR" -eq 1 ]; then
+            if [ "$SYNC_CLANG_DIR" -eq 1 ]; then
                 if [ "$cgc" -ne 1 ]; then
                     printf "\n%bStarting sync of Clang source...%b\n" "$white" "$darkwhite"
                     cd "${cg_dir}" || die_30 "cd ${cg_dir} failed"
@@ -1485,16 +1485,16 @@ function zip_builder() {
         else
             filename="${KERNEL_NAME}"
 
-            if [ -n "$APPEND_VERSION" ]; then
-                filename="${filename}-${APPEND_VERSION}"
+            if [ -n "$VERSION" ]; then
+                filename="${filename}-${VERSION}"
             fi
 
-            if [ -n "$APPEND_DEVICE" ]; then
-                filename="${filename}-${APPEND_DEVICE}"
+            if [ -n "$DEVICE" ]; then
+                filename="${filename}-${DEVICE}"
             fi
 
-            if [ -n "$APPEND_ANDROID_TARGET" ]; then
-                filename="${filename}-${APPEND_ANDROID_TARGET}"
+            if [ -n "$ANDROID_TARGET" ]; then
+                filename="${filename}-${ANDROID_TARGET}"
             fi
 
             if [ "$APPEND_DATE" -eq 1 ]; then
