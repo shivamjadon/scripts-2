@@ -130,11 +130,11 @@ function automatic_configuration() {
     }
 
     tc_dir_input() {
-        if [[ ${TOOLCHAIN_DIR} = "/home/"* ]] || [[ ${TOOLCHAIN_DIR} = "$HOME/"* ]]; then
+        if [[ ${TOOLCHAIN_DIR} = "/home/"* ]] || [[ ${TOOLCHAIN_DIR} = "/$HOME/"* ]]; then
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
-        elif [[ ${TOOLCHAIN_DIR} = "home/"* ]]; then
+        elif [[ ${TOOLCHAIN_DIR} = "home/"* ]] || [[ ${TOOLCHAIN_DIR} = "$HOME/"* ]]; then
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
         fi
