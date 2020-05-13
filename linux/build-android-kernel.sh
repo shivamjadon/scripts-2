@@ -114,33 +114,33 @@ function variables() {
 function automatic_configuration() {
 
     import_variables_0() {
-        ESSENTIAL
-        SCRIPT
-        OPTIONAL
+        ESSENTIAL;
+        SCRIPT;
+        OPTIONAL;
 
         import_variables_1() {
-            anykernel
-            toolchain
-            clang
-            kernel
-            miscellaneous
+            anykernel;
+            toolchain;
+            clang;
+            kernel;
+            miscellaneous;
 
             import_variables_2() {
-                ak_essential
-                ak_remote
-                ak_zip_filename
-                tc_remote
-                cg_essential
-                cg_remote
-                kl_remote
-                kl_options
-                ms_sync
+                ak_essential;
+                ak_remote;
+                ak_zip_filename;
+                tc_remote;
+                cg_essential;
+                cg_remote;
+                kl_remote;
+                kl_options;
+                ms_sync;
             }
 
-            import_variables_2
+            import_variables_2;
         }
 
-        import_variables_1
+        import_variables_1;
     }
 
     tc_dir_input() {
@@ -252,20 +252,20 @@ function automatic_configuration() {
         fi
     }
 
-    import_variables_0
-    tc_dir_input
-    kl_dir_input
-    kl_out_dir_input
+    import_variables_0;
+    tc_dir_input;
+    kl_dir_input;
+    kl_out_dir_input;
 
     if [ -n "$AK_DIR" ]; then
-        ak_dir_input
+        ak_dir_input;
     fi
 
     if [ -n "$CLANG_DIR" ]; then
-        cg_dir_input
+        cg_dir_input;
     fi
 
-    defconfig_input
+    defconfig_input;
 }
 
 function automatic_variables() {
@@ -320,7 +320,7 @@ function automatic_variables() {
                 fi
             }
 
-            prepare_config_location
+            prepare_config_location;
         }
 
         kl_locations() {
@@ -348,11 +348,11 @@ function automatic_variables() {
             cg_git_dir="$HOME"/${CLANG_DIR}/.git
         }
 
-        config_locations
-        kl_locations
-        ak_locations
-        tc_locations
-        cg_locations
+        config_locations;
+        kl_locations;
+        ak_locations;
+        tc_locations;
+        cg_locations;
     }
 
     stats_options() {
@@ -370,14 +370,14 @@ function automatic_variables() {
         current_date=$(date +'%Y%m%d')
     }
 
-    colors
-    cosmetic_variables
-    clone_options
-    persistent_cache
-    location_shortcuts
-    stats_options
-    zip_builder_options
-    date_call
+    colors;
+    cosmetic_variables;
+    clone_options;
+    persistent_cache;
+    location_shortcuts;
+    stats_options;
+    zip_builder_options;
+    date_call;
 }
 
 function environment_check() {
@@ -401,8 +401,8 @@ function environment_check() {
         fi
     }
 
-    bash_check
-    root_check
+    bash_check;
+    root_check;
 }
 
 function helpers() {
@@ -691,11 +691,11 @@ function configuration_checker() {
         fi
     }
 
-    changed_variables
-    undefined_variables
-    missing_variables
-    incorrect_variables
-    check_the_toggles
+    changed_variables;
+    undefined_variables;
+    missing_variables;
+    incorrect_variables;
+    check_the_toggles;
 }
 
 function package_checker() {
@@ -814,9 +814,9 @@ function package_checker() {
         fi
     }
 
-    ccache_binary
-    git_binary
-    zip_binary
+    ccache_binary;
+    git_binary;
+    zip_binary;
 }
 
 function cloning() {
@@ -867,10 +867,10 @@ function cloning() {
             fi
         }
 
-        anykernel_params
-        toolchain_params
-        clang_params
-        kernel_params
+        anykernel_params;
+        toolchain_params;
+        clang_params;
+        kernel_params;
     }
 
     anykernel() {
@@ -982,19 +982,19 @@ function cloning() {
         }
 
         if [ -d "$ak_git_dir" ]; then
-            anykernel_sync
+            anykernel_sync;
         fi
 
         if [ -d "$tc_git_dir" ]; then
-            toolchain_sync
+            toolchain_sync;
         fi
 
         if [ -d "$cg_git_dir" ]; then
-            clang_sync
+            clang_sync;
         fi
 
         if [ -d "$kl_git_dir" ]; then
-            kernel_sync
+            kernel_sync;
         fi
     }
 
@@ -1021,32 +1021,32 @@ function cloning() {
         }
 
         if [ -d "$ak_git_dir" ]; then
-            anykernel_submodules
+            anykernel_submodules;
         fi
 
         if [ -d "$tc_git_dir" ]; then
-            toolchain_submodules
+            toolchain_submodules;
         fi
 
         if [ -d "$cg_git_dir" ]; then
-            clang_submodules
+            clang_submodules;
         fi
 
         if [ -d "$kl_git_dir" ]; then
-            kernel_submodules
+            kernel_submodules;
         fi
     }
 
-    parse_cloning_params
-    anykernel
-    toolchain
-    clang
-    kernel
-    check_directories
-    sync_directories
+    parse_cloning_params;
+    anykernel;
+    toolchain;
+    clang;
+    kernel;
+    check_directories;
+    sync_directories;
 
     if [ "$clone_submodules_a" -eq 1 ]; then
-        clone_submodules
+        clone_submodules;
     fi
 }
 
@@ -1067,8 +1067,8 @@ function choices() {
         fi
     }
 
-    compilation_method
-    build_type
+    compilation_method;
+    build_type;
 }
 
 function pre_compilation_setup() {
@@ -1105,11 +1105,11 @@ function pre_compilation_setup() {
         fi
     }
 
-    set_subarch
-    get_toolchain_prefix
-    ccache_path
-    user
-    host
+    set_subarch;
+    get_toolchain_prefix;
+    ccache_path;
+    user;
+    host;
 }
 
 function compilation() {
@@ -1205,15 +1205,15 @@ function compilation() {
         compilation_time=$((end1-start1))
     }
 
-    pre_compilation
+    pre_compilation;
 
     if [ "$clg" -eq 1 ]; then
-        clang
+        clang;
     else
-        output_folder
+        output_folder;
     fi
 
-    post_compilation
+    post_compilation;
 }
 
 function compilation_report() {
@@ -1313,9 +1313,9 @@ function stats() {
             printf "%b> Compilation details: %s%b\n" "$white" "$compilation_details" "$darkwhite"
         }
 
-        read_compilation_time
-        read_compilation_details
-        output_compilation_stats
+        read_compilation_time;
+        read_compilation_details;
+        output_compilation_stats;
     }
 
     images_stats() {
@@ -1392,9 +1392,9 @@ function stats() {
             fi
         }
 
-        read_stored_size_of_images
-        output_stats_of_images
-        store_size_of_images
+        read_stored_size_of_images;
+        output_stats_of_images;
+        store_size_of_images;
     }
 
     export_compilation_stats() {
@@ -1443,8 +1443,8 @@ function stats() {
             fi
         }
 
-        prepare_compilation_stats_file_for_export
-        prepare_compilation_stats_for_export
+        prepare_compilation_stats_file_for_export;
+        prepare_compilation_stats_for_export;
 
         {
             printf "defconfig=%s\n" "$KERNEL_DEFCONFIG"
@@ -1460,14 +1460,14 @@ function stats() {
         } >> "${cache_file_2}"
     }
 
-    get_bytes_of_images
-    convert_bytes_of_images
-    kernel_stats
-    compilation_stats
-    images_stats
+    get_bytes_of_images;
+    convert_bytes_of_images;
+    kernel_stats;
+    compilation_stats;
+    images_stats;
 
     if [ "$export_compilation_stats" -eq 1 ]; then
-        export_compilation_stats
+        export_compilation_stats;
     fi
 }
 
@@ -1545,11 +1545,11 @@ function zip_builder() {
         }
 
         if command_available md5sum; then
-            get_md5_of_zip
+            get_md5_of_zip;
         fi
 
         if command_available sha1sum; then
-            get_sha1_of_zip
+            get_sha1_of_zip;
         fi
     }
 
@@ -1605,9 +1605,9 @@ function zip_builder() {
             printf "zip.size=%s\n" "$zip_size" >> "${cache_file_1}"
         }
 
-        read_stored_size_of_zip
-        output_zip_stats
-        store_size_of_zip
+        read_stored_size_of_zip;
+        output_zip_stats;
+        store_size_of_zip;
     }
 
     export_zip_stats() {
@@ -1636,8 +1636,8 @@ function zip_builder() {
             fi
         }
 
-        prepare_zip_stats_file_for_export
-        prepare_zip_stats_for_export
+        prepare_zip_stats_file_for_export;
+        prepare_zip_stats_for_export;
 
         {
             printf "zip.md5=%s\n" "$ezs_zip_md5"
@@ -1647,36 +1647,36 @@ function zip_builder() {
         } >> "${cache_file_3}"
     }
 
-    copy_image
-    remove_old_zip
-    filename
-    create_zip
-    get_bytes_of_zip
-    convert_bytes_of_zip
-    get_hash_of_zip
-    zip_stats
+    copy_image;
+    remove_old_zip;
+    filename;
+    create_zip;
+    get_bytes_of_zip;
+    convert_bytes_of_zip;
+    get_hash_of_zip;
+    zip_stats;
 
     if [ "$export_zip_stats" -eq 1 ]; then
-        export_zip_stats
+        export_zip_stats;
     fi
 }
 
-variables
-automatic_configuration
-automatic_variables
-environment_check
-helpers
-traps
-die_codes
-configuration_checker
-package_checker
-cloning
-choices
-pre_compilation_setup
-compilation
-compilation_report
-stats
+variables;
+automatic_configuration;
+automatic_variables;
+environment_check;
+helpers;
+traps;
+die_codes;
+configuration_checker;
+package_checker;
+cloning;
+choices;
+pre_compilation_setup;
+compilation;
+compilation_report;
+stats;
 
 if [ -n "$AK_DIR" ]; then
-    zip_builder
+    zip_builder;
 fi
