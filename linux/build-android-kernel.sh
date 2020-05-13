@@ -1112,11 +1112,11 @@ function pre_compilation_setup() {
     host
 }
 
-function pre_compilation_work() {
-    start1=$(date +'%s')
-}
-
 function compilation() {
+
+    pre_compilation() {
+        start1=$(date +'%s')
+    }
 
     clang() {
         cd "${kl_dir}" || die_30 "cd ${kl_dir} failed"
@@ -1200,16 +1200,20 @@ function compilation() {
         makeexit2=$(printf "%d" "$?")
     }
 
+    post_compilation() {
+        end1=$(date +'%s')
+        compilation_time=$((end1-start1))
+    }
+
+    pre_compilation
+
     if [ "$clg" -eq 1 ]; then
         clang
     else
         output_folder
     fi
-}
 
-function post_compilation_work() {
-    end1=$(date +'%s')
-    compilation_time=$((end1-start1))
+    post_compilation
 }
 
 function compilation_report() {
@@ -1669,9 +1673,7 @@ package_checker
 cloning
 choices
 pre_compilation_setup
-pre_compilation_work
 compilation
-post_compilation_work
 compilation_report
 stats
 
