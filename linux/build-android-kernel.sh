@@ -288,14 +288,11 @@ function automatic_variables() {
         ncf=0
     }
 
-    clone_depth() {
+    clone_options() {
+        clone_submodules_a=1
         ak_clone_depth=1
         tc_clone_depth=1
         kl_clone_depth=1
-    }
-
-    clone_options() {
-        clone_submodules_a=1
     }
 
     persistent_cache() {
@@ -375,7 +372,6 @@ function automatic_variables() {
 
     colors
     cosmetic_variables
-    clone_depth
     clone_options
     persistent_cache
     location_shortcuts
