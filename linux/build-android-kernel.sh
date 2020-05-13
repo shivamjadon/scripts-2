@@ -1619,13 +1619,13 @@ function zip_builder() {
         prepare_zip_stats_for_export() {
             ezs_zip_location=$(printf "%s/%s" "$ak_dir" "$filename")
 
-            if command_available md5sum; then
+            if [ -n "$zip_md5" ]; then
                 ezs_zip_md5=$(printf "%s" "$zip_md5")
             else
                 ezs_zip_md5="(none)"
             fi
 
-            if command_available sha1sum; then
+            if [ -n "$zip_sha1" ]; then
                 ezs_zip_sha1=$(printf "%s" "$zip_sha1")
             else
                 ezs_zip_sha1="(none)"
