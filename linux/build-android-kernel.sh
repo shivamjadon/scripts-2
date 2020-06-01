@@ -878,7 +878,7 @@ function cloning() {
             if [ ! -d "$ak_dir" ]; then
                 akc=1
                 printf "\n%bStarting clone of AK with depth %d...%b\n" "$white" "$ak_clone_depth" "$darkwhite"
-                git clone "${ak_params}"
+                git clone ${ak_params}
             fi
         fi
     }
@@ -887,7 +887,7 @@ function cloning() {
         if [ ! -d "$tc_dir" ]; then
             tcc=1
             printf "\n%bStarting clone of the toolchain with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
-            git clone "${tc_params}"
+            git clone ${tc_params}
         fi
     }
 
@@ -896,7 +896,7 @@ function cloning() {
             if [ ! -d "$cg_dir" ]; then
                 cgc=1
                 printf "\n%bStarting clone of Clang with depth %d...%b\n" "$white" "$tc_clone_depth" "$darkwhite"
-                git clone "${cg_params}"
+                git clone ${cg_params}
             fi
         fi
     }
@@ -905,7 +905,7 @@ function cloning() {
         if [ ! -d "$kl_dir" ]; then
             klc=1
             printf "\n%bStarting clone of the kernel with depth %d...%b\n" "$white" "$kl_clone_depth" "$darkwhite"
-            git clone "${kl_params}"
+            git clone ${kl_params}
         fi
     }
 
