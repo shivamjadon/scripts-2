@@ -103,14 +103,14 @@ function variables() {
 # Carefully crafted sequence of if statements is used to catch and fix
 # *expected* bad input.
 #
-# ##*<character> - from left to right, removes all characters up to the
+# ##*<character> - from left to right, remove all characters up to the
 # last specified character found, including the last specified character
 # as well.
 #
-# #*<character> - from left to right, removes all characters up to the
+# #*<character> - from left to right, remove all characters up to the
 # specified character, including the specified character as well.
 #
-# %? - deletes the last character of a string.
+# %? - remove the last character of a string.
 #
 function automatic_configuration() {
 
