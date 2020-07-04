@@ -350,8 +350,8 @@ function automatic_variables() {
     location_shortcuts() {
 
         config_locations() {
-            kl_config="$HOME"/$KERNEL_DIR/arch/arm64/configs/$KERNEL_DEFCONFIG
-            kl_vendor_config="$HOME"/$KERNEL_DIR/arch/arm64/configs/vendor/$KERNEL_DEFCONFIG
+            kl_config="$HOME"/$KERNEL_DIR/arch/$KERNEL_ARCH/configs/$KERNEL_DEFCONFIG
+            kl_vendor_config="$HOME"/$KERNEL_DIR/arch/$KERNEL_ARCH/configs/vendor/$KERNEL_DEFCONFIG
             kl_make_config=$KERNEL_DEFCONFIG
             kl_make_vendor_config=vendor/$KERNEL_DEFCONFIG
 
