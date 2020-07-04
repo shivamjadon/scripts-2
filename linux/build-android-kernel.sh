@@ -304,15 +304,12 @@ function automatic_configuration() {
     tc_dir_input;
     kl_dir_input;
     kl_out_dir_input;
-
     if [ -n "$AK_DIR" ]; then
         ak_dir_input;
     fi
-
     if [ -n "$CLANG_DIR" ]; then
         cg_dir_input;
     fi
-
     defconfig_input;
 }
 
@@ -1032,15 +1029,12 @@ function cloning() {
         if [ -d "$ak_git_dir" ]; then
             anykernel_sync;
         fi
-
         if [ -d "$tc_git_dir" ]; then
             toolchain_sync;
         fi
-
         if [ -d "$cg_git_dir" ]; then
             clang_sync;
         fi
-
         if [ -d "$kl_git_dir" ]; then
             kernel_sync;
         fi
@@ -1071,15 +1065,12 @@ function cloning() {
         if [ -d "$ak_git_dir" ]; then
             anykernel_submodules;
         fi
-
         if [ -d "$tc_git_dir" ]; then
             toolchain_submodules;
         fi
-
         if [ -d "$cg_git_dir" ]; then
             clang_submodules;
         fi
-
         if [ -d "$kl_git_dir" ]; then
             kernel_submodules;
         fi
@@ -1092,7 +1083,6 @@ function cloning() {
     kernel;
     check_directories;
     sync_directories;
-
     if [ "$clone_submodules_a" -eq 1 ]; then
         clone_submodules;
     fi
@@ -1254,13 +1244,11 @@ function compilation() {
     }
 
     pre_compilation;
-
     if [ "$clg" -eq 1 ]; then
         clang;
     else
         output_folder;
     fi
-
     post_compilation;
 }
 
@@ -1513,7 +1501,6 @@ function stats() {
     kernel_stats;
     compilation_stats;
     images_stats;
-
     if [ "$export_compilation_stats" -eq 1 ]; then
         export_compilation_stats;
     fi
@@ -1595,7 +1582,6 @@ function zip_builder() {
         if command_available md5sum; then
             get_md5_of_zip;
         fi
-
         if command_available sha1sum; then
             get_sha1_of_zip;
         fi
@@ -1703,7 +1689,6 @@ function zip_builder() {
     convert_bytes_of_zip;
     get_hash_of_zip;
     zip_stats;
-
     if [ "$export_zip_stats" -eq 1 ]; then
         export_zip_stats;
     fi
@@ -1724,7 +1709,6 @@ pre_compilation_setup;
 compilation;
 compilation_report;
 stats;
-
 if [ -n "$AK_DIR" ]; then
     zip_builder;
 fi
