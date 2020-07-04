@@ -355,17 +355,13 @@ function automatic_variables() {
             kl_make_config=$KERNEL_DEFCONFIG
             kl_make_vendor_config=vendor/$KERNEL_DEFCONFIG
 
-            prepare_config_location() {
-                if [ ! -f "$kl_config" ]; then
-                    if [ -f "$kl_vendor_config" ]; then
-                        kl_make_config=$kl_make_vendor_config
-                    else
-                        ncf=1
-                    fi
+            if [ ! -f "$kl_config" ]; then
+                if [ -f "$kl_vendor_config" ]; then
+                    kl_make_config=$kl_make_vendor_config
+                else
+                    ncf=1
                 fi
-            }
-
-            prepare_config_location;
+            fi
         }
 
         kl_locations() {
