@@ -275,7 +275,19 @@ function automatic_configuration() {
     }
 
     defconfig_input() {
-        if [[ ${KERNEL_DEFCONFIG} = "/"* ]]; then
+        if [[ ${KERNEL_DEFCONFIG} = "/$HOME/"* ]]; then
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG#*/}
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG#*/}
+        elif [[ ${KERNEL_DEFCONFIG} = "/home/"* ]]; then
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG#*/}
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG#*/}
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG#*/}
+        fi
+
+        if [[ ${KERNEL_DEFCONFIG} = "$HOME/"* ]]; then
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG#*/}
+        elif [[ ${KERNEL_DEFCONFIG} = "home/"* ]]; then
+            KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG#*/}
             KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG#*/}
         fi
 
