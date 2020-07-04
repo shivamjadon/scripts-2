@@ -145,11 +145,18 @@ function automatic_configuration() {
     }
 
     tc_dir_input() {
-        if [[ ${TOOLCHAIN_DIR} = "/home/"* ]] || [[ ${TOOLCHAIN_DIR} = "/$HOME/"* ]]; then
+        if [[ ${TOOLCHAIN_DIR} = "/$HOME/"* ]]; then
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
+        elif [[ ${TOOLCHAIN_DIR} = "/home/"* ]]; then
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
-        elif [[ ${TOOLCHAIN_DIR} = "home/"* ]] || [[ ${TOOLCHAIN_DIR} = "$HOME/"* ]]; then
+        fi
+
+        if [[ ${TOOLCHAIN_DIR} = "$HOME/"* ]]; then
+            TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
+        elif [[ ${TOOLCHAIN_DIR} = "home/"* ]]; then
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
             TOOLCHAIN_DIR=${TOOLCHAIN_DIR#*/}
         fi
@@ -164,11 +171,18 @@ function automatic_configuration() {
     }
 
     kl_dir_input() {
-        if [[ ${KERNEL_DIR} = "/home/"* ]] || [[ ${KERNEL_DIR} = "/$HOME/"* ]]; then
+        if [[ ${KERNEL_DIR} = "/$HOME/"* ]]; then
+            KERNEL_DIR=${KERNEL_DIR#*/}
+            KERNEL_DIR=${KERNEL_DIR#*/}
+        elif [[ ${KERNEL_DIR} = "/home/"* ]]; then
             KERNEL_DIR=${KERNEL_DIR#*/}
             KERNEL_DIR=${KERNEL_DIR#*/}
             KERNEL_DIR=${KERNEL_DIR#*/}
-        elif [[ ${KERNEL_DIR} = "home/"* ]] || [[ ${KERNEL_DIR} = "$HOME/"* ]]; then
+        fi
+
+        if [[ ${KERNEL_DIR} = "$HOME/"* ]]; then
+            KERNEL_DIR=${KERNEL_DIR#*/}
+        elif [[ ${KERNEL_DIR} = "home/"* ]]; then
             KERNEL_DIR=${KERNEL_DIR#*/}
             KERNEL_DIR=${KERNEL_DIR#*/}
         fi
@@ -183,11 +197,18 @@ function automatic_configuration() {
     }
 
     kl_out_dir_input() {
-        if [[ ${KERNEL_OUTPUT_DIR} = "/home/"* ]] || [[ ${KERNEL_OUTPUT_DIR} = "/$HOME/"* ]]; then
+        if [[ ${KERNEL_OUTPUT_DIR} = "/$HOME/"* ]]; then
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
+        elif [[ ${KERNEL_OUTPUT_DIR} = "/home/"* ]]; then
             KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
             KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
             KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
-        elif [[ ${KERNEL_OUTPUT_DIR} = "home/"* ]] || [[ ${KERNEL_OUTPUT_DIR} = "$HOME/"* ]]; then
+        fi
+
+        if [[ ${KERNEL_OUTPUT_DIR} = "$HOME/"* ]]; then
+            KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
+        elif [[ ${KERNEL_OUTPUT_DIR} = "home/"* ]]; then
             KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
             KERNEL_OUTPUT_DIR=${KERNEL_OUTPUT_DIR#*/}
         fi
@@ -202,11 +223,18 @@ function automatic_configuration() {
     }
 
     ak_dir_input() {
-        if [[ ${AK_DIR} = "/home/"* ]] || [[ ${AK_DIR} = "/$HOME/"* ]]; then
+        if [[ ${AK_DIR} = "/$HOME/"* ]]; then
+            AK_DIR=${AK_DIR#*/}
+            AK_DIR=${AK_DIR#*/}
+        elif [[ ${AK_DIR} = "/home/"* ]]; then
             AK_DIR=${AK_DIR#*/}
             AK_DIR=${AK_DIR#*/}
             AK_DIR=${AK_DIR#*/}
-        elif [[ ${AK_DIR} = "home/"* ]] || [[ ${AK_DIR} = "$HOME/"* ]]; then
+        fi
+
+        if [[ ${AK_DIR} = "$HOME/"* ]]; then
+            AK_DIR=${AK_DIR#*/}
+        elif [[ ${AK_DIR} = "home/"* ]]; then
             AK_DIR=${AK_DIR#*/}
             AK_DIR=${AK_DIR#*/}
         fi
@@ -221,11 +249,18 @@ function automatic_configuration() {
     }
 
     cg_dir_input() {
-        if [[ ${CLANG_DIR} = "/home/"* ]] || [[ ${CLANG_DIR} = "/$HOME/"* ]]; then
+        if [[ ${CLANG_DIR} = "/$HOME/"* ]]; then
+            CLANG_DIR=${CLANG_DIR#*/}
+            CLANG_DIR=${CLANG_DIR#*/}
+        elif [[ ${CLANG_DIR} = "/home/"* ]]; then
             CLANG_DIR=${CLANG_DIR#*/}
             CLANG_DIR=${CLANG_DIR#*/}
             CLANG_DIR=${CLANG_DIR#*/}
-        elif [[ ${CLANG_DIR} = "home/"* ]] || [[ ${CLANG_DIR} = "$HOME/"* ]]; then
+        fi
+
+        if [[ ${CLANG_DIR} = "$HOME/"* ]]; then
+            CLANG_DIR=${CLANG_DIR#*/}
+        elif [[ ${CLANG_DIR} = "home/"* ]]; then
             CLANG_DIR=${CLANG_DIR#*/}
             CLANG_DIR=${CLANG_DIR#*/}
         fi
