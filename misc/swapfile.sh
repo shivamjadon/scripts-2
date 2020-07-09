@@ -1,0 +1,164 @@
+#!/bin/sh
+# shellcheck disable=SC2086
+
+: <<'notice'
+ * Script information:
+ *   Create swap file.
+ *
+ * Usage:
+ *   BLOCK_SIZE:
+ *   Set block size for the swap file. Can be set in bytes and human readable
+ *   form (K - KiB, M - MiB, G - GiB, ...), 'man dd' for more info.
+ *
+ *   BLOCKS_COUNT:
+ *   Set count of blocks. Can also be set in human readable form
+ *   (K - KiB, M - MiB, G - GiB, ...), 'man dd' for more info.
+ *
+ *   SWAPFILE: [can be left empty]
+ *   Specify a path to which the swap file shall be written. If a file exists
+ *   at the specified path, it will be deleted.
+ *
+ *   NULL_SOURCE: [can be left empty]
+ *   Define the source from which dd will take null data to create the file.
+ *
+ * Example configuration:
+ *   Block size of 4 KiB and a count of 2 blocks make 8 KiB file (4 KiB * 2).
+ *
+ *   To create 2 GiB file with block size of 32 KiB, you would use block size
+ *   of 32768 bytes (32 KiB) and blocks count of 65536.
+ *
+ *   To create 2 GiB file with block size of 64 KiB, you would use block size
+ *   of 65536 bytes (64 KiB) and blocks count of 32768.
+ *
+ * Example table:
+ *   BLOCK_SIZE * BLOCKS_COUNT = FILE SIZE
+ *
+ *   512 B * 2097152 = 1 GiB          512 B * 4194304 = 2 GiB
+ *   1 KiB * 1048576 = 1 GiB          1 KiB * 2097152 = 2 GiB
+ *   2 KiB * 524288 = 1 GiB           2 KiB * 1048576 = 2 GiB
+ *   4 KiB * 262144 = 1 GiB           4 KiB * 524288 = 2 GiB
+ *   8 KiB * 131072 = 1 GiB           8 KiB * 262144 = 2 GiB
+ *   16 KiB * 65536 = 1 GiB           16 KiB * 131072 = 2 GiB
+ *   32 KiB * 32768 = 1 GiB           32 KiB * 65536 = 2 GiB
+ *   64 KiB * 16384 = 1 GiB           64 KiB * 32768 = 2 GiB
+ *   128 KiB * 8192 = 1 GiB           128 KiB * 16384 = 2 GiB
+ *   256 KiB * 4096 = 1 GiB           256 KiB * 8192 = 2 GiB
+ *   512 KiB * 2048 = 1 GiB           512 KiB * 4096 = 2 GiB
+ *   1 MiB * 1024 = 1 GiB             1 MiB * 2048 = 2 GiB
+ *   2 MiB * 512 = 1 GiB              2 MiB * 1024 = 2 GiB
+ *   4 MiB * 256 = 1 GiB              4 MiB * 512 = 2 GiB
+ *   8 MiB * 128 = 1 GiB              8 MiB * 256 = 2 GiB
+ *   16 MiB * 64 = 1 GiB              16 MiB * 128 = 2 GiB
+ *   32 MiB * 32 = 1 GiB              32 MiB * 64 = 2 GiB
+ *   64 MiB * 16 = 1 GiB              64 MiB * 32 = 2 GiB
+ *   128 MiB * 8 = 1 GiB              128 MiB * 16 = 2 GiB
+ *   256 MiB * 4 = 1 GiB              256 MiB * 8 = 2 GiB
+ *   512 MiB * 2 = 1 GiB              512 MiB * 4 = 2 GiB
+ *   1 GiB * 1 = 1 GiB                1 GiB * 2 = 2 GiB
+ *
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * Copyright (C) Dimitar Yurukov <mscalindt@protonmail.com>
+ *
+notice
+
+variables() {
+    BLOCK_SIZE=
+    BLOCKS_COUNT=
+
+    SWAPFILE=
+    NULL_SOURCE=
+}
+
+check_config() {
+    if [ -z $BLOCK_SIZE ]; then
+        printf "\nBLOCK_SIZE is empty. Aborting.\n\n"
+        exit 1
+    fi
+
+    if [ -z $BLOCKS_COUNT ]; then
+        printf "\nBLOCKS_COUNT is empty. Aborting.\n\n"
+        exit 1
+    fi
+}
+
+# "$0" - expands to the filename of the script.
+# $? - expands to the return code of the last command.
+#
+# su -c "$0" - execute the shell script as root (effective user id 0).
+# exit $? - exit from the current (non-root) shell with return code of 'su'.
+#
+exec_as_root() {
+    euid=$(id -u)
+
+    if [ $euid -ne 0 ]; then
+        su -c "$0"
+        exit $?
+    fi
+}
+
+swap() {
+    swap_work() {
+        swap_work_file() {
+            swap_def_location=/root/.swapfile
+
+            if [ -f "$swap_def_location" ]; then
+                swapoff "$swap_def_location" > /dev/null 2>&1
+                rm -fv "$swap_def_location"
+            fi
+
+            if [ -f "$SWAPFILE" ]; then
+                swapoff "$SWAPFILE" > /dev/null 2>&1
+                rm -fv "$SWAPFILE"
+            fi
+        }
+
+        swap_work_location() {
+            if [ -z $SWAPFILE ]; then
+                SWAPFILE="$HOME"/.swapfile
+            fi
+        }
+
+        swap_work_source() {
+            if [ -z $NULL_SOURCE ]; then
+                NULL_SOURCE=/dev/zero
+            fi
+        }
+
+        swap_work_dd_args() {
+            dd_args="if=${NULL_SOURCE}"
+            dd_args="${dd_args} of=${SWAPFILE}"
+            dd_args="${dd_args} bs=${BLOCK_SIZE}"
+            dd_args="${dd_args} count=${BLOCKS_COUNT}"
+        }
+
+        swap_work_file;
+        swap_work_location;
+        swap_work_source;
+        swap_work_dd_args;
+    }
+
+    swap_file() {
+        dd $dd_args
+    }
+
+    swap_permissions() {
+        chmod 600 "$SWAPFILE"
+        chown root "$SWAPFILE"
+    }
+
+    swap_enable() {
+        mkswap "$SWAPFILE"
+        swapon "$SWAPFILE"
+    }
+
+    swap_work;
+    swap_file;
+    swap_permissions;
+    swap_enable;
+}
+
+variables;
+check_config;
+exec_as_root;
+swap;
