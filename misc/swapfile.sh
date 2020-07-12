@@ -21,6 +21,15 @@
  *   NULL_SOURCE: [can be left empty]
  *   Define the source from which dd will take null data to create the file.
  *
+ *   SWAPPINESS: [can be left empty], [runtime-only]
+ *   Define value (0-100) for swappiness (swap intensity).
+ *   0 = disabled (Linux 3.5+); avoid OOM condition (Linux < 3.5).
+ *   1 = swap only when close to OOM.
+ *   5 = swap before memory allocations get slow (recommended for HDD).
+ *   10 = relaxed swapping (recommended for SSD).
+ *   60 = default.
+ *   100 = aggressive swapping.
+ *
  * Example configuration:
  *   Block size of 4 KiB and a count of 2 blocks make 8 KiB file (4 KiB * 2).
  *
@@ -68,6 +77,7 @@ variables() {
 
     SWAPFILE=
     NULL_SOURCE=
+    SWAPPINESS=
 }
 
 check_config() {
@@ -152,10 +162,17 @@ swap() {
         swapon "$SWAPFILE"
     }
 
+    swap_parameters() {
+        if [ -n "$SWAPPINESS" ]; then
+            echo $SWAPPINESS > /proc/sys/vm/swappiness
+        fi
+    }
+
     swap_work;
     swap_file;
     swap_permissions;
     swap_enable;
+    swap_parameters;
 }
 
 variables;
