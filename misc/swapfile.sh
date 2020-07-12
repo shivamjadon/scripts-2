@@ -33,11 +33,11 @@
  * Example configuration:
  *   Block size of 4 KiB and a count of 2 blocks make 8 KiB file (4 KiB * 2).
  *
- *   To create 2 GiB file with block size of 32 KiB, you would use block size
- *   of 32768 bytes (32 KiB) and blocks count of 65536.
+ *   To create 2 GiB file with block size of 32 KiB, you would use 32768 bytes
+ *   (32 KiB) block size and 65536 blocks (32K * 64K = 2G).
  *
- *   To create 2 GiB file with block size of 64 KiB, you would use block size
- *   of 65536 bytes (64 KiB) and blocks count of 32768.
+ *   To create 2 GiB file with block size of 64 KiB, you would use 65536 bytes
+ *   (64 KiB) block size and 32768 blocks (64K * 32K = 2G).
  *
  * Example table:
  *   BLOCK_SIZE * BLOCKS_COUNT = FILE SIZE
