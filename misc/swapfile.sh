@@ -30,6 +30,10 @@
  *   60 = default.
  *   100 = aggressive swapping.
  *
+ *   VERBOSE_DD: [toggle] [0]
+ *   0 = 'dd' will be completely silent during file creation.
+ *   1 = 'dd' will show output (progress) during file creation.
+ *
  * Example configuration:
  *   Block size of 4 KiB and a count of 2 blocks make 8 KiB file (4 KiB * 2).
  *
@@ -78,6 +82,8 @@ variables() {
     SWAPFILE=
     NULL_SOURCE=
     SWAPPINESS=
+
+    VERBOSE_DD=0
 }
 
 check_config() {
@@ -140,6 +146,10 @@ swap() {
             dd_args="${dd_args} of=${SWAPFILE}"
             dd_args="${dd_args} bs=${BLOCK_SIZE}"
             dd_args="${dd_args} count=${BLOCKS_COUNT}"
+
+            if [ $VERBOSE_DD -eq 1 ]; then
+                dd_args="${dd_args} status=progress"
+            fi
         }
 
         swap_work_file;
