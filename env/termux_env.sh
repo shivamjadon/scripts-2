@@ -39,6 +39,25 @@ setenv() {
         printf 'export PATH="${PATH}:${HOME}/bin"'
         printf "\n"
     } >> "$BASHRC"
+
+    setenv_pip() {
+        pip install --upgrade pip
+        pip install youtube-dl
+    }
+
+    setenv_git() {
+        git config --global user.email "mscalindt@protonmail.com"
+        git config --global user.name "Dimitar Yurukov"
+        git config --global rerere.enabled true
+        git config --global core.editor "nano"
+        git config --global merge.log 5000
+        git config --global credential.helper cache
+        git config --global credential.helper 'cache --timeout=86400'
+        git config --global core.preloadIndex true
+    }
+
+    setenv_pip;
+    setenv_git;
 }
 
 variables;
