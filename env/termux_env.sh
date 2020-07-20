@@ -29,6 +29,7 @@ setenv() {
     }
 
     setenv_files() {
+        rm -f "$BASHRC"
         touch "$BASHRC" > /dev/null 2>&1
     }
 
