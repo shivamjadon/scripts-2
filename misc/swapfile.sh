@@ -30,7 +30,7 @@
  *   60 = default.
  *   100 = aggressive swapping.
  *
- *   VERBOSE_DD: [toggle] [0]
+ *   VERBOSE_DD: [toggle] [1]
  *   0 = 'dd' will be completely silent during file creation.
  *   1 = 'dd' will show output (progress) during file creation.
  *
@@ -83,7 +83,7 @@ variables() {
     NULL_SOURCE=
     SWAPPINESS=
 
-    VERBOSE_DD=0
+    VERBOSE_DD=1
 }
 
 check_config() {
