@@ -83,12 +83,12 @@ increment() {
         files="$WORK_DIR/*"
 
         for file in $files; do
-                cur_filename=$(basename "$file")
-                cur_loc=$(printf "%s/%s" "${WORK_DIR}" "${cur_filename}")
-                new_filename=$(increment_num_in_str "$cur_filename")
-                new_loc=$(printf "%s/%s" "${RESULT_DIR}" "${new_filename}")
+            cur_filename=$(basename "$file")
+            cur_loc=$(printf "%s/%s" "${WORK_DIR}" "${cur_filename}")
+            new_filename=$(increment_num_in_str "$cur_filename")
+            new_loc=$(printf "%s/%s" "${RESULT_DIR}" "${new_filename}")
 
-                mv -v "$cur_loc" "$new_loc"
+            mv -v "$cur_loc" "$new_loc"
         done
     }
 
