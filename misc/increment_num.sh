@@ -16,6 +16,9 @@
  *   a directory with name "0incrementSH" is created in the same directory
  *   level as WORK_DIR.
  *
+ *   INCREMENT_BY: [can be left empty]
+ *   Specify by how much to increment. If left empty, default (one) is used.
+ *
  * SPDX-License-Identifier: GPL-3.0
  *
  * Copyright (C) Dimitar Yurukov <mscalindt@protonmail.com>
@@ -25,6 +28,7 @@ notice
 variables() {
     WORK_DIR=""
     RESULT_DIR=""
+    INCREMENT_BY=
 }
 
 check_config() {
@@ -40,7 +44,7 @@ helpers() {
 
         for num in $(printf "%s" "${str}" | grep -Eo '[0-9]+'); do
             old_num=$(printf "%d" "${num}")
-            new_num=$((num+1))
+            new_num=$((num + INCREMENT_BY))
         done
 
         new_str=$(printf "%s" "${str}" | sed "s/$old_num/$new_num/")
@@ -68,6 +72,10 @@ increment() {
             fi
         else
             mkdir "$RESULT_DIR"
+        fi
+
+        if [ -z $INCREMENT_BY ]; then
+            INCREMENT_BY=1
         fi
     }
 
