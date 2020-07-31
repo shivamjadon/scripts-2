@@ -79,8 +79,8 @@ variables() {
     BLOCK_SIZE=
     BLOCKS_COUNT=
 
-    SWAPFILE=
-    NULL_SOURCE=
+    SWAPFILE=""
+    NULL_SOURCE=""
     SWAPPINESS=
 
     VERBOSE_DD=1
