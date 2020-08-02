@@ -116,7 +116,7 @@ exec_as_root() {
 swap() {
     swap_work() {
         swap_work_file() {
-            swap_def_location=/root/.swapfile
+            swap_def_location="$HOME"/.swapfile
 
             if [ -f "$swap_def_location" ]; then
                 swapoff "$swap_def_location" > /dev/null 2>&1
