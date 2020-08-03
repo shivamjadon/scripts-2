@@ -3,8 +3,8 @@
 
 : <<'notice'
  * Script information:
- *   Increment number in filenames by one. Supports whitespace. As always,
- *   do a backup of the files before running the script.
+ *   Increment number in filenames. Supports whitespace. As always, do a backup
+ *   of the files before running the script.
  *
  * Usage:
  *   WORK_DIR: [essential] [path]
@@ -16,8 +16,8 @@
  *   a directory with name "0incrementSH" is created in the same directory
  *   level as WORK_DIR.
  *
- *   INCREMENT_BY: [can be left empty]
- *   Specify by how much to increment. If left empty, default (one) is used.
+ *   INCREMENT_BY: [value] [X]
+ *   Specify by how much to increment. If left empty, default (1) is used.
  *
  * SPDX-License-Identifier: GPL-3.0
  *
