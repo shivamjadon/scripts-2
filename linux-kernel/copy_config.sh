@@ -9,10 +9,10 @@
  *   K_DIR: [essential] [path]
  *   Specify the kernel directory.
  *
- *   K_ARCH: [essential]
+ *   K_ARCH: [essential] [string]
  *   Specify arch for defconfig.
  *
- *   DEFCONFIG_NAME: [essential]
+ *   DEFCONFIG_NAME: [essential] [string]
  *   Specify name for defconfig.
  *
  *   VENDOR_DEFCONFIG: [toggle] [0]
