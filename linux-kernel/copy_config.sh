@@ -6,7 +6,7 @@
  *   Copy .config as defconfig.
  *
  * Usage:
- *   K_DIR: [essential]
+ *   K_DIR: [essential] [path]
  *   Specify the kernel directory.
  *
  *   K_ARCH: [essential]
