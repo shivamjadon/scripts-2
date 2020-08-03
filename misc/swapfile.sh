@@ -21,8 +21,8 @@
  *   NULL_SOURCE: [can be left empty] [path]
  *   Define the source from which dd will take null data to create the file.
  *
- *   SWAPPINESS: [can be left empty], [runtime-only]
- *   Define value (0-100) for swappiness (swap intensity).
+ *   SWAPPINESS: [value] [0-100]
+ *   Swap intensity.
  *   0 = disabled (Linux 3.5+); avoid OOM condition (Linux < 3.5).
  *   1 = swap only when close to OOM.
  *   5 = swap before memory allocations get slow (recommended for HDD).
