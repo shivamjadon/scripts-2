@@ -3,8 +3,8 @@
 
 : <<'notice'
  * Script information:
- *   Decrement number in filenames by one. Supports whitespace. As always,
- *   do a backup of the files before running the script.
+ *   Decrement number in filenames. Supports whitespace. As always, do a backup
+ *   of the files before running the script.
  *
  * Usage:
  *   WORK_DIR: [essential] [path]
@@ -16,8 +16,8 @@
  *   a directory with name "0decrementSH" is created in the same directory
  *   level as WORK_DIR.
  *
- *   DECREMENT_BY: [can be left empty]
- *   Specify by how much to decrement. If left empty, default (one) is used.
+ *   DECREMENT_BY: [value] [X]
+ *   Specify by how much to decrement. If left empty, default (1) is used.
  *
  * SPDX-License-Identifier: GPL-3.0
  *
