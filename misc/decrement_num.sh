@@ -7,10 +7,10 @@
  *   do a backup of the files before running the script.
  *
  * Usage:
- *   WORK_DIR: [essential]
+ *   WORK_DIR: [essential] [path]
  *   Specify the directory in which files with number in their filename exist.
  *
- *   RESULT_DIR: [can be left empty]
+ *   RESULT_DIR: [can be left empty] [path]
  *   Specify a directory to move decremented files to. If the specified
  *   directory does not exist, it will be created. If RESULT_DIR is left empty,
  *   a directory with name "0decrementSH" is created in the same directory
