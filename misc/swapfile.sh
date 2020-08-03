@@ -14,11 +14,11 @@
  *   Set count of blocks. Can also be set in human readable form
  *   (K - KiB, M - MiB, G - GiB, ...), 'man dd' for more info.
  *
- *   SWAPFILE: [can be left empty]
+ *   SWAPFILE: [can be left empty] [path]
  *   Specify a path to which the swap file shall be written. If a file exists
  *   at the specified path, it will be deleted.
  *
- *   NULL_SOURCE: [can be left empty]
+ *   NULL_SOURCE: [can be left empty] [path]
  *   Define the source from which dd will take null data to create the file.
  *
  *   SWAPPINESS: [can be left empty], [runtime-only]
