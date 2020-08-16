@@ -119,7 +119,7 @@ swap() {
             swap_def_loc="$HOME"/.swapfile
 
             if [ -z $SWAPFILE ]; then
-                SWAPFILE="$HOME"/.swapfile
+                SWAPFILE="$swap_def_loc"
             fi
 
             if [ -z $NULL_SOURCE ]; then
