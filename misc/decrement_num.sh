@@ -24,9 +24,16 @@ variables() {
     DECREMENT_BY=
 }
 
+colors() {
+    default_clr="\033[0m"
+    red_clr="\033[1;31m"
+}
+
 check_config() {
     if [ -z $WORK_DIR ]; then
-        printf "\nWORK_DIR is empty. Aborting.\n\n"
+        printf "%b" "${red_clr}"
+        echo "WORK_DIR is empty. Aborting."
+        printf "%b" "${default_clr}"
         exit 1
     fi
 }
@@ -101,6 +108,7 @@ decrement() {
 }
 
 variables;
+colors;
 check_config;
 helpers;
 decrement;
