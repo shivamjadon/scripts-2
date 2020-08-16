@@ -61,6 +61,30 @@ check_config() {
     fi
 }
 
+helpers() {
+    script_death() {
+        hlps_rc=$(printf "%d" "$1")
+        hlps_str=$(printf "%s" "$2")
+        hlps_line=$(printf "%s" "$3")
+        hlps_exec_func=$(printf "%s" "$4")
+
+        printf "%b\n" "${red_clr}"
+        echo "Script failed! More info:"
+        printf "%b" "${white_clr}"
+        printf "Command: %s" "${hlps_str}"
+        echo
+        printf "Exit code: %d" "${hlps_rc}"
+        echo
+        printf "Line number: %d" "${hlps_line}"
+        echo
+        printf "%b\n" "${default_clr}"
+
+        ${hlps_exec_func};
+
+        exit $hlps_rc
+    }
+}
+
 copy_conf() {
     copy_conf_work() {
         cp_conf_loc="$K_DIR"/.config
@@ -75,8 +99,8 @@ copy_conf() {
         cp "$cp_conf_loc" "$cp_dest_loc"
         cp_rc=$(printf "%d" "$?")
 
-        if [ $cp_rc -eq 0 ]; then
-            echo "File was copied successfully."
+        if [ $cp_rc -ne 0 ]; then
+            script_death "${cp_rc}" "cp" "$LINENO"
         fi
     }
 
@@ -87,4 +111,5 @@ copy_conf() {
 variables;
 colors;
 check_config;
+helpers;
 copy_conf;
