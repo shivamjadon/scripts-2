@@ -86,14 +86,23 @@ variables() {
     VERBOSE_DD=1
 }
 
+colors() {
+    default_clr="\033[0m"
+    red_clr="\033[1;31m"
+}
+
 check_config() {
     if [ -z $BLOCK_SIZE ]; then
-        printf "\nBLOCK_SIZE is empty. Aborting.\n\n"
+        printf "%b" "${red_clr}"
+        echo "BLOCK_SIZE is empty. Aborting."
+        printf "%b" "${default_clr}"
         exit 1
     fi
 
     if [ -z $BLOCKS_COUNT ]; then
-        printf "\nBLOCKS_COUNT is empty. Aborting.\n\n"
+        printf "%b" "${red_clr}"
+        echo "BLOCKS_COUNT is empty. Aborting."
+        printf "%b" "${default_clr}"
         exit 1
     fi
 }
@@ -177,6 +186,7 @@ swap() {
 }
 
 variables;
+colors;
 check_config;
 exec_as_root;
 swap;
