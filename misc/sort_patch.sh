@@ -20,6 +20,10 @@
  *   1 = Sort with numbers starting from 1 to X, top to bottom, newest to
  *       oldest.
  *
+ *   PRESERVE_COMMIT_LINK: [toggle] [0]
+ *   0 = The final file will only have the commit string.
+ *   1 = The final file will have respective link appended to commit string.
+ *
  * SPDX-License-Identifier: GPL-3.0
  *
  * Copyright (C) Dimitar Yurukov <mscalindt@protonmail.com>
@@ -30,6 +34,7 @@ variables() {
     WORK_FILE=""
     RESULT_FILE=""
     SORT_BY_NEWEST=0
+    PRESERVE_COMMIT_LINK=0
 }
 
 colors() {
@@ -167,6 +172,13 @@ sort_patch() {
                 commit_str=$(printf "%s" "${commit_line}" | cut -d ' ' -f2)
                 date_line=$(sed '3q;d' $patch)
                 date_str=$(printf "%s" "${date_line}" | cut -d ' ' -f3,4,5,6)
+
+                if [ $PRESERVE_COMMIT_LINK -eq 1 ]; then
+                    c_link=$(grep -F $commit_str "$WORK_FILE")
+                    cl_str=$(printf "%s" "${c_link}" | sed "s/${commit_str}//g")
+                    c_str=$commit_str
+                    commit_str=$(printf "%s%s" "${cl_str}" "${c_str}")
+                fi
 
                 {
                     printf "%s" "${commit_str}"
