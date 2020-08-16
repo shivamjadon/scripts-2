@@ -115,9 +115,19 @@ exec_as_root() {
 
 swap() {
     swap_work() {
-        swap_work_file() {
+        swap_work_vars() {
             swap_def_location="$HOME"/.swapfile
 
+            if [ -z $SWAPFILE ]; then
+                SWAPFILE="$HOME"/.swapfile
+            fi
+
+            if [ -z $NULL_SOURCE ]; then
+                NULL_SOURCE=/dev/zero
+            fi
+        }
+
+        swap_work_cmds() {
             if [ -f "$swap_def_location" ]; then
                 swapoff "$swap_def_location" > /dev/null 2>&1
                 rm -fv "$swap_def_location"
@@ -126,18 +136,6 @@ swap() {
             if [ -f "$SWAPFILE" ]; then
                 swapoff "$SWAPFILE" > /dev/null 2>&1
                 rm -fv "$SWAPFILE"
-            fi
-        }
-
-        swap_work_location() {
-            if [ -z $SWAPFILE ]; then
-                SWAPFILE="$HOME"/.swapfile
-            fi
-        }
-
-        swap_work_source() {
-            if [ -z $NULL_SOURCE ]; then
-                NULL_SOURCE=/dev/zero
             fi
         }
 
@@ -152,22 +150,17 @@ swap() {
             fi
         }
 
-        swap_work_file;
-        swap_work_location;
-        swap_work_source;
+        swap_work_vars;
+        swap_work_cmds;
         swap_work_dd_args;
     }
 
-    swap_file() {
+    swap_exec() {
         dd $dd_args
-    }
 
-    swap_permissions() {
         chmod 600 "$SWAPFILE"
         chown root "$SWAPFILE"
-    }
 
-    swap_enable() {
         mkswap "$SWAPFILE"
         swapon "$SWAPFILE"
     }
@@ -179,9 +172,7 @@ swap() {
     }
 
     swap_work;
-    swap_file;
-    swap_permissions;
-    swap_enable;
+    swap_exec;
     swap_parameters;
 }
 
