@@ -36,6 +36,7 @@ variables() {
 colors() {
     default_clr="\033[0m"
     red_clr="\033[1;31m"
+    white_clr="\033[1;37m"
 }
 
 check_config() {
