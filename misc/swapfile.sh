@@ -116,7 +116,7 @@ exec_as_root() {
 swap() {
     swap_work() {
         swap_work_vars() {
-            swap_def_location="$HOME"/.swapfile
+            swap_def_loc="$HOME"/.swapfile
 
             if [ -z $SWAPFILE ]; then
                 SWAPFILE="$HOME"/.swapfile
@@ -128,9 +128,9 @@ swap() {
         }
 
         swap_work_cmds() {
-            if [ -f "$swap_def_location" ]; then
-                swapoff "$swap_def_location" > /dev/null 2>&1
-                rm -fv "$swap_def_location"
+            if [ -f "$swap_def_loc" ]; then
+                swapoff "$swap_def_loc" > /dev/null 2>&1
+                rm -fv "$swap_def_loc"
             fi
 
             if [ -f "$SWAPFILE" ]; then
