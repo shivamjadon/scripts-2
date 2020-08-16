@@ -33,19 +33,30 @@ variables() {
     VENDOR_DEFCONFIG=0
 }
 
+colors() {
+    default_clr="\033[0m"
+    red_clr="\033[1;31m"
+}
+
 check_config() {
     if [ -z $K_DIR ]; then
-        printf "\nK_DIR is empty. Aborting.\n\n"
+        printf "%b" "${red_clr}"
+        echo "K_DIR is empty. Aborting."
+        printf "%b" "${default_clr}"
         exit 1
     fi
 
     if [ -z $K_ARCH ]; then
-        printf "\nK_ARCH is empty. Aborting.\n\n"
+        printf "%b" "${red_clr}"
+        echo "K_ARCH is empty. Aborting."
+        printf "%b" "${default_clr}"
         exit 1
     fi
 
     if [ -z $DEFCONFIG_NAME ]; then
-        printf "\nDEFCONFIG_NAME is empty. Aborting.\n\n"
+        printf "%b" "${red_clr}"
+        echo "DEFCONFIG_NAME is empty. Aborting."
+        printf "%b" "${default_clr}"
         exit 1
     fi
 }
@@ -74,5 +85,6 @@ copy_conf() {
 }
 
 variables;
+colors;
 check_config;
 copy_conf;
