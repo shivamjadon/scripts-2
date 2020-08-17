@@ -145,7 +145,7 @@ sort_patch() {
                 cd_rc=$(printf "%d" "$?")
 
                 if [ $cd_rc -ne 0 ]; then
-                    script_death "${cd_rc}" "cd" "$LINENO" "sort_cleanup"
+                    script_death "${cd_rc}" "cd" "$LINENO" "sort_patch_cleanup"
                 fi
             fi
         }
