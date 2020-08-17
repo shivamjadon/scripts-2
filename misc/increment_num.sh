@@ -57,7 +57,7 @@ increment() {
     increment_work() {
         increment_work_vars() {
             tmp_dir_loc=$(cd "$WORK_DIR"/.. && printf "%s" "$PWD")
-            TMP_DIR="$tmp_dir_loc"/TMPincrement
+            tmp_dir="$tmp_dir_loc"/TMPincrement
             
             if [ -z $INCREMENT_BY ]; then
                 INCREMENT_BY=1
@@ -65,11 +65,11 @@ increment() {
         }
 
         increment_work_cmds() {
-            if [ -d "$TMP_DIR" ]; then
-                rm -rf "$TMP_DIR"
+            if [ -d "$tmp_dir" ]; then
+                rm -rf "$tmp_dir"
             fi
 
-            mkdir "$TMP_DIR"
+            mkdir "$tmp_dir"
         }
 
         increment_work_vars;
@@ -78,20 +78,20 @@ increment() {
 
     increment_exec() {
         files="$WORK_DIR/*"
-        files_tmp="$TMP_DIR/*"
+        files_tmp="$tmp_dir/*"
 
         for file in $files; do
             cur_filename=$(basename "$file")
             cur_loc=$(printf "%s/%s" "${WORK_DIR}" "${cur_filename}")
             new_filename=$(increment_num_in_str "$cur_filename")
-            new_loc=$(printf "%s/%s" "${TMP_DIR}" "${new_filename}")
+            new_loc=$(printf "%s/%s" "${tmp_dir}" "${new_filename}")
 
             mv -v "$cur_loc" "$new_loc"
         done
 
         for file in $files_tmp; do
             cur_filename=$(basename "$file")
-            cur_loc=$(printf "%s/%s" "${TMP_DIR}" "${cur_filename}")
+            cur_loc=$(printf "%s/%s" "${tmp_dir}" "${cur_filename}")
             new_loc=$(printf "%s/%s" "${WORK_DIR}" "${cur_filename}")
 
             mv -v "$cur_loc" "$new_loc"
@@ -99,7 +99,7 @@ increment() {
     }
 
     increment_cleanup() {
-        rm -rf "$TMP_DIR"
+        rm -rf "$tmp_dir"
     }
 
     increment_work;
