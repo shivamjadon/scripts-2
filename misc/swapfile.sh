@@ -165,7 +165,7 @@ swap() {
     }
 
     swap_exec() {
-        dd $dd_args
+        dd ${dd_args}
 
         chmod 600 "$SWAPFILE"
         chown root "$SWAPFILE"
