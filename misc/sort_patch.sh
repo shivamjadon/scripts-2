@@ -84,6 +84,26 @@ helpers() {
 
         exit $hlps_rc
     }
+
+    handle_tmp_rw() {
+        hlps_op_code=$(printf "%s" "$1")
+        hlps_main_tmp=$(printf "%s" "$2")
+        hlps_tmp=$(printf "%s" "$3")
+
+        if [ $hlps_op_code -eq 1 ]; then
+            # Secondary tmp will be used again, prepare it
+            rm -f "$hlps_main_tmp"
+            touch "$hlps_main_tmp"
+            cat "$hlps_tmp" > "$hlps_main_tmp"
+            rm -f "$hlps_tmp"
+            touch "$hlps_tmp"
+        elif [ $hlps_op_code -eq 2 ]; then
+            # Secondary tmp will not be used anymore, management done
+            rm -f "$hlps_main_tmp"
+            touch "$hlps_main_tmp"
+            cat "$hlps_tmp" > "$hlps_main_tmp"
+        fi
+    }
 }
 
 sort_patch() {
@@ -199,20 +219,12 @@ sort_patch() {
                 -k5.7,5.8 \
                 "$tmp_file" > "$tmp_file2"
 
-            rm -f "$tmp_file"
-            touch "$tmp_file"
-            cat "$tmp_file2" > "$tmp_file"
-            rm -f "$tmp_file2"
-            touch "$tmp_file2"
+            handle_tmp_rw "1" "$tmp_file" "$tmp_file2"
 
             if [ $SORT_BY_NEWEST -eq 1 ]; then
                 awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }' \
                     "$tmp_file" > "$tmp_file2"
-                rm -f "$tmp_file"
-                touch "$tmp_file"
-                cat "$tmp_file2" > "$tmp_file"
-                rm -f "$tmp_file2"
-                touch "$tmp_file2"
+                handle_tmp_rw "1" "$tmp_file" "$tmp_file2"
             fi
 
             while IFS= read -r line || [ -n "$line" ]; do
@@ -224,9 +236,7 @@ sort_patch() {
                 } >> "$tmp_file2"
             done < "$tmp_file"
 
-            rm -f "$tmp_file"
-            touch "$tmp_file"
-            cat "$tmp_file2" > "$tmp_file"
+            handle_tmp_rw "2" "$tmp_file" "$tmp_file2"
 
             touch "$RESULT_FILE"
             cat "$tmp_file" > "$RESULT_FILE"
