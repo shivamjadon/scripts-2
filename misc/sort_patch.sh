@@ -228,7 +228,7 @@ sort_patch() {
             handle_tmp_rw "1" "$tmp_file" "$tmp_file2"
 
             if [ $SORT_BY_NEWEST -eq 1 ]; then
-                awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }' \
+                awk '{a[i++]=$0;} END {for (j=i-1; j>=0;) print a[j--];}' \
                     "$tmp_file" > "$tmp_file2"
                 handle_tmp_rw "1" "$tmp_file" "$tmp_file2"
             fi
