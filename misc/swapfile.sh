@@ -6,11 +6,11 @@
  *   Create swap file.
  *
  * Usage:
- *   BLOCK_SIZE: [essential] [integer]
+ *   BLOCK_SIZE: [essential] [value] [X]
  *   Set block size for the swap file. Can be set in bytes and human readable
  *   form (K - KiB, M - MiB, G - GiB, ...), 'man dd' for more info.
  *
- *   BLOCKS_COUNT: [essential] [integer]
+ *   BLOCKS_COUNT: [essential] [value] [X]
  *   Set count of blocks. Can also be set in human readable form
  *   (K - KiB, M - MiB, G - GiB, ...), 'man dd' for more info.
  *
