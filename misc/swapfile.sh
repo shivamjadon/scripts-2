@@ -25,8 +25,8 @@
  *   Swap intensity.
  *   0 = disabled (Linux 3.5+); avoid OOM condition (Linux < 3.5).
  *   1 = swap only when close to OOM.
- *   5 = swap before memory allocations get slow (recommended for HDD).
- *   10 = relaxed swapping (recommended for SSD).
+ *   20 = relaxed swapping (recommended for SSD).
+ *   30 = swap before memory allocations get slow (HDD).
  *   60 = default.
  *   100 = aggressive swapping.
  *
