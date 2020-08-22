@@ -26,9 +26,9 @@
  *   0 = disabled (Linux 3.5+); avoid OOM condition (Linux < 3.5).
  *   1 = swap only when close to OOM.
  *   20 = relaxed swapping (recommended for SSD).
- *   30 = swap before memory allocations get slow (HDD).
- *   60 = default.
- *   100 = aggressive swapping.
+ *   30 = swap before memory allocations get marginally slow (for HDD).
+ *   60 = default (most balanced for mostly all configurations).
+ *   100 = aggressive swapping (recommended for large workload + fast storage).
  *
  *   VERBOSE_DD: [toggle] [1]
  *   0 = 'dd' will be completely silent during file creation.
