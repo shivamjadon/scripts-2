@@ -13,7 +13,7 @@
  *
 notice
 
-function variables() {
+variables() {
 
     ESSENTIAL() {
         TOOLCHAIN_DIR=
@@ -112,7 +112,7 @@ function variables() {
 #
 # %? - remove the last character of a string.
 #
-function automatic_configuration() {
+automatic_configuration() {
 
     import_variables_0() {
         ESSENTIAL;
@@ -313,7 +313,7 @@ function automatic_configuration() {
     defconfig_input;
 }
 
-function automatic_variables() {
+automatic_variables() {
 
     colors() {
         red='\033[1;31m'
@@ -421,7 +421,7 @@ function automatic_variables() {
     date_call;
 }
 
-function environment_check() {
+environment_check() {
 
     bash_check() {
         local bash_ver
@@ -446,7 +446,7 @@ function environment_check() {
     root_check;
 }
 
-function helpers() {
+helpers() {
 
     command_available() {
         local get_command
@@ -509,7 +509,7 @@ function helpers() {
     }
 }
 
-function traps() {
+traps() {
 
     abort() {
         printf "\n\n%bThe script was forcefully aborted.%b\n\n" "${white}" "${darkwhite}"
@@ -519,7 +519,7 @@ function traps() {
     trap abort SIGINT
 }
 
-function die_codes() {
+die_codes() {
 
     die_20() {
         local d20_str
@@ -582,7 +582,7 @@ function die_codes() {
     }
 }
 
-function configuration_checker() {
+configuration_checker() {
 
     changed_variables() {
         if [ ! -v TOOLCHAIN_DIR ] || [ ! -v KERNEL_DIR ] || \
@@ -739,7 +739,7 @@ function configuration_checker() {
     check_the_toggles;
 }
 
-function package_checker() {
+package_checker() {
 
     ccache_binary() {
         if [ $USE_CCACHE -eq 1 ]; then
@@ -860,7 +860,7 @@ function package_checker() {
     zip_binary;
 }
 
-function cloning() {
+cloning() {
 
     parse_cloning_params() {
 
@@ -1084,7 +1084,7 @@ function cloning() {
     fi
 }
 
-function choices() {
+choices() {
 
     compilation_method() {
         if [ -n "$CLANG_DIR" ]; then
@@ -1105,7 +1105,7 @@ function choices() {
     build_type;
 }
 
-function pre_compilation_setup() {
+pre_compilation_setup() {
 
     set_subarch() {
         if [ $KERNEL_ARCH = arm64 ]; then
@@ -1146,7 +1146,7 @@ function pre_compilation_setup() {
     host;
 }
 
-function compilation() {
+compilation() {
 
     pre_compilation() {
         start1=$(date +'%s')
@@ -1248,7 +1248,7 @@ function compilation() {
     post_compilation;
 }
 
-function compilation_report() {
+compilation_report() {
     if [ $clg -eq 1 ]; then
         if [ $makeexit1 -ne 0 ]; then
             die_40 "make return code is not 0"
@@ -1266,7 +1266,7 @@ function compilation_report() {
     fi
 }
 
-function stats() {
+stats() {
 
     get_bytes_of_images() {
         kl_out_img_bytes=$(wc -c < "$kl_out_img")
@@ -1502,7 +1502,7 @@ function stats() {
     fi
 }
 
-function zip_builder() {
+zip_builder() {
 
     copy_image() {
         if [ $copy_dtb_image -eq 1 ]; then
