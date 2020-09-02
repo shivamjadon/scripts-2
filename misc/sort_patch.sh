@@ -70,8 +70,8 @@ helpers() {
     }
 
     script_death() {
-        hlps_rc=$(printf "%d" "$1")
-        hlps_str=$(printf "%s" "$2")
+        hlps_str=$(printf "%s" "$1")
+        hlps_rc=$(printf "%d" "$2")
         hlps_line=$(printf "%s" "$3")
         hlps_exec_func=$(printf "%s" "$4")
 
@@ -171,7 +171,7 @@ sort_patch() {
                 cd_rc=$(printf "%d" "$?")
 
                 if [ $cd_rc -ne 0 ]; then
-                    script_death "${cd_rc}" "cd" "$LINENO" "sort_patch_cleanup"
+                    script_death "cd" "${cd_rc}" "$LINENO" "sort_patch_cleanup"
                 fi
             fi
         }
