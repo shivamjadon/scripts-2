@@ -78,17 +78,33 @@ helpers() {
         printf "%b\n" "${red_clr}"
         echo "Script failed! More info:"
         printf "%b" "${white_clr}"
-        printf "Command: %s" "${hlps_str}"
-        echo
-        printf "Exit code: %d" "${hlps_rc}"
-        echo
-        printf "Line number: %d" "${hlps_line}"
-        echo
+
+        if [ -n "$hlps_str" ]; then
+            printf "Command: %s" "${hlps_str}"
+            echo
+        fi
+
+        if [ -n "$hlps_rc" ]; then
+            printf "Exit code: %d" "${hlps_rc}"
+            echo
+        fi
+
+        if [ -n "$hlps_line" ]; then
+            printf "Line number: %d" "${hlps_line}"
+            echo
+        fi
+
         printf "%b\n" "${default_clr}"
 
-        ${hlps_exec_func};
+        if [ -n "$hlps_exec_func" ]; then
+            ${hlps_exec_func};
+        fi
 
-        exit $hlps_rc
+        if [ -n "$hlps_rc" ]; then
+            exit $hlps_rc
+        else
+            exit 1
+        fi
     }
 
     handle_tmp_rw() {
