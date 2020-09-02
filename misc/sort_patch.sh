@@ -73,7 +73,8 @@ helpers() {
         hlps_str=$(printf "%s" "$1")
         hlps_rc=$(printf "%d" "$2")
         hlps_line=$(printf "%s" "$3")
-        hlps_exec_func=$(printf "%s" "$4")
+        hlps_info=$(printf "%s" "$4")
+        hlps_exec_func=$(printf "%s" "$5")
 
         printf "%b\n" "${red_clr}"
         echo "Script failed! More info:"
@@ -91,6 +92,11 @@ helpers() {
 
         if [ -n "$hlps_line" ]; then
             printf "Line number: %d" "${hlps_line}"
+            echo
+        fi
+
+        if [ -n "$hlps_info" ]; then
+            printf "Additional info: %s" "${hlps_info}"
             echo
         fi
 
@@ -187,7 +193,7 @@ sort_patch() {
                 cd_rc=$(printf "%d" "$?")
 
                 if [ $cd_rc -ne 0 ]; then
-                    script_death "cd" "${cd_rc}" "$LINENO" "sort_patch_cleanup"
+                    script_death "cd" "${cd_rc}" "$LINENO" "" "sort_patch_cleanup"
                 fi
             fi
         }
