@@ -59,7 +59,7 @@ check_config() {
 }
 
 helpers() {
-    command_available() {
+    cmd_available() {
         hlps_str=$(printf "%s" "$1")
 
         if command -v "$hlps_str" > /dev/null 2>&1; then
@@ -135,10 +135,10 @@ sort_patch() {
                 rm -fv "$RESULT_FILE"
             fi
 
-            if command_available curl; then
+            if cmd_available curl; then
                 dw_tool="curl"
                 dw_tool_args="-O"
-            elif command_available wget; then
+            elif cmd_available wget; then
                 dw_tool="wget"
                 dw_tool_args="-P ${tmp_dir}"
             else
