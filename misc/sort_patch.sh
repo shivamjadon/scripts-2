@@ -65,7 +65,7 @@ helpers() {
         if command -v "$hlps_str" > /dev/null 2>&1; then
             return 0
         else
-            return 1
+            return 127
         fi
     }
 
