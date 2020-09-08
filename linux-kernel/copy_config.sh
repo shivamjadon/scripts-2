@@ -83,7 +83,7 @@ helpers() {
     }
 }
 
-check_config() {
+probe_vars() {
     if [ -z $K_DIR ]; then
         script_death "" "" "" "K_DIR is empty" ""
     fi
@@ -122,5 +122,5 @@ copy_conf() {
 
 variables;
 helpers;
-check_config;
+probe_vars;
 copy_conf;
