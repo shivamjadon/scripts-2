@@ -43,21 +43,6 @@ variables() {
     STRIP_SCRIPT_STRINGS=0
 }
 
-colors() {
-    default_clr="\033[0m"
-    red_clr="\033[1;31m"
-    white_clr="\033[1;37m"
-}
-
-check_config() {
-    if [ -z $WORK_FILE ]; then
-        printf "%b" "${red_clr}"
-        echo "WORK_FILE is empty. Aborting."
-        printf "%b" "${default_clr}"
-        exit 1
-    fi
-}
-
 helpers() {
     cmd_available() {
         hlps_str=$(printf "%s" "$1")
@@ -70,27 +55,29 @@ helpers() {
     }
 
     script_death() {
-        hlps_str=$(printf "%s" "$1")
-        hlps_rc=$(printf "%d" "$2")
-        hlps_line=$(printf "%s" "$3")
+        hlps_cmd=$(printf "%s" "$1")
+        hlps_cmd_rc=$(printf "%d" "$2")
+        hlps_line=$(printf "%d" "$3")
         hlps_info=$(printf "%s" "$4")
         hlps_exec_func=$(printf "%s" "$5")
 
-        printf "%b\n" "${red_clr}"
-        echo "Script failed! More info:"
-        printf "%b" "${white_clr}"
+        echo
 
-        if [ -n "$hlps_str" ]; then
-            printf "Command: %s" "${hlps_str}"
+        printf "%b" "\033[1;31m"
+        echo "Script failed!"
+        printf "%b" "\033[1;37m"
+
+        if [ -n "$hlps_cmd" ]; then
+            printf "Command: %s" "${hlps_cmd}"
             echo
         fi
 
-        if [ -n "$hlps_rc" ]; then
-            printf "Exit code: %d" "${hlps_rc}"
+        if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
+            printf "Exit code: %d" "${hlps_cmd_rc}"
             echo
         fi
 
-        if [ -n "$hlps_line" ]; then
+        if [ -n "$hlps_line" ] && [ $hlps_line -ne 0 ]; then
             printf "Line number: %d" "${hlps_line}"
             echo
         fi
@@ -100,14 +87,16 @@ helpers() {
             echo
         fi
 
-        printf "%b\n" "${default_clr}"
+        printf "%b" "\033[0m"
+
+        echo
 
         if [ -n "$hlps_exec_func" ]; then
             ${hlps_exec_func};
         fi
 
-        if [ -n "$hlps_rc" ]; then
-            exit $hlps_rc
+        if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
+            exit $hlps_cmd_rc
         else
             exit 1
         fi
@@ -132,6 +121,12 @@ helpers() {
             cat "$hlps_tmp" > "$hlps_main_tmp"
         fi
     }
+}
+
+check_config() {
+    if [ -z $WORK_FILE ]; then
+        script_death "" "" "" "WORK_FILE is empty" ""
+    fi
 }
 
 sort_patch() {
@@ -164,10 +159,7 @@ sort_patch() {
                 dw_tool="wget"
                 dw_tool_args="-P ${tmp_dir}"
             else
-                printf "%b" "${red_clr}"
-                echo "No file download tool available."
-                printf "%b" "${default_clr}"
-                exit 1
+                script_death "" "127" "" "No file download tool available" ""
             fi
 
             if [ -d "$tmp_dir" ]; then
@@ -193,7 +185,8 @@ sort_patch() {
                 cd_rc=$(printf "%d" "$?")
 
                 if [ $cd_rc -ne 0 ]; then
-                    script_death "cd" "${cd_rc}" "$LINENO" "" "sort_patch_cleanup"
+                    script_death "cd" "${cd_rc}" "$LINENO" "" \
+                                 "sort_patch_cleanup"
                 fi
             fi
         }
@@ -305,7 +298,6 @@ sort_patch() {
 }
 
 variables;
-colors;
-check_config;
 helpers;
+check_config;
 sort_patch;
