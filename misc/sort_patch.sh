@@ -268,7 +268,7 @@ sort_patch() {
             cat "$main_tmp" > "$RESULT_FILE"
 
             if [ $STRIP_SCRIPT_STRINGS -eq 0 ]; then
-                date=$(date)
+                date=$(date "+%b%e, %T %:z %Y")
 
                 {
                     printf "\n"
