@@ -6,16 +6,16 @@
  *   Copy .config as defconfig.
  *
  * Usage:
- *   K_DIR: [essential] [path]
+ *   KL_DIR: [essential] [path]
  *   Specify the kernel directory.
  *
- *   K_ARCH: [essential] [string]
+ *   KL_ARCH: [essential] [string]
  *   Specify arch for defconfig.
  *
- *   DEFCONFIG_NAME: [essential] [string]
+ *   DCONF: [essential] [string]
  *   Specify name for defconfig.
  *
- *   VENDOR_DEFCONFIG: [toggle] [0]
+ *   VENDOR_DCONF: [toggle] [0]
  *   0 = .config will be copied to arch/<arch>/configs
  *   1 = .config will be copied to arch/<arch>/configs/vendor
  *
@@ -26,11 +26,11 @@
 notice
 
 variables() {
-    K_DIR=""
-    K_ARCH=
-    DEFCONFIG_NAME=
+    KL_DIR=""
+    KL_ARCH=
+    DCONF=
 
-    VENDOR_DEFCONFIG=0
+    VENDOR_DCONF=0
 }
 
 helpers() {
@@ -84,26 +84,26 @@ helpers() {
 }
 
 probe_vars() {
-    if [ -z $K_DIR ]; then
-        script_death "" "" "" "K_DIR is empty" ""
+    if [ -z $KL_DIR ]; then
+        script_death "" "" "" "KL_DIR is empty" ""
     fi
 
-    if [ -z $K_ARCH ]; then
-        script_death "" "" "" "K_ARCH is empty" ""
+    if [ -z $KL_ARCH ]; then
+        script_death "" "" "" "KL_ARCH is empty" ""
     fi
 
-    if [ -z $DEFCONFIG_NAME ]; then
-        script_death "" "" "" "DEFCONFIG_NAME is empty" ""
+    if [ -z $DCONF ]; then
+        script_death "" "" "" "DCONF is empty" ""
     fi
 }
 
 copy_conf() {
     copy_conf_work() {
-        cp_conf_loc="$K_DIR"/.config
-        cp_dest_loc="$K_DIR"/arch/$K_ARCH/configs/$DEFCONFIG_NAME
+        cp_conf_loc="$KL_DIR"/.config
+        cp_dest_loc="$KL_DIR"/arch/$KL_ARCH/configs/$DCONF
 
-        if [ $VENDOR_DEFCONFIG -eq 1 ]; then
-            cp_dest_loc="$K_DIR"/arch/$K_ARCH/configs/vendor/$DEFCONFIG_NAME
+        if [ $VENDOR_DCONF -eq 1 ]; then
+            cp_dest_loc="$KL_DIR"/arch/$KL_ARCH/configs/vendor/$DCONF
         fi
     }
 
