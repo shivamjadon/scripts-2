@@ -64,25 +64,51 @@ check_config() {
 
 helpers() {
     script_death() {
-        hlps_rc=$(printf "%d" "$1")
-        hlps_str=$(printf "%s" "$2")
-        hlps_line=$(printf "%s" "$3")
-        hlps_exec_func=$(printf "%s" "$4")
+        hlps_cmd=$(printf "%s" "$1")
+        hlps_cmd_rc=$(printf "%d" "$2")
+        hlps_line=$(printf "%d" "$3")
+        hlps_info=$(printf "%s" "$4")
+        hlps_exec_func=$(printf "%s" "$5")
 
-        printf "%b\n" "${red_clr}"
-        echo "Script failed! More info:"
-        printf "%b" "${white_clr}"
-        printf "Command: %s" "${hlps_str}"
         echo
-        printf "Exit code: %d" "${hlps_rc}"
-        echo
-        printf "Line number: %d" "${hlps_line}"
-        echo
-        printf "%b\n" "${default_clr}"
 
-        ${hlps_exec_func};
+        printf "%b" "\033[1;31m"
+        echo "Script failed!"
+        printf "%b" "\033[1;37m"
 
-        exit $hlps_rc
+        if [ -n "$hlps_cmd" ]; then
+            printf "Command: %s" "${hlps_cmd}"
+            echo
+        fi
+
+        if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
+            printf "Exit code: %d" "${hlps_cmd_rc}"
+            echo
+        fi
+
+        if [ -n "$hlps_line" ] && [ $hlps_line -ne 0 ]; then
+            printf "Line number: %d" "${hlps_line}"
+            echo
+        fi
+
+        if [ -n "$hlps_info" ]; then
+            printf "Additional info: %s" "${hlps_info}"
+            echo
+        fi
+
+        printf "%b" "\033[0m"
+
+        echo
+
+        if [ -n "$hlps_exec_func" ]; then
+            ${hlps_exec_func};
+        fi
+
+        if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
+            exit $hlps_cmd_rc
+        else
+            exit 1
+        fi
     }
 }
 
@@ -101,7 +127,7 @@ copy_conf() {
         cp_rc=$(printf "%d" "$?")
 
         if [ $cp_rc -ne 0 ]; then
-            script_death "${cp_rc}" "cp" "$LINENO"
+            script_death "cp" "${cp_rc}" "" "File copy failed" ""
         fi
     }
 
