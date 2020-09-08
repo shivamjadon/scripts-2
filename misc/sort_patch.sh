@@ -102,7 +102,7 @@ helpers() {
         fi
     }
 
-    handle_tmp_rw() {
+    tmp_rw() {
         hlps_op_code=$(printf "%s" "$1")
         hlps_main_tmp=$(printf "%s" "$2")
         hlps_tmp=$(printf "%s" "$3")
@@ -123,7 +123,7 @@ helpers() {
     }
 }
 
-check_config() {
+probe_vars() {
     if [ -z $WORK_FILE ]; then
         script_death "" "" "" "WORK_FILE is empty" ""
     fi
@@ -197,7 +197,7 @@ sort_patch() {
     }
 
     sort_patch_exec() {
-        sort_patch_exec_download() {
+        sort_patch_exec_dw() {
             while IFS= read -r line || [ -n "$line" ]; do
                 patch_url=${line}.patch
 
@@ -240,12 +240,12 @@ sort_patch() {
                 -k5.7,5.8 \
                 "$tmp_file" > "$tmp_file2"
 
-            handle_tmp_rw "1" "$tmp_file" "$tmp_file2"
+            tmp_rw "1" "$tmp_file" "$tmp_file2"
 
             if [ $SORT_BY_NEWEST -eq 1 ]; then
                 awk '{a[i++]=$0;} END {for (j=i-1; j>=0;) print a[j--];}' \
                     "$tmp_file" > "$tmp_file2"
-                handle_tmp_rw "1" "$tmp_file" "$tmp_file2"
+                tmp_rw "1" "$tmp_file" "$tmp_file2"
             fi
 
             if [ $STRIP_SCRIPT_STRINGS -eq 0 ]; then
@@ -258,12 +258,12 @@ sort_patch() {
                     } >> "$tmp_file2"
                 done < "$tmp_file"
 
-                handle_tmp_rw "1" "$tmp_file" "$tmp_file2"
+                tmp_rw "1" "$tmp_file" "$tmp_file2"
             fi
 
             if [ $STRIP_SCRIPT_STRINGS -eq 1 ]; then
                 cut -d ' ' -f1 "$tmp_file" > "$tmp_file2"
-                handle_tmp_rw "2" "$tmp_file" "$tmp_file2"
+                tmp_rw "2" "$tmp_file" "$tmp_file2"
             fi
 
             touch "$RESULT_FILE"
@@ -281,7 +281,7 @@ sort_patch() {
             fi
         }
 
-        sort_patch_exec_download;
+        sort_patch_exec_dw;
         sort_patch_exec_rw;
         sort_patch_exec_sort;
     }
@@ -299,5 +299,5 @@ sort_patch() {
 
 variables;
 helpers;
-check_config;
+probe_vars;
 sort_patch;
