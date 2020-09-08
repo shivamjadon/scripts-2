@@ -7,13 +7,13 @@
  *
  * Usage:
  *   KL_DIR: [essential] [path]
- *   Specify the kernel directory.
+ *   Specify kernel directory with .config file.
  *
  *   KL_ARCH: [essential] [string]
- *   Specify arch for defconfig.
+ *   Specify arch.
  *
  *   DCONF: [essential] [string]
- *   Specify name for defconfig.
+ *   Specify name for the defconfig.
  *
  *   VENDOR_DCONF: [toggle] [0]
  *   0 = .config will be copied to arch/<arch>/configs
