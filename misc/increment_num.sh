@@ -24,20 +24,6 @@ variables() {
     INCREMENT_BY=
 }
 
-colors() {
-    default_clr="\033[0m"
-    red_clr="\033[1;31m"
-}
-
-check_config() {
-    if [ -z $WORK_DIR ]; then
-        printf "%b" "${red_clr}"
-        echo "WORK_DIR is empty. Aborting."
-        printf "%b" "${default_clr}"
-        exit 1
-    fi
-}
-
 helpers() {
     increment_num_in_str() {
         str="$1"
@@ -51,6 +37,60 @@ helpers() {
 
         printf "%s" "${new_str}"
     }
+
+    script_death() {
+        hlps_cmd=$(printf "%s" "$1")
+        hlps_cmd_rc=$(printf "%d" "$2")
+        hlps_line=$(printf "%d" "$3")
+        hlps_info=$(printf "%s" "$4")
+        hlps_exec_func=$(printf "%s" "$5")
+
+        echo
+
+        printf "%b" "\033[1;31m"
+        echo "Script failed!"
+        printf "%b" "\033[1;37m"
+
+        if [ -n "$hlps_cmd" ]; then
+            printf "Command: %s" "${hlps_cmd}"
+            echo
+        fi
+
+        if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
+            printf "Exit code: %d" "${hlps_cmd_rc}"
+            echo
+        fi
+
+        if [ -n "$hlps_line" ] && [ $hlps_line -ne 0 ]; then
+            printf "Line number: %d" "${hlps_line}"
+            echo
+        fi
+
+        if [ -n "$hlps_info" ]; then
+            printf "Additional info: %s" "${hlps_info}"
+            echo
+        fi
+
+        printf "%b" "\033[0m"
+
+        echo
+
+        if [ -n "$hlps_exec_func" ]; then
+            ${hlps_exec_func};
+        fi
+
+        if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
+            exit $hlps_cmd_rc
+        else
+            exit 1
+        fi
+    }
+}
+
+check_config() {
+    if [ -z $WORK_DIR ]; then
+        script_death "" "" "" "WORK_DIR is empty" ""
+    fi
 }
 
 increment() {
@@ -108,7 +148,6 @@ increment() {
 }
 
 variables;
-colors;
-check_config;
 helpers;
+check_config;
 increment;
