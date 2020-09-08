@@ -3,7 +3,7 @@
 
 : <<'notice'
  * Script information:
- *   Copy .config as defconfig.
+ *   Copy kernel .config as defconfig.
  *
  * Usage:
  *   KL_DIR: [essential] [path]
