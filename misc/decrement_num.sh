@@ -7,10 +7,10 @@
  *   of the files before running the script.
  *
  * Usage:
- *   WORK_DIR: [essential] [path]
+ *   DIR: [essential] [path]
  *   Specify the directory in which files with number in their filename exist.
  *
- *   DECREMENT_BY: [value] [X]
+ *   DECREMENT: [value] [X]
  *   Specify by how much to decrement. If left empty, default (1) is used.
  *
  * SPDX-License-Identifier: GPL-3.0
@@ -20,22 +20,22 @@
 notice
 
 variables() {
-    WORK_DIR=""
-    DECREMENT_BY=
+    DIR=""
+    DECREMENT=
 }
 
 helpers() {
     decrement_num_str() {
-        str="$1"
+        hlps_str="$1"
 
-        for num in $(printf "%s" "${str}" | grep -Eo '[0-9]+'); do
-            old_num=$(printf "%d" "${num}")
-            new_num=$((num - DECREMENT_BY))
+        for num in $(printf "%s" "${hlps_str}" | grep -Eo '[0-9]+'); do
+            h_old_num=$(printf "%d" "${num}")
+            h_new_num=$((num - DECREMENT))
         done
 
-        new_str=$(printf "%s" "${str}" | sed "s/$old_num/$new_num/")
+        h_new_str=$(printf "%s" "${hlps_str}" | sed "s/$h_old_num/$h_new_num/")
 
-        printf "%s" "${new_str}"
+        printf "%s" "${h_new_str}"
     }
 
     script_death() {
@@ -88,19 +88,19 @@ helpers() {
 }
 
 probe_vars() {
-    if [ -z $WORK_DIR ]; then
-        script_death "" "" "" "WORK_DIR is empty" ""
+    if [ -z $DIR ]; then
+        script_death "" "" "" "DIR is empty" ""
     fi
 }
 
 decrement() {
     decrement_work() {
         decrement_work_vars() {
-            tmp_dir_loc=$(cd "$WORK_DIR"/.. && printf "%s" "$PWD")
+            tmp_dir_loc=$(cd "$DIR"/.. && printf "%s" "$PWD")
             tmp_dir="$tmp_dir_loc"/TMPdecrement
 
-            if [ -z $DECREMENT_BY ]; then
-                DECREMENT_BY=1
+            if [ -z $DECREMENT ]; then
+                DECREMENT=1
             fi
         }
 
@@ -117,12 +117,12 @@ decrement() {
     }
 
     decrement_exec() {
-        files="$WORK_DIR/*"
+        files="$DIR/*"
         files_tmp="$tmp_dir/*"
 
         for file in $files; do
             cur_filename=$(basename "$file")
-            cur_loc=$(printf "%s/%s" "${WORK_DIR}" "${cur_filename}")
+            cur_loc=$(printf "%s/%s" "${DIR}" "${cur_filename}")
             new_filename=$(decrement_num_str "$cur_filename")
             new_loc=$(printf "%s/%s" "${tmp_dir}" "${new_filename}")
 
@@ -132,7 +132,7 @@ decrement() {
         for file in $files_tmp; do
             cur_filename=$(basename "$file")
             cur_loc=$(printf "%s/%s" "${tmp_dir}" "${cur_filename}")
-            new_loc=$(printf "%s/%s" "${WORK_DIR}" "${cur_filename}")
+            new_loc=$(printf "%s/%s" "${DIR}" "${cur_filename}")
 
             mv -v "$cur_loc" "$new_loc"
         done
