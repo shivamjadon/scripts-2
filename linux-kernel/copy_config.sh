@@ -33,35 +33,6 @@ variables() {
     VENDOR_DEFCONFIG=0
 }
 
-colors() {
-    default_clr="\033[0m"
-    red_clr="\033[1;31m"
-    white_clr="\033[1;37m"
-}
-
-check_config() {
-    if [ -z $K_DIR ]; then
-        printf "%b" "${red_clr}"
-        echo "K_DIR is empty. Aborting."
-        printf "%b" "${default_clr}"
-        exit 1
-    fi
-
-    if [ -z $K_ARCH ]; then
-        printf "%b" "${red_clr}"
-        echo "K_ARCH is empty. Aborting."
-        printf "%b" "${default_clr}"
-        exit 1
-    fi
-
-    if [ -z $DEFCONFIG_NAME ]; then
-        printf "%b" "${red_clr}"
-        echo "DEFCONFIG_NAME is empty. Aborting."
-        printf "%b" "${default_clr}"
-        exit 1
-    fi
-}
-
 helpers() {
     script_death() {
         hlps_cmd=$(printf "%s" "$1")
@@ -112,6 +83,20 @@ helpers() {
     }
 }
 
+check_config() {
+    if [ -z $K_DIR ]; then
+        script_death "" "" "" "K_DIR is empty" ""
+    fi
+
+    if [ -z $K_ARCH ]; then
+        script_death "" "" "" "K_ARCH is empty" ""
+    fi
+
+    if [ -z $DEFCONFIG_NAME ]; then
+        script_death "" "" "" "DEFCONFIG_NAME is empty" ""
+    fi
+}
+
 copy_conf() {
     copy_conf_work() {
         cp_conf_loc="$K_DIR"/.config
@@ -136,7 +121,6 @@ copy_conf() {
 }
 
 variables;
-colors;
-check_config;
 helpers;
+check_config;
 copy_conf;
