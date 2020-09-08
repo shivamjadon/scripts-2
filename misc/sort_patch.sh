@@ -21,13 +21,15 @@
  *       oldest.
  *
  *   PRESERVE_COMMIT_LINK: [toggle] [0]
- *   0 = The final file will only have the commit string.
- *   1 = The final file will have respective link appended to commit string.
+ *   0 = The final file will only have the commit strings.
+ *   1 = The final file will have respective link appended to the commit
+ *       strings.
  *
  *   STRIP_SCRIPT_STRINGS: [toggle] [0]
- *   0 = The final file will contain info like date next to the commit.
- *   1 = Every single script string will be stripped (date, line numbers, ...)
- *       from the final file.
+ *   0 = The final file will contain additional hardcoded info: line numbers,
+ *       date, and file timestamp.
+ *   1 = Script strings (line numbers, date, and file timestamp) will not be
+ *       appended to the final file.
  *
  * SPDX-License-Identifier: GPL-3.0
  *
