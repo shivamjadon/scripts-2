@@ -7,7 +7,7 @@
  *   Feed me a file with links to commits and I will sort them by date!
  *
  * Usage:
- *   WORK_FILE: [essential] [path]
+ *   FILE: [essential] [path]
  *   Specify the file with links to commits.
  *
  *   RESULT_FILE: [path]
@@ -36,7 +36,7 @@
 notice
 
 variables() {
-    WORK_FILE=""
+    FILE=""
     RESULT_FILE=""
     SORT_BY_NEWEST=0
     PRESERVE_COMMIT_LINK=0
@@ -45,9 +45,9 @@ variables() {
 
 helpers() {
     cmd_available() {
-        hlps_str=$(printf "%s" "$1")
+        hlps_cmd=$(printf "%s" "$1")
 
-        if command -v "$hlps_str" > /dev/null 2>&1; then
+        if command -v "$hlps_cmd" > /dev/null 2>&1; then
             return 0
         else
             return 127
@@ -124,28 +124,28 @@ helpers() {
 }
 
 probe_vars() {
-    if [ -z $WORK_FILE ]; then
-        script_death "" "" "" "WORK_FILE is empty" ""
+    if [ -z $FILE ]; then
+        script_death "" "" "" "FILE is empty" ""
     fi
 }
 
 sort_patch() {
     sort_patch_work() {
         sort_patch_work_vars() {
-            work_file_dir=$(printf "%s" "${WORK_FILE%/*}")
+            work_file_dir=$(printf "%s" "${FILE%/*}")
             tmp_dir="$work_file_dir"/.0TMPdir
-            tmp_file="$work_file_dir"/.0TMPfile
-            tmp_file2="$work_file_dir"/.0TMPfile2
-            result_file_def_loc="$work_file_dir"/0sort_patch.log
+            main_tmp="$work_file_dir"/.0TMPfile
+            sec_tmp="$work_file_dir"/.0TMPfile2
+            rslt_file_def_loc="$work_file_dir"/0sort_patch.log
 
             if [ -z "$RESULT_FILE" ]; then
-                RESULT_FILE="$result_file_def_loc"
+                RESULT_FILE="$rslt_file_def_loc"
             fi
         }
 
         sort_patch_work_cmds() {
-            if [ -f "$result_file_def_loc" ]; then
-                rm -fv "$result_file_def_loc"
+            if [ -f "$rslt_file_def_loc" ]; then
+                rm -fv "$rslt_file_def_loc"
             fi
 
             if [ -f "$RESULT_FILE" ]; then
@@ -166,17 +166,17 @@ sort_patch() {
                 rm -rf "$tmp_dir"
             fi
 
-            if [ -f "$tmp_file" ]; then
-                rm -f "$tmp_file"
+            if [ -f "$main_tmp" ]; then
+                rm -f "$main_tmp"
             fi
 
-            if [ -f "$tmp_file2" ]; then
-                rm -f "$tmp_file2"
+            if [ -f "$sec_tmp" ]; then
+                rm -f "$sec_tmp"
             fi
 
             mkdir "$tmp_dir"
-            touch "$tmp_file"
-            touch "$tmp_file2"
+            touch "$main_tmp"
+            touch "$sec_tmp"
         }
 
         sort_patch_work_dw_tool() {
@@ -202,7 +202,7 @@ sort_patch() {
                 patch_url=${line}.patch
 
                 $dw_tool ${dw_tool_args} $patch_url
-            done < "$WORK_FILE"
+            done < "$FILE"
         }
 
         sort_patch_exec_rw() {
@@ -215,10 +215,11 @@ sort_patch() {
                 date_str=$(printf "%s" "${date_line}" | cut -d ' ' -f3,4,5,6)
 
                 if [ $PRESERVE_COMMIT_LINK -eq 1 ]; then
-                    c_link=$(grep -F $commit_str "$WORK_FILE")
-                    cl_str=$(printf "%s" "${c_link}" | sed "s/${commit_str}//g")
-                    c_str=$commit_str
-                    commit_str=$(printf "%s%s" "${cl_str}" "${c_str}")
+                    commit_link=$(grep -F $commit_str "$FILE")
+                    commit_link_str=$(printf "%s" "${commit_link}" | \
+                                      sed "s/${commit_str}//g")
+                    commit_str=$(printf "%s%s" "${commit_link_str}" \
+                                               "${commit_str}")
                 fi
 
                 {
@@ -226,7 +227,7 @@ sort_patch() {
                     printf " "
                     printf "%s" "${date_str}"
                     printf "\n"
-                } >> "$tmp_file"
+                } >> "$main_tmp"
             done
         }
 
@@ -238,36 +239,36 @@ sort_patch() {
                 -k5.1,5.2 \
                 -k5.4,5.5 \
                 -k5.7,5.8 \
-                "$tmp_file" > "$tmp_file2"
+                "$main_tmp" > "$sec_tmp"
 
-            tmp_rw "1" "$tmp_file" "$tmp_file2"
+            tmp_rw "1" "$main_tmp" "$sec_tmp"
 
             if [ $SORT_BY_NEWEST -eq 1 ]; then
                 awk '{a[i++]=$0;} END {for (j=i-1; j>=0;) print a[j--];}' \
-                    "$tmp_file" > "$tmp_file2"
-                tmp_rw "1" "$tmp_file" "$tmp_file2"
+                    "$main_tmp" > "$sec_tmp"
+                tmp_rw "1" "$main_tmp" "$sec_tmp"
             fi
 
             if [ $STRIP_SCRIPT_STRINGS -eq 0 ]; then
                 while IFS= read -r line || [ -n "$line" ]; do
-                    num_str=$((1 + cnt))
-                    cnt=$num_str
+                    num=$((1 + cnt))
+                    cnt=$num
 
                     {
-                        printf "%s\n" "$line" | sed "s/^/$num_str - /"
-                    } >> "$tmp_file2"
-                done < "$tmp_file"
+                        printf "%s\n" "$line" | sed "s/^/$num - /"
+                    } >> "$sec_tmp"
+                done < "$main_tmp"
 
-                tmp_rw "1" "$tmp_file" "$tmp_file2"
+                tmp_rw "1" "$main_tmp" "$sec_tmp"
             fi
 
             if [ $STRIP_SCRIPT_STRINGS -eq 1 ]; then
-                cut -d ' ' -f1 "$tmp_file" > "$tmp_file2"
-                tmp_rw "2" "$tmp_file" "$tmp_file2"
+                cut -d ' ' -f1 "$main_tmp" > "$sec_tmp"
+                tmp_rw "2" "$main_tmp" "$sec_tmp"
             fi
 
             touch "$RESULT_FILE"
-            cat "$tmp_file" > "$RESULT_FILE"
+            cat "$main_tmp" > "$RESULT_FILE"
 
             if [ $STRIP_SCRIPT_STRINGS -eq 0 ]; then
                 date=$(date)
@@ -288,8 +289,8 @@ sort_patch() {
 
     sort_patch_cleanup() {
         rm -rf "$tmp_dir"
-        rm -f "$tmp_file"
-        rm -f "$tmp_file2"
+        rm -f "$main_tmp"
+        rm -f "$sec_tmp"
     }
 
     sort_patch_work;
