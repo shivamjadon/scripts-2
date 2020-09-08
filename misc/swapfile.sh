@@ -136,7 +136,7 @@ helpers() {
     }
 }
 
-check_config() {
+probe_vars() {
     if [ -z $BLOCK_SIZE ]; then
         script_death "" "" "" "BLOCK_SIZE is empty" ""
     fi
@@ -226,6 +226,6 @@ swap() {
 
 variables;
 helpers;
-check_config;
+probe_vars;
 exec_as_root;
 swap;
