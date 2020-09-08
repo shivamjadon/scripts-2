@@ -25,7 +25,7 @@ variables() {
 }
 
 helpers() {
-    decrement_num_in_str() {
+    decrement_num_str() {
         str="$1"
 
         for num in $(printf "%s" "${str}" | grep -Eo '[0-9]+'); do
@@ -87,7 +87,7 @@ helpers() {
     }
 }
 
-check_config() {
+probe_vars() {
     if [ -z $WORK_DIR ]; then
         script_death "" "" "" "WORK_DIR is empty" ""
     fi
@@ -123,7 +123,7 @@ decrement() {
         for file in $files; do
             cur_filename=$(basename "$file")
             cur_loc=$(printf "%s/%s" "${WORK_DIR}" "${cur_filename}")
-            new_filename=$(decrement_num_in_str "$cur_filename")
+            new_filename=$(decrement_num_str "$cur_filename")
             new_loc=$(printf "%s/%s" "${tmp_dir}" "${new_filename}")
 
             mv -v "$cur_loc" "$new_loc"
@@ -149,5 +149,5 @@ decrement() {
 
 variables;
 helpers;
-check_config;
+probe_vars;
 decrement;
