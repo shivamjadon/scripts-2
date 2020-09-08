@@ -105,22 +105,17 @@ helpers() {
     }
 
     tmp_rw() {
-        hlps_op_code=$(printf "%s" "$1")
-        hlps_main_tmp=$(printf "%s" "$2")
-        hlps_tmp=$(printf "%s" "$3")
+        hlps_main_tmp=$(printf "%s" "$1")
+        hlps_sec_tmp=$(printf "%s" "$2")
+        hlps_op_code=$(printf "%s" "$3")
 
         if [ $hlps_op_code -eq 1 ]; then
-            # Secondary tmp will be used again, prepare it
+            # Secondary tmp *might* be used again, prepare it
             rm -f "$hlps_main_tmp"
             touch "$hlps_main_tmp"
-            cat "$hlps_tmp" > "$hlps_main_tmp"
-            rm -f "$hlps_tmp"
-            touch "$hlps_tmp"
-        elif [ $hlps_op_code -eq 2 ]; then
-            # Secondary tmp will not be used anymore, management done
-            rm -f "$hlps_main_tmp"
-            touch "$hlps_main_tmp"
-            cat "$hlps_tmp" > "$hlps_main_tmp"
+            cat "$hlps_sec_tmp" > "$hlps_main_tmp"
+            rm -f "$hlps_sec_tmp"
+            touch "$hlps_sec_tmp"
         fi
     }
 }
@@ -243,12 +238,12 @@ sort_patch() {
                 -k5.7,5.8 \
                 "$main_tmp" > "$sec_tmp"
 
-            tmp_rw "1" "$main_tmp" "$sec_tmp"
+            tmp_rw "$main_tmp" "$sec_tmp" "1"
 
             if [ $SORT_BY_NEWEST -eq 1 ]; then
                 awk '{a[i++]=$0;} END {for (j=i-1; j>=0;) print a[j--];}' \
                     "$main_tmp" > "$sec_tmp"
-                tmp_rw "1" "$main_tmp" "$sec_tmp"
+                tmp_rw "$main_tmp" "$sec_tmp" "1"
             fi
 
             if [ $STRIP_SCRIPT_STRINGS -eq 0 ]; then
@@ -261,12 +256,12 @@ sort_patch() {
                     } >> "$sec_tmp"
                 done < "$main_tmp"
 
-                tmp_rw "1" "$main_tmp" "$sec_tmp"
+                tmp_rw "$main_tmp" "$sec_tmp" "1"
             fi
 
             if [ $STRIP_SCRIPT_STRINGS -eq 1 ]; then
                 cut -d ' ' -f1 "$main_tmp" > "$sec_tmp"
-                tmp_rw "2" "$main_tmp" "$sec_tmp"
+                tmp_rw "$main_tmp" "$sec_tmp" "1"
             fi
 
             touch "$RESULT_FILE"
