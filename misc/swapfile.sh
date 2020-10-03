@@ -10,7 +10,7 @@
  *   Set block size for the swap file. Can be set in bytes and human readable
  *   form (K - KiB, M - MiB, G - GiB, ...), 'man dd' for more info.
  *
- *   BLOCKS_COUNT: [essential] [value] [X]
+ *   BLOCKS: [essential] [value] [X]
  *   Set count of blocks. Can also be set in human readable form
  *   (K - KiB, M - MiB, G - GiB, ...), 'man dd' for more info.
  *
@@ -44,7 +44,7 @@
  *   (64 KiB) block size and 32768 blocks (64K * 32K = 2G).
  *
  * Example table:
- *   BLOCK_SIZE * BLOCKS_COUNT = FILE SIZE
+ *   BLOCK_SIZE * BLOCKS = FILE SIZE
  *
  *   512 B * 2097152 = 1 GiB          512 B * 4194304 = 2 GiB
  *   1 KiB * 1048576 = 1 GiB          1 KiB * 2097152 = 2 GiB
@@ -77,7 +77,7 @@ notice
 
 variables() {
     BLOCK_SIZE=
-    BLOCKS_COUNT=
+    BLOCKS=
 
     SWAPFILE=""
     NULL_SOURCE=""
@@ -141,8 +141,8 @@ probe_vars() {
         script_death "" "" "" "BLOCK_SIZE is empty" ""
     fi
 
-    if [ -z $BLOCKS_COUNT ]; then
-        script_death "" "" "" "BLOCKS_COUNT is empty" ""
+    if [ -z $BLOCKS ]; then
+        script_death "" "" "" "BLOCKS is empty" ""
     fi
 }
 
@@ -191,7 +191,7 @@ swap() {
             dd_args="if=${NULL_SOURCE}"
             dd_args="${dd_args} of=${SWAPFILE}"
             dd_args="${dd_args} bs=${BLOCK_SIZE}"
-            dd_args="${dd_args} count=${BLOCKS_COUNT}"
+            dd_args="${dd_args} count=${BLOCKS}"
 
             if [ $VERBOSE_DD -eq 1 ]; then
                 dd_args="${dd_args} status=progress"
