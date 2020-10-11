@@ -73,11 +73,11 @@ helpers() {
 
         printf "%b" "\033[0m"
 
-        echo
-
         if [ -n "$hlps_exec_func" ]; then
             ${hlps_exec_func};
         fi
+
+        echo
 
         if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
             exit $hlps_cmd_rc
