@@ -44,6 +44,7 @@ helpers() {
         hlps_line=$(printf "%d" "$3")
         hlps_info=$(printf "%s" "$4")
         hlps_exec_func=$(printf "%s" "$5")
+        hlps_exec_func0=$(printf "%s" "$6")
 
         echo
 
@@ -77,6 +78,10 @@ helpers() {
             ${hlps_exec_func};
         fi
 
+        if [ -n "$hlps_exec_func0" ]; then
+            ${hlps_exec_func0};
+        fi
+
         echo
 
         if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
@@ -89,7 +94,7 @@ helpers() {
 
 probe_vars() {
     if [ -z $DIR ]; then
-        script_death "" "" "" "DIR is empty" ""
+        script_death "" "" "" "DIR is empty" "" ""
     fi
 }
 

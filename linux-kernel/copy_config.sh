@@ -40,6 +40,7 @@ helpers() {
         hlps_line=$(printf "%d" "$3")
         hlps_info=$(printf "%s" "$4")
         hlps_exec_func=$(printf "%s" "$5")
+        hlps_exec_func0=$(printf "%s" "$6")
 
         echo
 
@@ -73,6 +74,10 @@ helpers() {
             ${hlps_exec_func};
         fi
 
+        if [ -n "$hlps_exec_func0" ]; then
+            ${hlps_exec_func0};
+        fi
+
         echo
 
         if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
@@ -85,15 +90,15 @@ helpers() {
 
 probe_vars() {
     if [ -z $KL_DIR ]; then
-        script_death "" "" "" "KL_DIR is empty" ""
+        script_death "" "" "" "KL_DIR is empty" "" ""
     fi
 
     if [ -z $KL_ARCH ]; then
-        script_death "" "" "" "KL_ARCH is empty" ""
+        script_death "" "" "" "KL_ARCH is empty" "" ""
     fi
 
     if [ -z $DCONF ]; then
-        script_death "" "" "" "DCONF is empty" ""
+        script_death "" "" "" "DCONF is empty" "" ""
     fi
 }
 
@@ -112,7 +117,7 @@ copy_conf() {
         cp_rc=$(printf "%d" "$?")
 
         if [ $cp_rc -ne 0 ]; then
-            script_death "cp" "${cp_rc}" "" "File copy failed" ""
+            script_death "cp" "${cp_rc}" "" "File copy failed" "" ""
         fi
     }
 

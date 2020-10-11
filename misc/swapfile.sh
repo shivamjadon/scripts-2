@@ -93,6 +93,7 @@ helpers() {
         hlps_line=$(printf "%d" "$3")
         hlps_info=$(printf "%s" "$4")
         hlps_exec_func=$(printf "%s" "$5")
+        hlps_exec_func0=$(printf "%s" "$6")
 
         echo
 
@@ -126,6 +127,10 @@ helpers() {
             ${hlps_exec_func};
         fi
 
+        if [ -n "$hlps_exec_func0" ]; then
+            ${hlps_exec_func0};
+        fi
+
         echo
 
         if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
@@ -138,11 +143,11 @@ helpers() {
 
 probe_vars() {
     if [ -z $BLOCK_SIZE ]; then
-        script_death "" "" "" "BLOCK_SIZE is empty" ""
+        script_death "" "" "" "BLOCK_SIZE is empty" "" ""
     fi
 
     if [ -z $BLOCKS ]; then
-        script_death "" "" "" "BLOCKS is empty" ""
+        script_death "" "" "" "BLOCKS is empty" "" ""
     fi
 }
 

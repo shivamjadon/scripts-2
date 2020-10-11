@@ -73,6 +73,7 @@ helpers() {
         hlps_line=$(printf "%d" "$3")
         hlps_info=$(printf "%s" "$4")
         hlps_exec_func=$(printf "%s" "$5")
+        hlps_exec_func0=$(printf "%s" "$6")
 
         echo
 
@@ -104,6 +105,10 @@ helpers() {
 
         if [ -n "$hlps_exec_func" ]; then
             ${hlps_exec_func};
+        fi
+
+        if [ -n "$hlps_exec_func0" ]; then
+            ${hlps_exec_func0};
         fi
 
         echo
@@ -142,15 +147,15 @@ helpers() {
 
 probe_vars() {
     if [ -z $KL_DIR ]; then
-        script_death "" "" "" "KL_DIR is empty" ""
+        script_death "" "" "" "KL_DIR is empty" "" ""
     fi
 
     if [ -z $KL_DCONF ]; then
-        script_death "" "" "" "KL_DCONF is empty" ""
+        script_death "" "" "" "KL_DCONF is empty" "" ""
     fi
 
     if [ -z $KL_ARCH ]; then
-        script_death "" "" "" "KL_ARCH is empty" ""
+        script_death "" "" "" "KL_ARCH is empty" "" ""
     fi
 }
 
@@ -159,7 +164,7 @@ env_check() {
         euid=$(id -u)
 
         if [ $euid -eq 0 ]; then
-            script_death "" "" "" "EUID is 0 (root)" ""
+            script_death "" "" "" "EUID is 0 (root)" "" ""
         fi
     }
 
@@ -169,14 +174,14 @@ env_check() {
 pkg_check() {
     pkg_check_coreutils() {
         if ! cmd_available nproc; then
-            script_death "nproc" "127" "" "'coreutils' is not installed" ""
+            script_death "nproc" "127" "" "'coreutils' is not installed" "" ""
         fi
     }
 
     pkg_check_ccache() {
         if [ $CCACHE -eq 1 ]; then
             if ! cmd_available ccache; then
-                script_death "ccache" "127" "" "'ccache' is not installed" ""
+                script_death "ccache" "127" "" "'ccache' is not installed" "" ""
             fi
         fi
     }
@@ -208,7 +213,7 @@ build_kernel() {
                 if [ -f "$kl_vendor_conf" ]; then
                     kl_conf_make="$kl_vendor_conf_make"
                 else
-                    script_death "" "" "" "Cannot find ${KL_DCONF}" ""
+                    script_death "" "" "" "Cannot find ${KL_DCONF}" "" ""
                 fi
             fi
 
@@ -218,7 +223,7 @@ build_kernel() {
 
                 if [ $cd_rc -ne 0 ]; then
                     script_death "cd" "${cd_rc}" "$LINENO" \
-                                 "Cannot determine toolchain prefix" ""
+                                 "Cannot determine toolchain prefix" "" ""
                 fi
 
                 cd -- *
@@ -226,7 +231,7 @@ build_kernel() {
 
                 if [ $cd_rc -ne 0 ]; then
                     script_death "cd" "${cd_rc}" "$LINENO" \
-                                 "Cannot determine toolchain prefix" ""
+                                 "Cannot determine toolchain prefix" "" ""
                 fi
 
                 tc_prefix=$(basename "$PWD")-
@@ -272,7 +277,7 @@ build_kernel() {
             cd_rc=$(printf "%d" "$?")
 
             if [ $cd_rc -ne 0 ]; then
-                script_death "cd" "${cd_rc}" "$LINENO" "" ""
+                script_death "cd" "${cd_rc}" "$LINENO" "" "" ""
             fi
 
             if [ $CLEAN_BUILD -eq 1 ]; then
@@ -307,7 +312,8 @@ build_kernel() {
             make_rc=$(printf "%d" "$?")
 
             if [ $make_rc -ne 0 ]; then
-                script_death "make" "${make_rc}" "" "Cannot generate .config" ""
+                script_death "make" "${make_rc}" "" "Cannot generate .config" \
+                             "" ""
             fi
 
             if [ -n "$TC_DIR" ]; then
@@ -320,7 +326,8 @@ build_kernel() {
             make_rc=$(printf "%d" "$?")
 
             if [ $make_rc -ne 0 ]; then
-                script_death "make" "${make_rc}" "" "Compilation has errors" ""
+                script_death "make" "${make_rc}" "" "Compilation has errors" \
+                             "" ""
             fi
         }
 

@@ -62,6 +62,7 @@ helpers() {
         hlps_line=$(printf "%d" "$3")
         hlps_info=$(printf "%s" "$4")
         hlps_exec_func=$(printf "%s" "$5")
+        hlps_exec_func0=$(printf "%s" "$6")
 
         echo
 
@@ -95,6 +96,10 @@ helpers() {
             ${hlps_exec_func};
         fi
 
+        if [ -n "$hlps_exec_func0" ]; then
+            ${hlps_exec_func0};
+        fi
+
         echo
 
         if [ -n "$hlps_cmd_rc" ] && [ $hlps_cmd_rc -ne 0 ]; then
@@ -122,7 +127,7 @@ helpers() {
 
 probe_vars() {
     if [ -z $FILE ]; then
-        script_death "" "" "" "FILE is empty" ""
+        script_death "" "" "" "FILE is empty" "" ""
     fi
 }
 
@@ -156,7 +161,7 @@ sort_patch() {
                 dw_tool="wget"
                 dw_tool_args="-P ${tmp_dir}"
             else
-                script_death "" "127" "" "No file download tool available" ""
+                script_death "" "127" "" "No file download tool available" "" ""
             fi
 
             if [ -d "$tmp_dir" ]; then
@@ -183,7 +188,7 @@ sort_patch() {
 
                 if [ $cd_rc -ne 0 ]; then
                     script_death "cd" "${cd_rc}" "$LINENO" "" \
-                                 "sort_patch_cleanup"
+                                 "sort_patch_cleanup" ""
                 fi
             fi
         }
