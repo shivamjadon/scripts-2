@@ -55,6 +55,13 @@
  *       repo with history / non-shallow repo. Careful though, the commands will
  *       wipe all local changes and commits!
  *
+ *   SYNC_TC: [toggle] [0]
+ *   0 = no git commands will be executed on the toolchain directory.
+ *   1 = git reset/clean/pull will be executed on the toolchain directory to
+ *       bring the local state identical to the remote one. This works only on
+ *       local repo with history / non-shallow repo. Careful though, the
+ *       commands will wipe all local changes and commits!
+ *
  *   KL_REPO: [link]
  *   Specify HTTPS git link to clone if the kernel directory is missing. The
  *   clone will be shallow, i.e. without commit history. All submodules (if any)
@@ -93,6 +100,7 @@ variables() {
     BUILD_HOST=
     BUILD_OUTPUT_DIR=""
     SYNC_KL=0
+    SYNC_TC=0
 
     KL_REPO=
     KL_BRANCH=
@@ -232,7 +240,7 @@ pkg_check() {
 
     pkg_check_git() {
         if [ -n "$KL_REPO" ] || [ -n "$TC_REPO" ] || \
-           [ $SYNC_KL -eq 1 ]; then
+           [ $SYNC_KL -eq 1 ] || [ $SYNC_TC -eq 1 ]; then
             if ! cmd_available git; then
                 script_death "git" "127" "" "'git' is not installed" "" ""
             fi
@@ -327,8 +335,26 @@ sync() {
         git pull --rebase=true
     }
 
+    sync_toolchain() {
+        cd "$TC_DIR"
+        cd_rc=$(printf "%d" "$?")
+
+        if [ $cd_rc -ne 0 ]; then
+            script_death "cd" "${cd_rc}" "$LINENO" "" "" ""
+        fi
+
+        git reset HEAD .
+        git clean -fd
+        git reset --hard "@{upstream}"
+        git pull --rebase=true
+    }
+
     if [ $SYNC_KL -eq 1 ]; then
         sync_kernel;
+    fi
+
+    if [ $SYNC_TC -eq 1 ]; then
+        sync_toolchain;
     fi
 }
 
