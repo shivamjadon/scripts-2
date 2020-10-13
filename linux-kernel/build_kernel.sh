@@ -38,6 +38,12 @@
  *   1 = the script will delete output files from previous build and/or run
  *       'make clean && make mrproper' where appropriate.
  *
+ *   BUILD_USER: [string]
+ *   The string entered here will be shown for kernel build user.
+ *
+ *   BUILD_HOST: [string]
+ *   The string entered here will be shown for kernel build host.
+ *
  * SPDX-License-Identifier: GPL-3.0
  *
  * Copyright (C) Dimitar Yurukov <mscalindt@protonmail.com>
@@ -54,6 +60,8 @@ variables() {
     CORES=
     LOCALVERSION=
     CLEAN_BUILD=0
+    BUILD_USER=
+    BUILD_HOST=
 }
 
 helpers() {
@@ -244,6 +252,14 @@ build_kernel() {
             KBUILD_BUILD_HOST=$(uname -n)
             ARCH=$KL_ARCH
             SUBARCH=$KL_ARCH
+
+            if [ -n "$BUILD_USER" ]; then
+                KBUILD_BUILD_USER=$BUILD_USER
+            fi
+
+            if [ -n "$BUILD_HOST" ]; then
+                KBUILD_BUILD_HOST=$BUILD_HOST
+            fi
 
             if [ -n "$TC_DIR" ]; then
                 CROSS_COMPILE="${TC_DIR}/bin/${tc_prefix}"
