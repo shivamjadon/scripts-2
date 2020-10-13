@@ -48,6 +48,15 @@
  *   Specify custom object build directory. If left empty, a directory will be
  *   created on the same path level as the kernel directory.
  *
+ *   KL_REPO: [link]
+ *   Specify HTTPS git link to clone if the kernel directory is missing. The
+ *   clone will be shallow, i.e. without commit history. All submodules (if any)
+ *   will also be shallow cloned.
+ *
+ *   KL_BRANCH: [string]
+ *   Specify which kernel branch to clone. If left empty, the default branch
+ *   will be cloned.
+ *
  * SPDX-License-Identifier: GPL-3.0
  *
  * Copyright (C) Dimitar Yurukov <mscalindt@protonmail.com>
@@ -67,6 +76,9 @@ variables() {
     BUILD_USER=
     BUILD_HOST=
     BUILD_OUTPUT_DIR=""
+
+    KL_REPO=
+    KL_BRANCH=
 }
 
 helpers() {
@@ -199,8 +211,54 @@ pkg_check() {
         fi
     }
 
+    pkg_check_git() {
+        if [ -n "$KL_REPO" ]; then
+            if ! cmd_available git; then
+                script_death "git" "127" "" "'git' is not installed" "" ""
+            fi
+        fi
+    }
+
     pkg_check_coreutils;
     pkg_check_ccache;
+    pkg_check_git;
+}
+
+clone() {
+    clone_work() {
+        clone_work_kernel() {
+            kl_clone_cmd=$KL_REPO
+            kl_clone_cmd="${kl_clone_cmd} ${KL_DIR}"
+            kl_clone_cmd="${kl_clone_cmd} --depth 1"
+            kl_clone_cmd="${kl_clone_cmd} --shallow-submodules"
+            kl_clone_cmd="${kl_clone_cmd} --recursive"
+
+            if [ -n "$KL_BRANCH" ]; then
+                kl_clone_cmd="${kl_clone_cmd} --branch ${KL_BRANCH}"
+            fi
+        }
+
+        if [ -n "$KL_REPO" ]; then
+            clone_work_kernel;
+        fi
+    }
+
+    clone_kernel() {
+        if [ ! -d "$KL_DIR" ]; then
+            git clone ${kl_clone_cmd}
+            git_rc=$(printf "%d" "$?")
+        fi
+
+        if [ ! -d "$KL_DIR" ]; then
+            script_death "git" "${git_rc}" "" "Kernel clone failed" "" ""
+        fi
+    }
+
+    clone_work;
+
+    if [ -n "$KL_REPO" ]; then
+        clone_kernel;
+    fi
 }
 
 build_kernel() {
@@ -454,6 +512,7 @@ helpers;
 probe_vars;
 env_check;
 pkg_check;
+clone;
 build_kernel;
 report;
 stats;
