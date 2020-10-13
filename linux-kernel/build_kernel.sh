@@ -57,6 +57,15 @@
  *   Specify which kernel branch to clone. If left empty, the default branch
  *   will be cloned.
  *
+ *   TC_REPO: [link]
+ *   Specify HTTPS git link to clone if the toolchain directory is missing. The
+ *   clone will be shallow, i.e. without commit history. All submodules (if any)
+ *   will also be shallow cloned.
+ *
+ *   TC_BRANCH: [string]
+ *   Specify which toolchain branch to clone. If left empty, the default branch
+ *   will be cloned.
+ *
  * SPDX-License-Identifier: GPL-3.0
  *
  * Copyright (C) Dimitar Yurukov <mscalindt@protonmail.com>
@@ -79,6 +88,8 @@ variables() {
 
     KL_REPO=
     KL_BRANCH=
+    TC_REPO=
+    TC_BRANCH=
 }
 
 helpers() {
@@ -212,7 +223,7 @@ pkg_check() {
     }
 
     pkg_check_git() {
-        if [ -n "$KL_REPO" ]; then
+        if [ -n "$KL_REPO" ] || [ -n "$TC_REPO" ]; then
             if ! cmd_available git; then
                 script_death "git" "127" "" "'git' is not installed" "" ""
             fi
@@ -238,8 +249,24 @@ clone() {
             fi
         }
 
+        clone_work_toolchain() {
+            tc_clone_cmd=$TC_REPO
+            tc_clone_cmd="${tc_clone_cmd} ${TC_DIR}"
+            tc_clone_cmd="${tc_clone_cmd} --depth 1"
+            tc_clone_cmd="${tc_clone_cmd} --shallow-submodules"
+            tc_clone_cmd="${tc_clone_cmd} --recursive"
+
+            if [ -n "$TC_BRANCH" ]; then
+                tc_clone_cmd="${tc_clone_cmd} --branch ${TC_BRANCH}"
+            fi
+        }
+
         if [ -n "$KL_REPO" ]; then
             clone_work_kernel;
+        fi
+
+        if [ -n "$TC_REPO" ]; then
+            clone_work_toolchain;
         fi
     }
 
@@ -254,10 +281,25 @@ clone() {
         fi
     }
 
+    clone_toolchain() {
+        if [ ! -d "$TC_DIR" ]; then
+            git clone ${tc_clone_cmd}
+            git_rc=$(printf "%d" "$?")
+        fi
+
+        if [ ! -d "$TC_DIR" ]; then
+            script_death "git" "${git_rc}" "" "Toolchain clone failed" "" ""
+        fi
+    }
+
     clone_work;
 
     if [ -n "$KL_REPO" ]; then
         clone_kernel;
+    fi
+
+    if [ -n "$TC_REPO" ]; then
+        clone_toolchain;
     fi
 }
 
