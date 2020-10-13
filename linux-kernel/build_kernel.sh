@@ -44,6 +44,10 @@
  *   BUILD_HOST: [string]
  *   The string entered here will be shown for kernel build host.
  *
+ *   BUILD_OUTPUT_DIR: [path]
+ *   Specify custom object build directory. If left empty, a directory will be
+ *   created on the same path level as the kernel directory.
+ *
  * SPDX-License-Identifier: GPL-3.0
  *
  * Copyright (C) Dimitar Yurukov <mscalindt@protonmail.com>
@@ -62,6 +66,7 @@ variables() {
     CLEAN_BUILD=0
     BUILD_USER=
     BUILD_HOST=
+    BUILD_OUTPUT_DIR=""
 }
 
 helpers() {
@@ -213,6 +218,10 @@ build_kernel() {
 
             if [ -n "$CORES" ]; then
                 cpu_avl_cores=${CORES}
+            fi
+
+            if [ -n "$BUILD_OUTPUT_DIR" ]; then
+                kl_out_dir="$BUILD_OUTPUT_DIR"
             fi
         }
 
