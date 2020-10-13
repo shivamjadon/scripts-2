@@ -48,6 +48,13 @@
  *   Specify custom object build directory. If left empty, a directory will be
  *   created on the same path level as the kernel directory.
  *
+ *   SYNC_KL: [toggle] [0]
+ *   0 = no git commands will be executed on the kernel directory.
+ *   1 = git reset/clean/pull will be executed on the kernel directory to bring
+ *       the local state identical to the remote one. This works only on local
+ *       repo with history / non-shallow repo. Careful though, the commands will
+ *       wipe all local changes and commits!
+ *
  *   KL_REPO: [link]
  *   Specify HTTPS git link to clone if the kernel directory is missing. The
  *   clone will be shallow, i.e. without commit history. All submodules (if any)
@@ -85,6 +92,7 @@ variables() {
     BUILD_USER=
     BUILD_HOST=
     BUILD_OUTPUT_DIR=""
+    SYNC_KL=0
 
     KL_REPO=
     KL_BRANCH=
@@ -223,7 +231,8 @@ pkg_check() {
     }
 
     pkg_check_git() {
-        if [ -n "$KL_REPO" ] || [ -n "$TC_REPO" ]; then
+        if [ -n "$KL_REPO" ] || [ -n "$TC_REPO" ] || \
+           [ $SYNC_KL -eq 1 ]; then
             if ! cmd_available git; then
                 script_death "git" "127" "" "'git' is not installed" "" ""
             fi
@@ -300,6 +309,26 @@ clone() {
 
     if [ -n "$TC_REPO" ]; then
         clone_toolchain;
+    fi
+}
+
+sync() {
+    sync_kernel() {
+        cd "$KL_DIR"
+        cd_rc=$(printf "%d" "$?")
+
+        if [ $cd_rc -ne 0 ]; then
+            script_death "cd" "${cd_rc}" "$LINENO" "" "" ""
+        fi
+
+        git reset HEAD .
+        git clean -fd
+        git reset --hard "@{upstream}"
+        git pull --rebase=true
+    }
+
+    if [ $SYNC_KL -eq 1 ]; then
+        sync_kernel;
     fi
 }
 
@@ -555,6 +584,7 @@ probe_vars;
 env_check;
 pkg_check;
 clone;
+sync;
 build_kernel;
 report;
 stats;
