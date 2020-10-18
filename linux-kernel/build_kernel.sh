@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2012
 # shellcheck disable=SC2086
 # shellcheck disable=SC2164
 
@@ -62,6 +63,10 @@
  *       local repo with history / non-shallow repo. Careful though, the
  *       commands will wipe all local changes and commits!
  *
+ *   BINARY_SIZE_STATS: [toggle] [0]
+ *   0 = will show size stats in metric bytes format.
+ *   1 = will show size stats in binary bytes format.
+ *
  *   KL_REPO: [link]
  *   Specify HTTPS git link to clone if the kernel directory is missing. The
  *   clone will be shallow, i.e. without commit history. All submodules (if any)
@@ -101,6 +106,7 @@ variables() {
     BUILD_OUTPUT_DIR=""
     SYNC_KL=0
     SYNC_TC=0
+    BINARY_SIZE_STATS=0
 
     KL_REPO=
     KL_BRANCH=
@@ -116,6 +122,48 @@ helpers() {
             return 0
         else
             return 127
+        fi
+    }
+
+    convert_binary_bytes() {
+        hlps_bytes=$(printf "%s" "$1")
+
+        if [ $hlps_bytes -le 1024 ]; then
+            hlps_unit=B
+            printf "%d %s" "${hlps_bytes}" "${hlps_unit}"
+        elif [ $hlps_bytes -le 1048576 ]; then
+            hlps_unit=KiB
+            hlps_delim=$((hlps_bytes % 1024 * 1000 / 1024))
+            hlps_units=$((hlps_bytes / 1024))
+            hlps_float=$(printf "%d.%d" "${hlps_units}" "${hlps_delim}")
+            printf "%.3f %s" "${hlps_float}" "${hlps_unit}"
+        elif [ $hlps_bytes -le 1073741824 ]; then
+            hlps_unit=MiB
+            hlps_delim=$((hlps_bytes % 1048576 * 1000 / 1048576))
+            hlps_units=$((hlps_bytes / 1048576))
+            hlps_float=$(printf "%d.%d" "${hlps_units}" "${hlps_delim}")
+            printf "%.3f %s" "${hlps_float}" "${hlps_unit}"
+        fi
+    }
+
+    convert_metric_bytes() {
+        hlps_bytes=$(printf "%s" "$1")
+
+        if [ $hlps_bytes -le 1000 ]; then
+            hlps_unit=B
+            printf "%d %s" "${hlps_bytes}" "${hlps_unit}"
+        elif [ $hlps_bytes -le 1000000 ]; then
+            hlps_unit=KB
+            hlps_delim=$((hlps_bytes % 1000 * 1000 / 1000))
+            hlps_units=$((hlps_bytes / 1000))
+            hlps_float=$(printf "%d.%d" "${hlps_units}" "${hlps_delim}")
+            printf "%.3f %s" "${hlps_float}" "${hlps_unit}"
+        elif [ $hlps_bytes -le 1000000000 ]; then
+            hlps_unit=MB
+            hlps_delim=$((hlps_bytes % 1000000 * 1000 / 1000000))
+            hlps_units=$((hlps_bytes / 1000000))
+            hlps_float=$(printf "%d.%d" "${hlps_units}" "${hlps_delim}")
+            printf "%.3f %s" "${hlps_float}" "${hlps_unit}"
         fi
     }
 
@@ -589,6 +637,74 @@ stats() {
         stats_comp_exec;
     }
 
+    stats_img() {
+        stats_img_work() {
+            stats_img_work_vars() {
+                kl_img0="$kl_out_dir"/arch/$KL_ARCH/boot/bzImage
+                kl_img1="$kl_out_dir"/arch/$KL_ARCH/boot/Image.gz
+                kl_img_dtb0="$kl_out_dir"/arch/$KL_ARCH/boot/Image.gz-dtb
+            }
+
+            stats_img_work_cmds() {
+                if [ -f "$kl_img0" ]; then
+                    kl_img="$kl_img0"
+                elif [ -f "$kl_img1" ]; then
+                    kl_img="$kl_img1"
+                fi
+
+                if [ -f "$kl_img_dtb0" ]; then
+                    kl_img_dtb="$kl_img_dtb0"
+                fi
+
+                if [ -n "$kl_img" ]; then
+                    kl_img_bytes=$(ls -n "$kl_img" | awk '{print $5}')
+
+                    if [ $BINARY_SIZE_STATS -eq 1 ]; then
+                        kl_img_size=$(convert_binary_bytes "$kl_img_bytes")
+                    else
+                        kl_img_size=$(convert_metric_bytes "$kl_img_bytes")
+                    fi
+                fi
+
+                if [ -n "$kl_img_dtb" ]; then
+                    kl_img_dtb_bytes=$(ls -n "$kl_img_dtb" | awk '{print $5}')
+
+                    if [ $BINARY_SIZE_STATS -eq 1 ]; then
+                        kl_img_dtb_size=$(convert_binary_bytes \
+                                          "$kl_img_dtb_bytes")
+                    else
+                        kl_img_dtb_size=$(convert_metric_bytes \
+                                          "$kl_img_dtb_bytes")
+                    fi
+                fi
+            }
+
+            stats_img_work_vars;
+            stats_img_work_cmds;
+        }
+
+        stats_img_exec() {
+            if [ -n "$kl_img" ]; then
+                printf "> Image location: %s" "${kl_img}"
+                echo
+
+                printf "> Image size: %s" "${kl_img_size}"
+                echo
+            fi
+
+            if [ -n "$kl_img_dtb" ]; then
+                printf "> Image-dtb location: %s" "${kl_img_dtb}"
+                echo
+
+                printf "> Image-dtb size: %s" "${kl_img_dtb_size}"
+                echo
+            fi
+        }
+
+        stats_img_work;
+        stats_img_exec;
+    }
+
     stats_post() {
         text_clr "def"
     }
@@ -597,6 +713,7 @@ stats() {
     stats_user;
     stats_host;
     stats_comp;
+    stats_img;
     stats_post;
 }
 
