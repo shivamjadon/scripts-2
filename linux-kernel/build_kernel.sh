@@ -418,6 +418,7 @@ build_kernel() {
             cpu_avl_cores=$(nproc --all)
             gcc_loc=$(command -v gcc)
             ccache_loc=$(command -v ccache)
+            cache_file0="$HOME"/.bkcache0
 
             if [ -n "$CORES" ]; then
                 cpu_avl_cores=${CORES}
@@ -434,6 +435,15 @@ build_kernel() {
                     kl_conf_make="$kl_vendor_conf_make"
                 else
                     script_death "" "" "" "Cannot find ${KL_DCONF}" "" ""
+                fi
+            fi
+
+            if [ -f "$cache_file0" ]; then
+                grep -Fq "kl.dir=${KL_DIR}" "$cache_file0"
+                grep_rc=$(printf "%d" "$?")
+
+                if [ $grep_rc -ne 0 ]; then
+                    rm -f "$cache_file0"
                 fi
             fi
 
@@ -718,7 +728,35 @@ stats() {
 }
 
 finish() {
-    echo
+    finish_work() {
+        rm -f "$cache_file0"
+        touch "$cache_file0"
+
+        {
+            printf "kl.dir=%s\n" "${KL_DIR}"
+            printf "user=%s\n" "${KBUILD_BUILD_USER}"
+            printf "host=%s\n" "${KBUILD_BUILD_HOST}"
+            printf "comp.time=%dm%ds\n" "${comp_time_mins}" "${comp_time_secs}"
+            printf "comp.finish=%s\n" "${bfdate}"
+
+            if [ -n "$kl_img" ]; then
+                printf "img.loc=%s\n" "${kl_img}"
+                printf "img.size=%s\n" "${kl_img_size}"
+            fi
+
+            if [ -n "$kl_img_dtb" ]; then
+                printf "img.dtb.loc=%s\n" "${kl_img_dtb}"
+                printf "img.dtb.size=%s\n" "${kl_img_dtb_size}"
+            fi
+        } >> "$cache_file0"
+    }
+
+    finish_exec() {
+        echo
+    }
+
+    finish_work;
+    finish_exec;
 }
 
 variables;
