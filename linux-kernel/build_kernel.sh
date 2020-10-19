@@ -687,6 +687,22 @@ stats() {
                                           "$kl_img_dtb_bytes")
                     fi
                 fi
+
+                if [ -f "$cache_file0" ]; then
+                    if grep -Fq "img.size" "$cache_file0"; then
+                        kl_img_size_old=$(grep img.size "$cache_file0" | \
+                                          cut -d "=" -f2)
+                        kl_img_size_old=$(printf " (prev %s)" \
+                                          "${kl_img_size_old}")
+                    fi
+
+                    if grep -Fq "img.dtb.size" "$cache_file0"; then
+                        kl_img_dtb_size_old=$(grep img.dtb.size \
+                                              "$cache_file0" | cut -d "=" -f2)
+                        kl_img_dtb_size_old=$(printf " (prev %s)" \
+                                              "${kl_img_dtb_size_old}")
+                    fi
+                fi
             }
 
             stats_img_work_vars;
@@ -699,6 +715,9 @@ stats() {
                 echo
 
                 printf "> Image size: %s" "${kl_img_size}"
+                if [ -n "$kl_img_size_old" ]; then
+                    printf "%s" "${kl_img_size_old}"
+                fi
                 echo
             fi
 
@@ -707,6 +726,9 @@ stats() {
                 echo
 
                 printf "> Image-dtb size: %s" "${kl_img_dtb_size}"
+                if [ -n "$kl_img_dtb_size_old" ]; then
+                    printf "%s" "${kl_img_dtb_size_old}"
+                fi
                 echo
             fi
         }
