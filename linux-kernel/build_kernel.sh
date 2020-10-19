@@ -22,58 +22,6 @@
  *   Specify directory that contains a cross compiler. If left empty, only the
  *   host compiler will be used.
  *
- *   CCACHE: [toggle] [0]
- *   0 = 'ccache' will not be used.
- *   1 = 'ccache' will be used.
- *
- *   CORES: [value] [X]
- *   Specify how many CPU cores to use. If left empty, all cores will be used.
- *
- *   LOCALVERSION: [string]
- *   Append a string to the kernel release. For example, a string such as "-wow"
- *   will set the kernel release version from "5.8.7" to "5.8.7-wow", assuming
- *   no external modifications take place.
- *
- *   CLEAN_BUILD: [toggle] [0]
- *   0 = the script will not perform any kind of build cleaning.
- *   1 = the script will delete output files from previous build and/or run
- *       'make clean && make mrproper' where appropriate.
- *
- *   BUILD_USER: [string]
- *   The string entered here will be shown for kernel build user.
- *
- *   BUILD_HOST: [string]
- *   The string entered here will be shown for kernel build host.
- *
- *   BUILD_OUTPUT_DIR: [path]
- *   Specify custom object build directory. If left empty, a directory will be
- *   created on the same path level as the kernel directory.
- *
- *   SYNC_KL: [toggle] [0]
- *   0 = no git commands will be executed on the kernel directory.
- *   1 = git reset/clean/pull will be executed on the kernel directory to bring
- *       the local state identical to the remote one. This works only on local
- *       repo with history / non-shallow repo. Careful though, the commands will
- *       wipe all local changes and commits!
- *
- *   SYNC_TC: [toggle] [0]
- *   0 = no git commands will be executed on the toolchain directory.
- *   1 = git reset/clean/pull will be executed on the toolchain directory to
- *       bring the local state identical to the remote one. This works only on
- *       local repo with history / non-shallow repo. Careful though, the
- *       commands will wipe all local changes and commits!
- *
- *   SYNC_ZP: [toggle] [0]
- *   0 = no git commands will be executed on the zipper directory.
- *   1 = git reset/clean/pull will be executed on the zipper directory to bring
- *       the local state identical to the remote one. This works only on local
- *       repo with history / non-shallow repo. Careful though, the commands will
- *       wipe all local changes and commits!
- *
- *   BINARY_SIZE_STATS: [toggle] [0]
- *   0 = will show size stats in metric bytes format.
- *   1 = will show size stats in binary bytes format.
- *
  *   ZP_DIR: [path]
  *   Specify a directory to which the image has to be sent. It will be zipped
  *   alongside the directory's files.
@@ -96,6 +44,58 @@
  *   1 = will copy the kernel DTB image (specific to arm64). Only enable this
  *       if you are sure there is DTB image to copy, otherwise you will be left
  *       without a kernel image.
+ *
+ *   BUILD_OUTPUT_DIR: [path]
+ *   Specify custom object build directory. If left empty, a directory will be
+ *   created on the same path level as the kernel directory.
+ *
+ *   BUILD_USER: [string]
+ *   The string entered here will be shown for kernel build user.
+ *
+ *   BUILD_HOST: [string]
+ *   The string entered here will be shown for kernel build host.
+ *
+ *   LOCALVERSION: [string]
+ *   Append a string to the kernel release. For example, a string such as "-wow"
+ *   will set the kernel release version from "5.8.7" to "5.8.7-wow", assuming
+ *   no external modifications take place.
+ *
+ *   CORES: [value] [X]
+ *   Specify how many CPU cores to use. If left empty, all cores will be used.
+ *
+ *   BINARY_SIZE_STATS: [toggle] [0]
+ *   0 = will show size stats in metric bytes format.
+ *   1 = will show size stats in binary bytes format.
+ *
+ *   CCACHE: [toggle] [0]
+ *   0 = 'ccache' will not be used.
+ *   1 = 'ccache' will be used.
+ *
+ *   CLEAN_BUILD: [toggle] [0]
+ *   0 = the script will not perform any kind of build cleaning.
+ *   1 = the script will delete output files from previous build and/or run
+ *       'make clean && make mrproper' where appropriate.
+ *
+ *   SYNC_KL: [toggle] [0]
+ *   0 = no git commands will be executed on the kernel directory.
+ *   1 = git reset/clean/pull will be executed on the kernel directory to bring
+ *       the local state identical to the remote one. This works only on local
+ *       repo with history / non-shallow repo. Careful though, the commands will
+ *       wipe all local changes and commits!
+ *
+ *   SYNC_TC: [toggle] [0]
+ *   0 = no git commands will be executed on the toolchain directory.
+ *   1 = git reset/clean/pull will be executed on the toolchain directory to
+ *       bring the local state identical to the remote one. This works only on
+ *       local repo with history / non-shallow repo. Careful though, the
+ *       commands will wipe all local changes and commits!
+ *
+ *   SYNC_ZP: [toggle] [0]
+ *   0 = no git commands will be executed on the zipper directory.
+ *   1 = git reset/clean/pull will be executed on the zipper directory to bring
+ *       the local state identical to the remote one. This works only on local
+ *       repo with history / non-shallow repo. Careful though, the commands will
+ *       wipe all local changes and commits!
  *
  *   KL_REPO: [link]
  *   Specify HTTPS git link to clone if the kernel directory is missing. The
@@ -136,23 +136,26 @@ variables() {
     KL_ARCH=
 
     TC_DIR=""
-    CCACHE=0
-    CORES=
-    LOCALVERSION=
-    CLEAN_BUILD=0
-    BUILD_USER=
-    BUILD_HOST=
-    BUILD_OUTPUT_DIR=""
-    SYNC_KL=0
-    SYNC_TC=0
-    SYNC_ZP=0
-    BINARY_SIZE_STATS=0
     ZP_DIR=""
     ZP_KL_NAME=
     ZP_KL_VERSION=
     ZP_KL_DEVICE=
     ZP_APPEND_DATE=1
     ZP_COPY_DTB_IMG=0
+    BUILD_OUTPUT_DIR=""
+
+    BUILD_USER=
+    BUILD_HOST=
+    LOCALVERSION=
+
+    CORES=
+    BINARY_SIZE_STATS=0
+    CCACHE=0
+    CLEAN_BUILD=0
+
+    SYNC_KL=0
+    SYNC_TC=0
+    SYNC_ZP=0
 
     KL_REPO=
     KL_BRANCH=
