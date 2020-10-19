@@ -63,9 +63,39 @@
  *       local repo with history / non-shallow repo. Careful though, the
  *       commands will wipe all local changes and commits!
  *
+ *   SYNC_ZP: [toggle] [0]
+ *   0 = no git commands will be executed on the zipper directory.
+ *   1 = git reset/clean/pull will be executed on the zipper directory to bring
+ *       the local state identical to the remote one. This works only on local
+ *       repo with history / non-shallow repo. Careful though, the commands will
+ *       wipe all local changes and commits!
+ *
  *   BINARY_SIZE_STATS: [toggle] [0]
  *   0 = will show size stats in metric bytes format.
  *   1 = will show size stats in binary bytes format.
+ *
+ *   ZP_DIR: [path]
+ *   Specify a directory to which the image has to be sent. It will be zipped
+ *   alongside the directory's files.
+ *
+ *   ZP_KL_NAME: [essential if ZP_DIR] [string]
+ *   Specify kernel name string to append to the filename of the zip.
+ *
+ *   ZP_KL_VERSION: [string]
+ *   Specify version string to append to the filename of the zip.
+ *
+ *   ZP_KL_DEVICE: [string]
+ *   Specify device string to append to the filename of the zip.
+ *
+ *   ZP_APPEND_DATE: [toggle] [1]
+ *   0 = will not append YYYY/MM/DD date string to the filename of the zip.
+ *   1 = will append YYYY/MM/DD date string to the filename of the zip.
+ *
+ *   ZP_COPY_DTB_IMG: [toggle] [0]
+ *   0 = will copy the kernel image.
+ *   1 = will copy the kernel DTB image (specific to arm64). Only enable this
+ *       if you are sure there is DTB image to copy, otherwise you will be left
+ *       without a kernel image.
  *
  *   KL_REPO: [link]
  *   Specify HTTPS git link to clone if the kernel directory is missing. The
@@ -83,6 +113,15 @@
  *
  *   TC_BRANCH: [string]
  *   Specify which toolchain branch to clone. If left empty, the default branch
+ *   will be cloned.
+ *
+ *   ZP_REPO: [link]
+ *   Specify HTTPS git link to clone if the zipper directory is missing. The
+ *   clone will be shallow, i.e. without commit history. All submodules (if any)
+ *   will also be shallow cloned.
+ *
+ *   ZP_BRANCH: [string]
+ *   Specify which zipper branch to clone. If left empty, the default branch
  *   will be cloned.
  *
  * SPDX-License-Identifier: GPL-3.0
@@ -106,12 +145,21 @@ variables() {
     BUILD_OUTPUT_DIR=""
     SYNC_KL=0
     SYNC_TC=0
+    SYNC_ZP=0
     BINARY_SIZE_STATS=0
+    ZP_DIR=""
+    ZP_KL_NAME=
+    ZP_KL_VERSION=
+    ZP_KL_DEVICE=
+    ZP_APPEND_DATE=1
+    ZP_COPY_DTB_IMG=0
 
     KL_REPO=
     KL_BRANCH=
     TC_REPO=
     TC_BRANCH=
+    ZP_REPO=
+    ZP_BRANCH=
 }
 
 helpers() {
@@ -257,6 +305,12 @@ probe_vars() {
     if [ -z $KL_ARCH ]; then
         script_death "" "" "" "KL_ARCH is empty" "" ""
     fi
+
+    if [ -n "$ZP_DIR" ]; then
+        if [ -z $ZP_KL_NAME ]; then
+            script_death "" "" "" "ZP_KL_NAME is empty" "" ""
+        fi
+    fi
 }
 
 env_check() {
@@ -288,9 +342,19 @@ pkg_check() {
 
     pkg_check_git() {
         if [ -n "$KL_REPO" ] || [ -n "$TC_REPO" ] || \
-           [ $SYNC_KL -eq 1 ] || [ $SYNC_TC -eq 1 ]; then
+           [ -n "$ZP_REPO" ] || [ $SYNC_KL -eq 1 ] || \
+           [ $SYNC_TC -eq 1 ] || [ $SYNC_ZP -eq 1 ] || \
+           [ -n "$ZP_DIR" ]; then
             if ! cmd_available git; then
                 script_death "git" "127" "" "'git' is not installed" "" ""
+            fi
+        fi
+    }
+
+    pkg_check_zip() {
+        if [ -n "$ZP_DIR" ]; then
+            if ! cmd_available zip; then
+                script_death "zip" "127" "" "'zip' is not installed" "" ""
             fi
         fi
     }
@@ -298,6 +362,7 @@ pkg_check() {
     pkg_check_coreutils;
     pkg_check_ccache;
     pkg_check_git;
+    pkg_check_zip;
 }
 
 clone() {
@@ -326,12 +391,28 @@ clone() {
             fi
         }
 
+        clone_work_zipper() {
+            zp_clone_cmd=$ZP_REPO
+            zp_clone_cmd="${zp_clone_cmd} ${ZP_DIR}"
+            zp_clone_cmd="${zp_clone_cmd} --depth 1"
+            zp_clone_cmd="${zp_clone_cmd} --shallow-submodules"
+            zp_clone_cmd="${zp_clone_cmd} --recursive"
+
+            if [ -n "$ZP_BRANCH" ]; then
+                zp_clone_cmd="${zp_clone_cmd} --branch ${ZP_BRANCH}"
+            fi
+        }
+
         if [ -n "$KL_REPO" ]; then
             clone_work_kernel;
         fi
 
         if [ -n "$TC_REPO" ]; then
             clone_work_toolchain;
+        fi
+
+        if [ -n "$ZP_REPO" ]; then
+            clone_work_zipper;
         fi
     }
 
@@ -357,6 +438,17 @@ clone() {
         fi
     }
 
+    clone_zipper() {
+        if [ ! -d "$ZP_DIR" ]; then
+            git clone ${zp_clone_cmd}
+            git_rc=$(printf "%d" "$?")
+        fi
+
+        if [ ! -d "$ZP_DIR" ]; then
+            script_death "git" "${git_rc}" "" "Zipper clone failed" "" ""
+        fi
+    }
+
     clone_work;
 
     if [ -n "$KL_REPO" ]; then
@@ -365,6 +457,10 @@ clone() {
 
     if [ -n "$TC_REPO" ]; then
         clone_toolchain;
+    fi
+
+    if [ -n "$ZP_REPO" ]; then
+        clone_zipper;
     fi
 }
 
@@ -397,12 +493,30 @@ sync() {
         git pull --rebase=true
     }
 
+    sync_zipper() {
+        cd "$ZP_DIR"
+        cd_rc=$(printf "%d" "$?")
+
+        if [ $cd_rc -ne 0 ]; then
+            script_death "cd" "${cd_rc}" "$LINENO" "" "" ""
+        fi
+
+        git reset HEAD .
+        git clean -fd
+        git reset --hard "@{upstream}"
+        git pull --rebase=true
+    }
+
     if [ $SYNC_KL -eq 1 ]; then
         sync_kernel;
     fi
 
     if [ $SYNC_TC -eq 1 ]; then
         sync_toolchain;
+    fi
+
+    if [ $SYNC_ZP -eq 1 ]; then
+        sync_zipper;
     fi
 }
 
@@ -598,6 +712,84 @@ report() {
     report_success;
 }
 
+zipper() {
+    zipper_work() {
+        zipper_work_vars() {
+            kl_img0="$kl_out_dir"/arch/$KL_ARCH/boot/bzImage
+            kl_img1="$kl_out_dir"/arch/$KL_ARCH/boot/Image.gz
+            kl_img_dtb0="$kl_out_dir"/arch/$KL_ARCH/boot/Image.gz-dtb
+            ymd_date=$(date +%Y%m%d)
+        }
+
+        zipper_work_cmds() {
+            if [ -f "$kl_img0" ]; then
+                kl_img="$kl_img0"
+            elif [ -f "$kl_img1" ]; then
+                kl_img="$kl_img1"
+            fi
+
+            if [ -f "$kl_img_dtb0" ]; then
+                kl_img_dtb="$kl_img_dtb0"
+            fi
+
+            cd "$ZP_DIR"
+            cd_rc=$(printf "%d" "$?")
+
+            if [ $cd_rc -ne 0 ]; then
+                script_death "cd" "${cd_rc}" "$LINENO" "" "" ""
+            fi
+
+            git clean -fdxq
+        }
+
+        zipper_work_filename() {
+            zp_filename=$ZP_KL_NAME
+
+            if [ -n "$ZP_KL_VERSION" ]; then
+                zp_filename=${zp_filename}-$ZP_KL_VERSION
+            fi
+
+            if [ -n "$ZP_KL_DEVICE" ]; then
+                zp_filename=${zp_filename}-$ZP_KL_DEVICE
+            fi
+
+            if [ $ZP_APPEND_DATE -eq 1 ]; then
+                zp_filename=${zp_filename}-$ymd_date
+            fi
+
+            zp_filename=${zp_filename}.zip
+        }
+
+        zipper_work_vars;
+        zipper_work_cmds;
+        zipper_work_filename;
+    }
+
+    zipper_exec() {
+        zipper_exec_copy() {
+            if [ $ZP_COPY_DTB_IMG -eq 1 ]; then
+                if [ -n "$kl_img_dtb" ]; then
+                    cp "$kl_img_dtb" "$ZP_DIR"
+                fi
+            else
+                if [ -n "$kl_img" ]; then
+                    cp "$kl_img" "$ZP_DIR"
+                fi
+            fi
+        }
+
+        zipper_exec_zip() {
+            zip -qFSr9 $zp_filename ./* -x .git
+        }
+
+        zipper_exec_copy;
+        zipper_exec_zip;
+    }
+
+    zipper_work;
+    zipper_exec;
+}
+
 stats() {
     stats_work() {
         echo
@@ -737,6 +929,58 @@ stats() {
         stats_img_exec;
     }
 
+    stats_zip() {
+        stats_zip_work() {
+            stats_zip_work_vars() {
+                zp_file0="$ZP_DIR"/$zp_filename
+            }
+
+            stats_zip_work_cmds() {
+                if [ -f "$zp_file0" ]; then
+                    zp_file="$zp_file0"
+                fi
+
+                if [ -n "$zp_file" ]; then
+                    zp_file_bytes=$(ls -n "$zp_file" | awk '{print $5}')
+
+                    if [ $BINARY_SIZE_STATS -eq 1 ]; then
+                        zp_file_size=$(convert_binary_bytes "$zp_file_bytes")
+                    else
+                        zp_file_size=$(convert_metric_bytes "$zp_file_bytes")
+                    fi
+                fi
+
+                if [ -f "$cache_file0" ]; then
+                    if grep -Fq "zip.size" "$cache_file0"; then
+                        zp_file_size_old=$(grep zip.size "$cache_file0" | \
+                                           cut -d "=" -f2)
+                        zp_file_size_old=$(printf " (prev %s)" \
+                                           "${zp_file_size_old}")
+                    fi
+                fi
+            }
+
+            stats_zip_work_vars;
+            stats_zip_work_cmds;
+        }
+
+        stats_zip_exec() {
+            if [ -n "$zp_file" ]; then
+                printf "> Zip location: %s" "${zp_file}"
+                echo
+
+                printf "> Zip size: %s" "${zp_file_size}"
+                if [ -n "$zp_file_size_old" ]; then
+                    printf "%s" "${zp_file_size_old}"
+                fi
+                echo
+            fi
+        }
+
+        stats_zip_work;
+        stats_zip_exec;
+    }
+
     stats_post() {
         text_clr "def"
     }
@@ -746,6 +990,7 @@ stats() {
     stats_host;
     stats_comp;
     stats_img;
+    stats_zip;
     stats_post;
 }
 
@@ -770,6 +1015,11 @@ finish() {
                 printf "img.dtb.loc=%s\n" "${kl_img_dtb}"
                 printf "img.dtb.size=%s\n" "${kl_img_dtb_size}"
             fi
+
+            if [ -n "$zp_file" ]; then
+                printf "zip.loc=%s\n" "${zp_file}"
+                printf "zip.size=%s\n" "${zp_file_size}"
+            fi
         } >> "$cache_file0"
     }
 
@@ -790,5 +1040,10 @@ clone;
 sync;
 build_kernel;
 report;
+
+if [ -n "$ZP_DIR" ]; then
+    zipper;
+fi
+
 stats;
 finish;
