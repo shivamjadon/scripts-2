@@ -35,7 +35,7 @@
  *   ZP_KL_DEVICE: [string]
  *   Specify device string to append to the filename of the zip.
  *
- *   ZP_APPEND_DATE: [toggle] [1]
+ *   ZP_APPEND_DATE: [toggle] [0]
  *   0 = will not append YYYY/MM/DD date string to the filename of the zip.
  *   1 = will append YYYY/MM/DD date string to the filename of the zip.
  *
@@ -140,7 +140,7 @@ variables() {
     ZP_KL_NAME=
     ZP_KL_VERSION=
     ZP_KL_DEVICE=
-    ZP_APPEND_DATE=1
+    ZP_APPEND_DATE=0
     ZP_COPY_DTB_IMG=0
     BUILD_OUTPUT_DIR=""
 
