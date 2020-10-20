@@ -869,6 +869,14 @@ stats() {
                     else
                         kl_img_size=$(convert_metric_bytes "$kl_img_bytes")
                     fi
+
+                    if cmd_available md5sum; then
+                        kl_img_md5=$(md5sum "$kl_img" | cut -d ' ' -f 1)
+                    fi
+
+                    if cmd_available sha1sum; then
+                        kl_img_sha1=$(sha1sum "$kl_img" | cut -d ' ' -f 1)
+                    fi
                 fi
 
                 if [ -n "$kl_img_dtb" ]; then
@@ -880,6 +888,16 @@ stats() {
                     else
                         kl_img_dtb_size=$(convert_metric_bytes \
                                           "$kl_img_dtb_bytes")
+                    fi
+
+                    if cmd_available md5sum; then
+                        kl_img_dtb_md5=$(md5sum "$kl_img_dtb" | \
+                                         cut -d ' ' -f 1)
+                    fi
+
+                    if cmd_available sha1sum; then
+                        kl_img_dtb_sha1=$(sha1sum "$kl_img_dtb" | \
+                                          cut -d ' ' -f 1)
                     fi
                 fi
 
@@ -914,6 +932,16 @@ stats() {
                     printf "%s" "${kl_img_size_old}"
                 fi
                 echo
+
+                if [ -n "$kl_img_md5" ]; then
+                    printf "> Image MD5: %s" "${kl_img_md5}"
+                    echo
+                fi
+
+                if [ -n "$kl_img_sha1" ]; then
+                    printf "> Image SHA-1: %s" "${kl_img_sha1}"
+                    echo
+                fi
             fi
 
             if [ -n "$kl_img_dtb" ]; then
@@ -925,6 +953,16 @@ stats() {
                     printf "%s" "${kl_img_dtb_size_old}"
                 fi
                 echo
+
+                if [ -n "$kl_img_dtb_md5" ]; then
+                    printf "> Image-dtb MD5: %s" "${kl_img_dtb_md5}"
+                    echo
+                fi
+
+                if [ -n "$kl_img_dtb_sha1" ]; then
+                    printf "> Image-dtb SHA-1: %s" "${kl_img_dtb_sha1}"
+                    echo
+                fi
             fi
         }
 
@@ -950,6 +988,14 @@ stats() {
                         zp_file_size=$(convert_binary_bytes "$zp_file_bytes")
                     else
                         zp_file_size=$(convert_metric_bytes "$zp_file_bytes")
+                    fi
+
+                    if cmd_available md5sum; then
+                        zp_file_md5=$(md5sum "$zp_file" | cut -d ' ' -f 1)
+                    fi
+
+                    if cmd_available sha1sum; then
+                        zp_file_sha1=$(sha1sum "$zp_file" | cut -d ' ' -f 1)
                     fi
                 fi
 
@@ -977,6 +1023,16 @@ stats() {
                     printf "%s" "${zp_file_size_old}"
                 fi
                 echo
+
+                if [ -n "$zp_file_md5" ]; then
+                    printf "> Zip MD5: %s" "${zp_file_md5}"
+                    echo
+                fi
+
+                if [ -n "$zp_file_sha1" ]; then
+                    printf "> Zip SHA-1: %s" "${zp_file_sha1}"
+                    echo
+                fi
             fi
         }
 
@@ -1012,16 +1068,40 @@ finish() {
             if [ -n "$kl_img" ]; then
                 printf "img.loc=%s\n" "${kl_img}"
                 printf "img.size=%s\n" "${kl_img_size}"
+
+                if [ -n "$kl_img_md5" ]; then
+                    printf "img.md5=%s\n" "${kl_img_md5}"
+                fi
+
+                if [ -n "$kl_img_sha1" ]; then
+                    printf "img.sha1=%s\n" "${kl_img_sha1}"
+                fi
             fi
 
             if [ -n "$kl_img_dtb" ]; then
                 printf "img.dtb.loc=%s\n" "${kl_img_dtb}"
                 printf "img.dtb.size=%s\n" "${kl_img_dtb_size}"
+
+                if [ -n "$kl_img_dtb_md5" ]; then
+                    printf "img.dtb.md5=%s\n" "${kl_img_dtb_md5}"
+                fi
+
+                if [ -n "$kl_img_dtb_sha1" ]; then
+                    printf "img.dtb.sha1=%s\n" "${kl_img_dtb_sha1}"
+                fi
             fi
 
             if [ -n "$zp_file" ]; then
                 printf "zip.loc=%s\n" "${zp_file}"
                 printf "zip.size=%s\n" "${zp_file_size}"
+
+                if [ -n "$zp_file_md5" ]; then
+                    printf "zip.md5=%s\n" "${zp_file_md5}"
+                fi
+
+                if [ -n "$zp_file_sha1" ]; then
+                    printf "zip.sha1=%s\n" "${zp_file_sha1}"
+                fi
             fi
         } >> "$cache_file0"
     }
