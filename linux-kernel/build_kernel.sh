@@ -1062,7 +1062,7 @@ finish() {
             printf "kl.dir=%s\n" "${KL_DIR}"
             printf "user=%s\n" "${KBUILD_BUILD_USER}"
             printf "host=%s\n" "${KBUILD_BUILD_HOST}"
-            printf "comp.time=%dm%ds\n" "${comp_time_mins}" "${comp_time_secs}"
+            printf "comp.time=%dm %ds\n" "${comp_time_mins}" "${comp_time_secs}"
             printf "comp.finish=%s\n" "${bfdate}"
 
             if [ -n "$kl_img" ]; then
