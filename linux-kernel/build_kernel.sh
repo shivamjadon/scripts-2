@@ -6,7 +6,7 @@
 : <<'notice'
  *
  * Script information:
- *   Advanced universal script for kernel building.
+ *   Advanced universal script for Linux kernel building.
  *
  * Usage:
  *   KL_DIR: [essential] [path]
