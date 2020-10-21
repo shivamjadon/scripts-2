@@ -63,10 +63,6 @@
  *   CORES: [value] [X]
  *   Specify how many CPU cores to use. If left empty, all cores will be used.
  *
- *   BINARY_SIZE_STATS: [toggle] [0]
- *   0 = will show size stats in metric bytes format.
- *   1 = will show size stats in binary bytes format.
- *
  *   CCACHE: [toggle] [0]
  *   0 = 'ccache' will not be used.
  *   1 = 'ccache' will be used.
@@ -149,7 +145,6 @@ variables() {
     LOCALVERSION=
 
     CORES=
-    BINARY_SIZE_STATS=0
     CCACHE=0
     CLEAN_BUILD=0
 
@@ -863,12 +858,8 @@ stats() {
 
                 if [ -n "$kl_img" ]; then
                     kl_img_bytes=$(ls -n "$kl_img" | awk '{print $5}')
-
-                    if [ $BINARY_SIZE_STATS -eq 1 ]; then
-                        kl_img_size=$(convert_binary_bytes "$kl_img_bytes")
-                    else
-                        kl_img_size=$(convert_metric_bytes "$kl_img_bytes")
-                    fi
+                    kl_img_bsize=$(convert_binary_bytes "$kl_img_bytes")
+                    kl_img_msize=$(convert_metric_bytes "$kl_img_bytes")
 
                     if cmd_available md5sum; then
                         kl_img_md5=$(md5sum "$kl_img" | cut -d ' ' -f 1)
@@ -881,14 +872,8 @@ stats() {
 
                 if [ -n "$kl_img_dtb" ]; then
                     kl_img_dtb_bytes=$(ls -n "$kl_img_dtb" | awk '{print $5}')
-
-                    if [ $BINARY_SIZE_STATS -eq 1 ]; then
-                        kl_img_dtb_size=$(convert_binary_bytes \
-                                          "$kl_img_dtb_bytes")
-                    else
-                        kl_img_dtb_size=$(convert_metric_bytes \
-                                          "$kl_img_dtb_bytes")
-                    fi
+                    kl_img_dtb_bsize=$(convert_binary_bytes "$kl_img_dtb_bytes")
+                    kl_img_dtb_msize=$(convert_metric_bytes "$kl_img_dtb_bytes")
 
                     if cmd_available md5sum; then
                         kl_img_dtb_md5=$(md5sum "$kl_img_dtb" | \
@@ -902,18 +887,38 @@ stats() {
                 fi
 
                 if [ -f "$cache_file0" ]; then
-                    if grep -Fq "img.size" "$cache_file0"; then
-                        kl_img_size_old=$(grep img.size "$cache_file0" | \
-                                          cut -d "=" -f2)
-                        kl_img_size_old=$(printf " (prev %s)" \
-                                          "${kl_img_size_old}")
+                    if grep -Fq "img.bsize" "$cache_file0"; then
+                        kl_img_bsize_old=$(grep img.bsize "$cache_file0" | \
+                                           cut -d "=" -f2)
                     fi
 
-                    if grep -Fq "img.dtb.size" "$cache_file0"; then
-                        kl_img_dtb_size_old=$(grep img.dtb.size \
-                                              "$cache_file0" | cut -d "=" -f2)
-                        kl_img_dtb_size_old=$(printf " (prev %s)" \
-                                              "${kl_img_dtb_size_old}")
+                    if grep -Fq "img.msize" "$cache_file0"; then
+                        kl_img_msize_old=$(grep img.msize "$cache_file0" | \
+                                           cut -d "=" -f2)
+                    fi
+
+                    if grep -Fq "img.dtb.bsize" "$cache_file0"; then
+                        kl_img_dtb_bsize_old=$(grep img.dtb.bsize \
+                                               "$cache_file0" | cut -d "=" -f2)
+                    fi
+
+                    if grep -Fq "img.dtb.msize" "$cache_file0"; then
+                        kl_img_dtb_msize_old=$(grep img.dtb.msize \
+                                               "$cache_file0" | cut -d "=" -f2)
+                    fi
+
+                    if [ -n "$kl_img_bsize_old" ] && \
+                       [ -n "$kl_img_msize_old" ]; then
+                        kl_img_size_old=$(printf " (prev %s / %s)" \
+                                          "${kl_img_bsize_old}" \
+                                          "${kl_img_msize_old}")
+                    fi
+
+                    if [ -n "$kl_img_dtb_bsize_old" ] && \
+                       [ -n "$kl_img_dtb_msize_old" ]; then
+                        kl_img_dtb_size_old=$(printf " (prev %s / %s)" \
+                                              "${kl_img_dtb_bsize_old}" \
+                                              "${kl_img_dtb_msize_old}")
                     fi
                 fi
             }
@@ -927,7 +932,8 @@ stats() {
                 printf "> Image location: %s" "${kl_img}"
                 echo
 
-                printf "> Image size: %s" "${kl_img_size}"
+                printf "> Image size: %s / %s" "${kl_img_bsize}" \
+                                               "${kl_img_msize}"
                 if [ -n "$kl_img_size_old" ]; then
                     printf "%s" "${kl_img_size_old}"
                 fi
@@ -948,7 +954,8 @@ stats() {
                 printf "> Image-dtb location: %s" "${kl_img_dtb}"
                 echo
 
-                printf "> Image-dtb size: %s" "${kl_img_dtb_size}"
+                printf "> Image-dtb size: %s / %s" "${kl_img_dtb_bsize}" \
+                                                   "${kl_img_dtb_msize}"
                 if [ -n "$kl_img_dtb_size_old" ]; then
                     printf "%s" "${kl_img_dtb_size_old}"
                 fi
@@ -983,12 +990,8 @@ stats() {
 
                 if [ -n "$zp_file" ]; then
                     zp_file_bytes=$(ls -n "$zp_file" | awk '{print $5}')
-
-                    if [ $BINARY_SIZE_STATS -eq 1 ]; then
-                        zp_file_size=$(convert_binary_bytes "$zp_file_bytes")
-                    else
-                        zp_file_size=$(convert_metric_bytes "$zp_file_bytes")
-                    fi
+                    zp_file_bsize=$(convert_binary_bytes "$zp_file_bytes")
+                    zp_file_msize=$(convert_metric_bytes "$zp_file_bytes")
 
                     if cmd_available md5sum; then
                         zp_file_md5=$(md5sum "$zp_file" | cut -d ' ' -f 1)
@@ -1000,11 +1003,21 @@ stats() {
                 fi
 
                 if [ -f "$cache_file0" ]; then
-                    if grep -Fq "zip.size" "$cache_file0"; then
-                        zp_file_size_old=$(grep zip.size "$cache_file0" | \
-                                           cut -d "=" -f2)
-                        zp_file_size_old=$(printf " (prev %s)" \
-                                           "${zp_file_size_old}")
+                    if grep -Fq "zip.bsize" "$cache_file0"; then
+                        zp_file_bsize_old=$(grep zip.bsize "$cache_file0" | \
+                                            cut -d "=" -f2)
+                    fi
+
+                    if grep -Fq "zip.msize" "$cache_file0"; then
+                        zp_file_msize_old=$(grep zip.msize "$cache_file0" | \
+                                            cut -d "=" -f2)
+                    fi
+
+                    if [ -n "$zp_file_bsize_old" ] && \
+                       [ -n "$zp_file_msize_old" ]; then
+                        zp_file_size_old=$(printf " (prev %s / %s)" \
+                                           "${zp_file_bsize_old}" \
+                                           "${zp_file_msize_old}")
                     fi
                 fi
             }
@@ -1018,7 +1031,8 @@ stats() {
                 printf "> Zip location: %s" "${zp_file}"
                 echo
 
-                printf "> Zip size: %s" "${zp_file_size}"
+                printf "> Zip size: %s / %s" "${zp_file_bsize}" \
+                                             "${zp_file_msize}"
                 if [ -n "$zp_file_size_old" ]; then
                     printf "%s" "${zp_file_size_old}"
                 fi
@@ -1067,7 +1081,8 @@ finish() {
 
             if [ -n "$kl_img" ]; then
                 printf "img.loc=%s\n" "${kl_img}"
-                printf "img.size=%s\n" "${kl_img_size}"
+                printf "img.bsize=%s\n" "${kl_img_bsize}"
+                printf "img.msize=%s\n" "${kl_img_msize}"
 
                 if [ -n "$kl_img_md5" ]; then
                     printf "img.md5=%s\n" "${kl_img_md5}"
@@ -1080,7 +1095,8 @@ finish() {
 
             if [ -n "$kl_img_dtb" ]; then
                 printf "img.dtb.loc=%s\n" "${kl_img_dtb}"
-                printf "img.dtb.size=%s\n" "${kl_img_dtb_size}"
+                printf "img.dtb.bsize=%s\n" "${kl_img_dtb_bsize}"
+                printf "img.dtb.msize=%s\n" "${kl_img_dtb_msize}"
 
                 if [ -n "$kl_img_dtb_md5" ]; then
                     printf "img.dtb.md5=%s\n" "${kl_img_dtb_md5}"
@@ -1093,7 +1109,8 @@ finish() {
 
             if [ -n "$zp_file" ]; then
                 printf "zip.loc=%s\n" "${zp_file}"
-                printf "zip.size=%s\n" "${zp_file_size}"
+                printf "zip.bsize=%s\n" "${zp_file_bsize}"
+                printf "zip.msize=%s\n" "${zp_file_msize}"
 
                 if [ -n "$zp_file_md5" ]; then
                     printf "zip.md5=%s\n" "${zp_file_md5}"
