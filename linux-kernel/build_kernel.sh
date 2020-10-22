@@ -72,6 +72,11 @@
  *   1 = the script will delete output files from previous build and/or run
  *       'make clean && make mrproper' where appropriate.
  *
+ *   CLANG: [toggle] [0]
+ *   0 = will use GCC.
+ *   1 = will use Clang instead of GCC to compile the kernel. For now, only x86
+ *       kernel architecture is supported.
+ *
  *   SYNC_KL: [toggle] [0]
  *   0 = no git commands will be executed on the kernel directory.
  *   1 = git reset/clean/pull will be executed on the kernel directory to bring
@@ -147,6 +152,7 @@ variables() {
     CORES=
     CCACHE=0
     CLEAN_BUILD=0
+    CLANG=0
 
     SYNC_KL=0
     SYNC_TC=0
@@ -325,8 +331,18 @@ env_check() {
 
 pkg_check() {
     pkg_check_gcc() {
-        if ! cmd_available gcc; then
-            script_death "gcc" "127" "" "'gcc' is not installed" "" ""
+        if [ $CLANG -eq 0 ]; then
+            if ! cmd_available gcc; then
+                script_death "gcc" "127" "" "'gcc' is not installed" "" ""
+            fi
+        fi
+    }
+
+    pkg_check_clang() {
+        if [ $CLANG -eq 1 ]; then
+            if ! cmd_available clang; then
+                script_death "clang" "127" "" "'clang' is not installed" "" ""
+            fi
         fi
     }
 
@@ -364,6 +380,7 @@ pkg_check() {
     }
 
     pkg_check_gcc;
+    pkg_check_clang;
     pkg_check_coreutils;
     pkg_check_ccache;
     pkg_check_git;
@@ -536,6 +553,7 @@ build_kernel() {
             kl_conf_obj="$KL_DIR"/scripts/kconfig/conf.o
             cpu_avl_cores=$(nproc --all)
             gcc_loc=$(command -v gcc)
+            clang_loc=$(command -v clang)
             ccache_loc=$(command -v ccache)
             cache_file0="$HOME"/.bkcache0
 
@@ -650,11 +668,15 @@ build_kernel() {
             dsstart=$(date +%s)
         }
 
-        build_kernel_exec_gcc() {
-            CC="${gcc_loc}"
+        build_kernel_exec_cc() {
+            if [ $CLANG -eq 1 ]; then
+                CC=$clang_loc
+            else
+                CC=$gcc_loc
+            fi
 
             if [ $CCACHE -eq 1 ]; then
-                CC="${ccache_loc} ${CC}"
+                CC="$ccache_loc $CC"
             fi
 
             if [ -n "$TC_DIR" ]; then
@@ -694,7 +716,7 @@ build_kernel() {
         }
 
         build_kernel_exec_work;
-        build_kernel_exec_gcc;
+        build_kernel_exec_cc;
         build_kernel_exec_post;
     }
 
