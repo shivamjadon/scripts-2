@@ -324,6 +324,12 @@ env_check() {
 }
 
 pkg_check() {
+    pkg_check_gcc() {
+        if ! cmd_available gcc; then
+            script_death "gcc" "127" "" "'gcc' is not installed" "" ""
+        fi
+    }
+
     pkg_check_coreutils() {
         if ! cmd_available nproc; then
             script_death "nproc" "127" "" "'coreutils' is not installed" "" ""
@@ -357,6 +363,7 @@ pkg_check() {
         fi
     }
 
+    pkg_check_gcc;
     pkg_check_coreutils;
     pkg_check_ccache;
     pkg_check_git;
