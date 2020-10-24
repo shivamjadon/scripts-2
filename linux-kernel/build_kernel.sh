@@ -77,6 +77,14 @@
  *   1 = will use Clang instead of GCC to compile the kernel. For now, only x86
  *       kernel architecture is supported.
  *
+ *   INSTALL: [toggle] [0]
+ *   0 = will not install the kernel.
+ *   1 = will copy the kernel and update boot configuration. Only x86-64/amd64
+ *       and GRUB2 is supported. The script does NOT generate initramfs and does
+ *       NOT handle kernel headers; take appropriate action for these after the
+ *       script is done. Microcode, if any found in /boot, will be loaded by the
+ *       new boot entry.
+ *
  *   SYNC_KL: [toggle] [0]
  *   0 = no git commands will be executed on the kernel directory.
  *   1 = git reset/clean/pull will be executed on the kernel directory to bring
@@ -153,6 +161,7 @@ variables() {
     CCACHE=0
     CLEAN_BUILD=0
     CLANG=0
+    INSTALL=0
 
     SYNC_KL=0
     SYNC_TC=0
@@ -817,6 +826,58 @@ zipper() {
     zipper_exec;
 }
 
+install() {
+    install_work() {
+        install_work_vars() {
+            kl_mkfile="$KL_DIR"/Makefile
+        }
+
+        install_work_cmds() {
+            echo
+
+            kl_ver=$(grep -w "VERSION =" "$kl_mkfile" | cut -d " " -f3)
+            kl_plvl=$(grep -w "PATCHLEVEL =" "$kl_mkfile" | cut -d " " -f3)
+
+            cd "$kl_out_dir"
+            cd_rc=$(printf "%d" "$?")
+
+            if [ $cd_rc -ne 0 ]; then
+                script_death "cd" "${cd_rc}" "$LINENO" "" "" ""
+            fi
+        }
+
+        install_work_cp_args() {
+            cp_args=arch/$KL_ARCH/boot/bzImage
+            cp_args="${cp_args} /boot/vmlinuz-${kl_ver}${kl_plvl}"
+        }
+
+        install_work_vars;
+        install_work_cmds;
+        install_work_cp_args;
+    }
+
+    install_exec() {
+        install_exec_img() {
+            su -c "cp -v ${cp_args}"
+            cp_rc=$(printf "%d" "$?")
+
+            if [ $cp_rc -ne 0 ]; then
+                script_death "cp" "${cp_rc}" "" "" "" ""
+            fi
+        }
+
+        install_exec_grub() {
+            su -c "grub-mkconfig -o /boot/grub/grub.cfg"
+        }
+
+        install_exec_img;
+        install_exec_grub;
+    }
+
+    install_work;
+    install_exec;
+}
+
 stats() {
     stats_work() {
         echo
@@ -1172,6 +1233,10 @@ report;
 
 if [ -n "$ZP_DIR" ]; then
     zipper;
+fi
+
+if [ $INSTALL -eq 1 ]; then
+    install;
 fi
 
 stats;
