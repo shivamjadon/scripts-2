@@ -833,8 +833,6 @@ install() {
         }
 
         install_work_cmds() {
-            echo
-
             kl_ver=$(grep -w "VERSION =" "$kl_mkfile" | cut -d " " -f3)
             kl_plvl=$(grep -w "PATCHLEVEL =" "$kl_mkfile" | cut -d " " -f3)
 
@@ -844,6 +842,8 @@ install() {
             if [ $cd_rc -ne 0 ]; then
                 script_death "cd" "${cd_rc}" "$LINENO" "" "" ""
             fi
+
+            echo
         }
 
         install_work_cp_args() {
@@ -859,11 +859,6 @@ install() {
     install_exec() {
         install_exec_img() {
             su -c "cp -v ${cp_args}"
-            cp_rc=$(printf "%d" "$?")
-
-            if [ $cp_rc -ne 0 ]; then
-                script_death "cp" "${cp_rc}" "" "" "" ""
-            fi
         }
 
         install_exec_grub() {
