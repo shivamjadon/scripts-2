@@ -775,7 +775,9 @@ zipper() {
                 script_death "cd" "${cd_rc}" "$LINENO" "" "" ""
             fi
 
-            git clean -fdxq
+            echo
+
+            git clean -fdx
         }
 
         zipper_work_filename() {
@@ -815,7 +817,7 @@ zipper() {
         }
 
         zipper_exec_zip() {
-            zip -qFSr9 $zp_filename ./* -x .git
+            zip -FSr9 $zp_filename ./* -x .git
         }
 
         zipper_exec_copy;
