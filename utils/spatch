@@ -1,0 +1,168 @@
+#!/bin/sh
+# shellcheck disable=SC2086
+# shellcheck disable=SC2181
+
+: <<'notice'
+ * SPDX-License-Identifier: GPL-3.0
+ *
+ * Copyright (C) 2020 Dimitar Yurukov <mscalindt@protonmail.com>
+ *
+notice
+
+usage() {
+printf "%s" "\
+Usage: spatch [options] FILE
+Sort commit/patch links by date.
+
+Options:
+      --help      display this help text and exit
+
+Passing -- as [OPTION] means end of options, thus whatever comes after
+-- will be considered FILE.
+"
+}
+
+# Description:
+# Check command availability
+#
+# Parameters:
+# $1 - command
+#
+# Returns:
+# true (0) if command available,
+# false (127) if not
+#
+cmd_avail() {
+    if command -v $1 > /dev/null 2>&1; then
+        return 0
+    fi
+
+    return 127
+}
+
+# Description:
+# Check if a substring is present in a string
+#
+# Parameters:
+# $1 - substring
+# $2 - string
+#
+# Returns:
+# true (0) if substring is present,
+# false (1) if not
+#
+grep_str() {
+    if printf "%s" "$2" | grep -Fq -- "$1"; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Description:
+# Print error in red and exit
+#
+# Parameters:
+# $1 - error message
+# $2 - exit code
+#
+err() {
+    printf "%b" "\033[1;31m"
+    echo
+    printf "%s" "$1"
+    echo && echo
+    printf "%b" "\033[0m"
+    exit $2
+}
+
+spatch_work() {
+    TMP_DIR="$HOME"/.spatch_tmp_dir
+    TMP_FILE="$HOME"/.spatch_tmp_file
+    TMP_FILE2="$HOME"/.spatch_tmp_file2
+
+    rm -rf "$TMP_DIR" && mkdir "$TMP_DIR"
+    rm -f "$TMP_FILE"
+    rm -f "$TMP_FILE2"
+}
+
+spatch_exec() {
+    if [ ! -f "$1" ]; then
+        err "$1 is not a file" "1"
+    fi
+
+    while read -r LINE || [ -n "$LINE" ]; do
+        if ! grep_str ".patch" "$LINE"; then
+            LINE=${LINE}.patch
+        fi
+
+        if cmd_avail curl; then
+            cd "$TMP_DIR" || err "Line $LINENO failed" "1"
+            curl -Of $LINE
+        elif cmd_avail wget; then
+            wget -P "$TMP_DIR" $LINE
+        else
+            spatch_post;
+            err "No file download tool available (curl/wget)" "127"
+        fi
+
+        if [ $? -ne 0 ]; then
+            spatch_post;
+            err "Failed to download $LINE" "1"
+        fi
+    done < "$1"
+
+    PATCHES="$TMP_DIR/*"
+    for PATCH in $PATCHES; do
+        CSTR=$(sed '1q;d' $PATCH | cut -d ' ' -f2)
+        DSTR=$(sed '3q;d' $PATCH | cut -d ' ' -f3,4,5,6)
+
+        printf "%s %s\n" "${CSTR}" "${DSTR}" >> "$TMP_FILE"
+    done
+
+    sort -t " " -k4.1,4.4 \
+                -k3.1,3.3M \
+                -k2.1n \
+                -k5.1,5.2 \
+                -k5.4,5.5 \
+                -k5.7,5.8 "$TMP_FILE" > "$1"
+}
+
+spatch_post() {
+    rm -rf "$TMP_DIR"
+    rm -f "$TMP_FILE"
+    rm -f "$TMP_FILE2"
+}
+
+spatch() {
+    spatch_work;
+    spatch_exec "$1"
+    spatch_post;
+}
+
+main() {
+    # Serve the script until no script parameters passed
+    while [ "$1" ]; do
+        case "$1" in
+            "--help") usage && return 0 ;;
+            *) break ;;
+        esac
+    done
+
+    # Catch end of options (parameters)
+    if grep_str "--" "$1"; then
+        shift
+    fi
+
+    # Catch wrong input
+    if [ ! "$1" ] || [ "$2" ]; then
+        usage && return 1
+    fi
+
+    # Execute the core function
+    spatch "$1"
+
+    # Explicit success
+    return 0
+}
+
+main "$@"
