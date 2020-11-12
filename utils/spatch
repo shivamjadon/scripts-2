@@ -15,6 +15,7 @@ Usage: spatch [options] FILE
 Sort commit/patch links by date.
 
 Options:
+  -i, --invert    sort from newest to oldest
       --help      display this help text and exit
 
 Passing -- as [OPTION] means end of options, thus whatever comes after
@@ -75,6 +76,18 @@ err() {
     exit $2
 }
 
+# Description:
+# Redirect information from source file to target file
+#
+# Parameters:
+# $1 - source file
+# $2 - target file
+#
+rdr() {
+    rm -f "$2" && cat "$1" > "$2"
+    rm -f "$1"
+}
+
 spatch_work() {
     TMP_DIR="$HOME"/.spatch_tmp_dir
     TMP_FILE="$HOME"/.spatch_tmp_file
@@ -124,7 +137,16 @@ spatch_exec() {
                 -k2.1n \
                 -k5.1,5.2 \
                 -k5.4,5.5 \
-                -k5.7,5.8 "$TMP_FILE" > "$1"
+                -k5.7,5.8 "$TMP_FILE" > "$TMP_FILE2"
+    rdr "$TMP_FILE2" "$TMP_FILE"
+
+    if [ -n "$invert" ]; then
+        awk '{a[i++]=$0;} END {for (j=i-1; j>=0;) print a[j--];}' \
+            "$TMP_FILE" > "$TMP_FILE2"
+        rdr "$TMP_FILE2" "$TMP_FILE"
+    fi
+
+    rdr "$TMP_FILE" "$1"
 }
 
 spatch_post() {
@@ -143,6 +165,7 @@ main() {
     # Serve the script until no script parameters passed
     while [ "$1" ]; do
         case "$1" in
+            "-i" | "--invert") invert=1 && shift ;;
             "--help") usage && return 0 ;;
             *) break ;;
         esac
