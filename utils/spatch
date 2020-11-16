@@ -106,6 +106,7 @@ spatch_exec() {
     fi
 
     if [ ! -f "$1" ]; then
+        spatch_post;
         err "$1 is not a file" "1"
     fi
 
