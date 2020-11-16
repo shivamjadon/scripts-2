@@ -77,6 +77,19 @@ err() {
 }
 
 # Description:
+# Print warn in yellow
+#
+# Parameters:
+# $1 - warn message
+#
+warn() {
+    printf "%b" "\033[1;33m"
+    printf "%s" "$1"
+    echo
+    printf "%b" "\033[0m"
+}
+
+# Description:
 # Redirect information from source file to target file
 #
 # Parameters:
@@ -111,15 +124,24 @@ spatch_exec() {
     fi
 
     while read -r LINE || [ -n "$LINE" ]; do
-        if ! grep_str ".patch" "$LINE"; then
-            LINE=${LINE}.patch
+        URL=$(printf "%s" "$LINE" | grep -Eo '[^[:space:]]+://[^[:space:]]+')
+
+        if [ $? -ne 0 ]; then
+            if [ -n "$LINE" ]; then
+                warn "No URL string (*://*) found in '$LINE'"
+            fi
+            continue
+        fi
+
+        if ! grep_str ".patch" "$URL"; then
+            URL=${URL}.patch
         fi
 
         if cmd_avail curl; then
             cd "$TMP_DIR" || err "Line $LINENO failed" "1"
-            curl -Of $LINE
+            curl -Of $URL
         elif cmd_avail wget; then
-            wget -P "$TMP_DIR" $LINE
+            wget -P "$TMP_DIR" $URL
         else
             spatch_post;
             err "No file download tool available (curl/wget)" "127"
@@ -127,7 +149,7 @@ spatch_exec() {
 
         if [ $? -ne 0 ]; then
             spatch_post;
-            err "Failed to download $LINE" "1"
+            err "Failed to download $URL" "1"
         fi
     done < "$1"
 
