@@ -11,15 +11,13 @@ notice
 
 usage() {
 printf "%s" "\
-Usage: spatch [options] FILE
+Usage: spatch [options] [--] FILE
 Sort commit/patch links by date.
 
 Options:
   -i, --invert    sort from newest to oldest
       --help      display this help text and exit
-
-Passing -- as [OPTION] means end of options, thus whatever comes after
--- will be considered FILE.
+      --          end of options
 "
 }
 
