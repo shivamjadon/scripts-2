@@ -199,7 +199,7 @@ main() {
     done
 
     # Catch end of options (parameters)
-    if grep_str "--" "$1"; then
+    if grep_str " -- " " $1 "; then
         shift
     fi
 
