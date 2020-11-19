@@ -16,8 +16,8 @@ Sort commit/patch links by date.
 
 Options:
   -i, --invert    sort from newest to oldest
-  -t, --target=PATH   PATH is an absolute location to which the final
-                      file shall be written
+  -t, --target=PATH   PATH is an absolute or relative location to which
+                      the final file shall be written
       --help      display this help text and exit
       --          end of options
 
@@ -222,11 +222,19 @@ main() {
                     target="$2" && shift
                 fi
 
+                if [ "$(printf "%s" "$target" | cut -c 1)" != "/" ]; then
+                    target="$(printf "%s/%s" "$PWD" "$target")"
+                fi
+
                 shift
             ;;
             "--target="*)
                 if ! grep_str " --target= " " $1 "; then
                     target="$(substr_after "=" "$1")"
+                fi
+
+                if [ "$(printf "%s" "$target" | cut -c 1)" != "/" ]; then
+                    target="$(printf "%s/%s" "$PWD" "$target")"
                 fi
 
                 shift
