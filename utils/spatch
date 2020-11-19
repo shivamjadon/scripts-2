@@ -136,12 +136,6 @@ spatch_work() {
 }
 
 spatch_exec() {
-    # Convert relative path to absolute path
-    if [ "$(printf "%s" "$1" | cut -c 1)" != "/" ]; then
-        fpath="$(printf "%s/%s" "$PWD" "$1")"
-        set -- "$fpath"
-    fi
-
     if [ ! -f "$1" ]; then
         spatch_post;
         err "$1 is not a file" "1"
@@ -250,6 +244,12 @@ main() {
     # Catch wrong input
     if [ ! "$1" ] || [ "$2" ]; then
         usage && return 1
+    fi
+
+    # Convert relative path to absolute path
+    if [ "$(printf "%s" "$1" | cut -c 1)" != "/" ]; then
+        fpath="$(printf "%s/%s" "$PWD" "$1")"
+        set -- "$fpath"
     fi
 
     # Execute the core function
