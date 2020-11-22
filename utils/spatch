@@ -16,6 +16,7 @@ Sort commit/patch links by date.
 
 Options:
   -i, --invert    sort from newest to oldest
+  -p, --preserve  preserve the links
   -t, --target=PATH   PATH is an absolute or relative location to which
                       the final file shall be written
       --help      display this help text and exit
@@ -177,6 +178,10 @@ spatch_exec() {
         CSTR=$(sed '1q;d' $PATCH | cut -d ' ' -f2)
         DSTR=$(sed '3q;d' $PATCH | cut -d ' ' -f3,4,5,6)
 
+        if [ -n "$preserve" ]; then
+            CSTR=$(grep -Eo -- "[^[:space:]]+$CSTR" "$1")
+        fi
+
         printf "%s %s\n" "${CSTR}" "${DSTR}" >> "$TMP_FILE"
     done
 
@@ -218,6 +223,7 @@ main() {
     while [ "$1" ]; do
         case "$1" in
             "-i" | "--invert") invert=1 && shift ;;
+            "-p" | "--preserve") preserve=1 && shift ;;
             "-t")
                 if [ "$2" ]; then
                     target="$2" && shift
