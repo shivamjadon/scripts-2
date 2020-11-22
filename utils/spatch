@@ -19,6 +19,7 @@ Options:
   -p, --preserve  preserve the links
   -t, --target=PATH   PATH is an absolute or relative location to which
                       the final file shall be written
+      --timestamp     append timestamp to the final file
       --help      display this help text and exit
       --          end of options
 
@@ -204,6 +205,11 @@ spatch_exec() {
         rdr "$TMP_FILE2" "$TMP_FILE"
     fi
 
+    if [ -n "$timestamp" ]; then
+        date=$(date "+%b %-e, %T %:z %Y")
+        printf "\nTIMESTAMP: %s\n" "${date}" >> "$TMP_FILE"
+    fi
+
     if [ -n "$target" ]; then
         rdr "$TMP_FILE" "$target"
     else
@@ -251,6 +257,7 @@ main() {
 
                 shift
             ;;
+            "--timestamp") timestamp=1 && shift ;;
             "--help") usage && return 0 ;;
             *) break ;;
         esac
