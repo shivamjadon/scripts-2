@@ -64,11 +64,11 @@ grep_str() {
 }
 
 # Description:
-# Get substring after specific character(s) in a string
+# Get substring after specific character(s) in a string/file
 #
 # Parameters:
 # $1 - character(s)
-# $2 - string
+# $2 - string/file
 #
 # Returns:
 # {string} if $2 = 'str$1string',
@@ -77,7 +77,12 @@ grep_str() {
 substr_after() {
     i=${#1}
     i=$((i + 1))
-    i=$(printf "%s" "$2" | grep -Eo -- "$1[^[:space:]]+" | cut -c ${i}-)
+    if [ -f "$2" ]; then
+        i=$(grep -Eo -- "$1[^[:space:]]+" "$2" | cut -c ${i}-)
+    else
+        i=$(printf "%s" "$2" | grep -Eo -- "$1[^[:space:]]+" | cut -c ${i}-)
+    fi
+
     if [ -n "$i" ]; then
         printf "%s" "${i}"
         return 0
