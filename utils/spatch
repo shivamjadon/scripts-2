@@ -11,7 +11,7 @@ notice
 
 usage() {
 printf "%s" "\
-Usage: spatch [options] [--] FILE
+Usage: spatch [options] [-t PATH] [--] FILE
 Sort commit/patch links by date.
 
 Options:
@@ -21,7 +21,7 @@ Options:
                       the final file shall be written
       --timestamp     append timestamp to the final file
       --help      display this help text and exit
-      --          end of options
+      --          specify end of options
 
 Unless -t / --target is specified, FILE will be overwritten.
 "
@@ -90,6 +90,26 @@ substr_after() {
     fi
 
     return 1
+}
+
+# Description:
+# Convert relative path to absolute path
+#
+# Parameters:
+# $1 - path
+#
+# Returns:
+# absolute path if path was converted,
+# $1 if relative path was not passed
+#
+conv_rltvpath() {
+    i=$(printf "%s" "$1")
+    if [ "$(printf "%s" "$1" | cut -c 1)" != "/" ]; then
+        i=$(printf "%s/%s" "$PWD" "$1")
+    fi
+
+    printf "%s" "$i"
+    return 0
 }
 
 # Description:
@@ -230,43 +250,44 @@ spatch() {
 }
 
 main() {
+    # Script argument functions
+    saf1() { invert=1 ;}
+    saf2() { preserve=1 ;}
+    saf3() { timestamp=1 ;}
+
     # Serve the script until no script parameters passed
     while [ "$1" ]; do
         case "$1" in
-            "-i" | "--invert") invert=1 && shift ;;
-            "-p" | "--preserve") preserve=1 && shift ;;
-            "-t")
-                if [ "$2" ]; then
-                    target="$2" && shift
-                fi
-
-                if [ "$(printf "%s" "$target" | cut -c 1)" != "/" ]; then
-                    target="$(printf "%s/%s" "$PWD" "$target")"
-                fi
-
-                shift
-            ;;
-            "--target="*)
-                if ! grep_str " --target= " " $1 "; then
-                    target="$(substr_after "=" "$1")"
-                fi
-
-                if [ "$(printf "%s" "$target" | cut -c 1)" != "/" ]; then
-                    target="$(printf "%s/%s" "$PWD" "$target")"
-                fi
-
-                shift
-            ;;
-            "--timestamp") timestamp=1 && shift ;;
+            "--") shift && break ;;
             "--help") usage && return 0 ;;
+            "--invert") saf1 && shift ;;
+            "--preserve") saf2 && shift ;;
+            "--target" | "--target ") shift && break ;;
+            "--target="*)
+                target=$(substr_after "=" "$1")
+                target=$(conv_rltvpath "$target")
+
+                shift
+            ;;
+            "--timestamp") saf3 && shift ;;
+            "-" | "- ") shift && break ;;
+            "-"*)
+                i=$(substr_after "-" "$1")
+                if grep_str "i" "$i"; then saf1; fi
+                if grep_str "p" "$i"; then saf2; fi
+                if grep_str "t" "$i"; then
+                    if [ "$2" ]; then
+                        target="$2"
+                        target=$(conv_rltvpath "$target")
+                        shift
+                    fi
+                fi
+
+                shift
+            ;;
             *) break ;;
         esac
     done
-
-    # Catch end of options (parameters)
-    if grep_str " -- " " $1 "; then
-        shift
-    fi
 
     # Catch wrong input
     if [ ! "$1" ] || [ "$2" ]; then
@@ -274,10 +295,8 @@ main() {
     fi
 
     # Convert relative path to absolute path
-    if [ "$(printf "%s" "$1" | cut -c 1)" != "/" ]; then
-        fpath="$(printf "%s/%s" "$PWD" "$1")"
-        set -- "$fpath"
-    fi
+    fpath=$(conv_rltvpath "$1")
+    set -- "$fpath"
 
     # Execute the core function
     spatch "$1"
