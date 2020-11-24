@@ -199,6 +199,12 @@ spatch_exec() {
         fi
     done < "$1"
 
+    ls "$TMP_DIR"/*.patch > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        spatch_post;
+        err "No patches are found" "1"
+    fi
+
     PATCHES="$TMP_DIR/*"
     for PATCH in $PATCHES; do
         CSTR=$(sed '1q;d' $PATCH | cut -d ' ' -f2)
