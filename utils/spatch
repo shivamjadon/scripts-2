@@ -310,7 +310,7 @@ main() {
 
     # Catch wrong input
     if [ ! "$1" ] || [ "$2" ]; then
-        usage && return 1
+        usage && return 2
     fi
 
     # Convert relative path to absolute path
