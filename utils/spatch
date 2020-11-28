@@ -269,12 +269,18 @@ main() {
     # Serve the script until no script parameters passed
     while [ "$1" ]; do
         case "$1" in
+            # Parse specific options first
             "--") shift && break ;;
             "--help") usage && return 0 ;;
+
+            # Catch bad input
+            "-" | "- ") usage && return 2 ;;
+            "--target" | "--target=" | "--target ") usage && return 2 ;;
+
+            # Parse options
             "--direct-url") saf4 && shift ;;
             "--invert-sort") saf1 && shift ;;
             "--preserve-url") saf2 && shift ;;
-            "--target" | "--target ") shift && break ;;
             "--target="*)
                 target=$(substr_after "=" "$1")
                 target=$(conv_rltvpath "$target")
@@ -282,7 +288,6 @@ main() {
                 shift
             ;;
             "--timestamp") saf3 && shift ;;
-            "-" | "- ") shift && break ;;
             "-"*)
                 i=$(substr_after "-" "$1")
 
@@ -304,6 +309,7 @@ main() {
 
                 shift
             ;;
+
             *) break ;;
         esac
     done
