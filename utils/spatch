@@ -11,21 +11,21 @@ notice
 
 usage() {
 printf "%s" "\
-Usage: spatch [options] [-t PATH] [--] FILE
+Usage: spatch [options] [--] FILE
 Sort commit/patch links by date.
 
 Options:
-  -d, --direct-url    assume URLs are valid patch links even if they do not
-                      end with .patch
-  -i, --invert    sort from newest to oldest
-  -p, --preserve  preserve the links
-  -t, --target=PATH   PATH is an absolute or relative location to which
-                      the final file shall be written
-      --timestamp     append timestamp to the final file
-      --help      display this help text and exit
-      --          specify end of options
+  -d, --direct-url           assume URLs are valid patch links even if they do
+                             not end with .patch
+  -i, --invert-sort          sort from newest to oldest
+  -p, --preserve-url         preserve the URLs
+  -t, --target=PATH          PATH is an absolute or relative location to which
+                             the final file shall be written
+  -T, --timestamp            append timestamp to the final file
+      --help     display this help text and exit
+      --         specify end of options
 
-Unless -t / --target is specified, FILE will be overwritten.
+Unless '-t' or '--target' is specified, FILE will be overwritten.
 "
 }
 
@@ -270,10 +270,10 @@ main() {
     while [ "$1" ]; do
         case "$1" in
             "--") shift && break ;;
-            "--direct-url") saf4 && shift ;;
             "--help") usage && return 0 ;;
-            "--invert") saf1 && shift ;;
-            "--preserve") saf2 && shift ;;
+            "--direct-url") saf4 && shift ;;
+            "--invert-sort") saf1 && shift ;;
+            "--preserve-url") saf2 && shift ;;
             "--target" | "--target ") shift && break ;;
             "--target="*)
                 target=$(substr_after "=" "$1")
@@ -285,11 +285,17 @@ main() {
             "-" | "- ") shift && break ;;
             "-"*)
                 i=$(substr_after "-" "$1")
+
                 if grep_str "d" "$i"; then saf4; fi
                 if grep_str "i" "$i"; then saf1; fi
                 if grep_str "p" "$i"; then saf2; fi
+                if grep_str "T" "$i"; then saf3; fi
+
                 if grep_str "t" "$i"; then
-                    if [ "$2" ]; then
+                    if grep_str "t=" "$i"; then
+                        target=$(substr_after "=" "$1")
+                        target=$(conv_rltvpath "$target")
+                    elif [ "$2" ]; then
                         target="$2"
                         target=$(conv_rltvpath "$target")
                         shift
