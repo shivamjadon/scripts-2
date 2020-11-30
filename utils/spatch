@@ -78,13 +78,12 @@ grep_str() {
 # false (1) if error
 #
 substr_after() {
-    i=${#1}
-    i=$((i + 1))
     if [ -f "$2" ]; then
-        i=$(grep -Eo -- "$1[^[:space:]]+" "$2" | cut -c ${i}-)
+        i=$(grep -Eo -- "$1[^[:space:]]+" "$2")
     else
-        i=$(printf "%s" "$2" | grep -Eo -- "$1[^[:space:]]+" | cut -c ${i}-)
+        i=$(printf "%s" "$2" | grep -Eo -- "$1[^[:space:]]+")
     fi
+    i=${i#$1}
 
     if [ -n "$i" ]; then
         printf "%s" "${i}"
