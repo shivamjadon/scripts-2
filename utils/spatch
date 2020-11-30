@@ -80,10 +80,10 @@ grep_str() {
 substr_after() {
     if [ -f "$2" ]; then
         i=$(grep -Eo -- "$1[^[:space:]]+" "$2")
+        i=${i#$1}
     else
-        i=$(printf "%s" "$2" | grep -Eo -- "$1[^[:space:]]+")
+        i=$(printf "%s" "${2##$1}")
     fi
-    i=${i#$1}
 
     if [ -n "$i" ]; then
         printf "%s" "${i}"
