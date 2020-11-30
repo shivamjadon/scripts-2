@@ -48,20 +48,28 @@ cmd_avail() {
 }
 
 # Description:
-# Check if a substring is present in a string
+# Check if a substring(s) is(are) present in a string
 #
 # Parameters:
 # $1 - substring
-# $2 - string
+# $2 - substring
+# $2/$3 - string
 #
 # Returns:
 # true (0) if substring is present,
 # false (1) if not
 #
 grep_str() {
-    case "$2" in
-        *"$1"*) return 0 ;;
-    esac
+    if [ ! "$3" ]; then
+        case "$2" in
+            *"$1"*) return 0 ;;
+        esac
+    else
+        case "$3" in
+            *"$1"*) return 0 ;;
+            *"$2"*) return 0 ;;
+        esac
+    fi
 
     return 1
 }
