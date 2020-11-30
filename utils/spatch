@@ -111,7 +111,7 @@ substr_after() {
 # absolute path if path was converted,
 # $1 if relative path was not passed
 #
-conv_rltvpath() {
+get_fpath() {
     case "$1" in
         "/"*) ;;
         *) i=$(printf "%s/%s" "$PWD" "$1") && set -- "$i" ;;
@@ -291,10 +291,10 @@ main() {
                 if grep_str "target" "$i"; then
                     if grep_str "target=" "$i"; then
                         target=$(substr_after "=" "$1")
-                        target=$(conv_rltvpath "$target")
+                        target=$(get_fpath "$target")
                     elif [ "$2" ]; then
                         target="$2"
-                        target=$(conv_rltvpath "$target")
+                        target=$(get_fpath "$target")
                         shift
                     fi
                 fi
@@ -312,10 +312,10 @@ main() {
                 if grep_str "t" "$i"; then
                     if grep_str "t=" "$i"; then
                         target=$(substr_after "=" "$1")
-                        target=$(conv_rltvpath "$target")
+                        target=$(get_fpath "$target")
                     elif [ "$2" ]; then
                         target="$2"
-                        target=$(conv_rltvpath "$target")
+                        target=$(get_fpath "$target")
                         shift
                     fi
                 fi
@@ -333,7 +333,7 @@ main() {
     fi
 
     # Convert relative path to absolute path
-    fpath=$(conv_rltvpath "$1")
+    fpath=$(get_fpath "$1")
     set -- "$fpath"
 
     # Execute the core function
