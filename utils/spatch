@@ -273,21 +273,28 @@ main() {
             "--") shift && break ;;
             "--help") usage && return 0 ;;
 
-            # Catch bad input
-            "-" | "- ") usage && return 2 ;;
-            "--target" | "--target=" | "--target ") usage && return 2 ;;
-
             # Parse options
-            "--direct-url") saf4 && shift ;;
-            "--invert-sort") saf1 && shift ;;
-            "--preserve-url") saf2 && shift ;;
-            "--target="*)
-                target=$(substr_after "=" "$1")
-                target=$(conv_rltvpath "$target")
+            "--"*)
+                i=$(substr_after "--" "$1")
+
+                if grep_str "direct-url" "$i"; then saf4; fi
+                if grep_str "invert-sort" "$i"; then saf1; fi
+                if grep_str "preserve-url" "$i"; then saf2; fi
+                if grep_str "timestamp" "$i"; then saf3; fi
+
+                if grep_str "target" "$i"; then
+                    if grep_str "target=" "$i"; then
+                        target=$(substr_after "=" "$1")
+                        target=$(conv_rltvpath "$target")
+                    elif [ "$2" ]; then
+                        target="$2"
+                        target=$(conv_rltvpath "$target")
+                        shift
+                    fi
+                fi
 
                 shift
             ;;
-            "--timestamp") saf3 && shift ;;
             "-"*)
                 i=$(substr_after "-" "$1")
 
