@@ -249,8 +249,8 @@ spatch_exec() {
     fi
 
     if [ -n "$timestamp" ]; then
-        date=$(date "+%b %-e, %T %:z %Y")
-        printf "\nTIMESTAMP: %s\n" "${date}" >> "$TMP_FILE"
+        DATE=$(date "+%b %-e, %T %:z %Y")
+        printf "\nTIMESTAMP: %s\n" "${DATE}" >> "$TMP_FILE"
     fi
 
     if [ -n "$target" ]; then
