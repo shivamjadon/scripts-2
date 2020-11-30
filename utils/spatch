@@ -59,9 +59,9 @@ cmd_avail() {
 # false (1) if not
 #
 grep_str() {
-    if printf "%s" "$2" | grep -Fq -- "$1"; then
-        return 0
-    fi
+    case "$2" in
+        *"$1"*) return 0 ;;
+    esac
 
     return 1
 }
