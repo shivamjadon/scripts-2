@@ -18,6 +18,7 @@ Options:
   -d, --direct-url           assume URLs are valid patch links even if they do
                              not end with .patch
   -i, --invert-sort          sort from newest to oldest
+  -l, --line-numbers         append line numbers to the final file
   -p, --preserve-url         preserve the URLs
   -t, --target=PATH          PATH is an absolute or relative location to which
                              the final file shall be written
@@ -224,6 +225,12 @@ spatch_exec() {
             CSTR=$(grep -Eo -- "[^[:space:]]+$CSTR" "$1")
         fi
 
+        if [ -n "$linenumbers" ]; then
+            NUM=$((1 + CNT))
+            CSTR="$NUM - $CSTR"
+            CNT=$NUM
+        fi
+
         printf "%s %s\n" "${CSTR}" "${DSTR}" >> "$TMP_FILE"
     done
 
@@ -271,6 +278,7 @@ main() {
     saf2() { preserve=1 ;}
     saf3() { timestamp=1 ;}
     saf4() { directurl=1 ;}
+    saf5() { linenumbers=1 ;}
 
     # Serve the script until no script parameters passed
     while [ "$1" ]; do
@@ -285,6 +293,7 @@ main() {
 
                 if grep_str "direct-url" "$i"; then saf4; fi
                 if grep_str "invert-sort" "$i"; then saf1; fi
+                if grep_str "line-numbers" "$i"; then saf5; fi
                 if grep_str "preserve-url" "$i"; then saf2; fi
                 if grep_str "timestamp" "$i"; then saf3; fi
 
@@ -306,6 +315,7 @@ main() {
 
                 if grep_str "d" "$i"; then saf4; fi
                 if grep_str "i" "$i"; then saf1; fi
+                if grep_str "l" "$i"; then saf5; fi
                 if grep_str "p" "$i"; then saf2; fi
                 if grep_str "T" "$i"; then saf3; fi
 
