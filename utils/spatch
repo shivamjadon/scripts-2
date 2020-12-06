@@ -53,7 +53,7 @@ cmd_avail() {
 #
 # Parameters:
 # $1 - substring
-# $2 - substring
+# $1/$2 - substring
 # $2/$3 - string
 #
 # Returns:
