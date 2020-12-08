@@ -87,7 +87,7 @@ grep_str() {
 # false (1) if error
 #
 substr_after() {
-    i=$(printf "%s" "${2##$1}")
+    i=$(printf "%s" "${2##*$1}")
 
     if [ -n "$i" ]; then
         printf "%s" "${i}"
