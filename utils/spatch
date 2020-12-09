@@ -23,6 +23,8 @@ Options:
   -t, --target-file=PATH     PATH is an absolute or relative location to which
                              the sort output shall be written
   -T, --timestamp            append timestamp to the sort output
+  -v, --verbose              show additional information unrelated to the sort
+                             output
       --help     display this help text and exit
       --         specify end of options
 "
@@ -209,7 +211,11 @@ spatch_exec() {
             fi
         fi
 
-        $dw_tool ${dw_tool_args} $URL
+        if [ -n "$verbose" ]; then
+            $dw_tool ${dw_tool_args} $URL
+        else
+            $dw_tool ${dw_tool_args} $URL > /dev/null 2>&1
+        fi
 
         if [ $? -ne 0 ]; then
             spatch_post;
@@ -288,6 +294,7 @@ main() {
     saf3() { timestamp=1 ;}
     saf4() { directurl=1 ;}
     saf5() { linenumbers=1 ;}
+    saf6() { verbose=1 ;}
 
     # Serve the script until no script parameters passed
     while [ "$1" ]; do
@@ -305,6 +312,7 @@ main() {
                 if grep_str "line-numbers" "$i"; then saf5; fi
                 if grep_str "preserve-url" "$i"; then saf2; fi
                 if grep_str "timestamp" "$i"; then saf3; fi
+                if grep_str "verbose" "$i"; then saf6; fi
 
                 if grep_str "target-file" "$i"; then
                     if grep_str "target-file=" "$i"; then
@@ -346,6 +354,7 @@ main() {
                 if grep_str "l" "$i"; then saf5; fi
                 if grep_str "p" "$i"; then saf2; fi
                 if grep_str "T" "$i"; then saf3; fi
+                if grep_str "v" "$i"; then saf6; fi
 
                 shift
             ;;
