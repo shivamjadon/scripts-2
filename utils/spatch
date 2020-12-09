@@ -238,12 +238,6 @@ spatch_exec() {
             CSTR=$(grep -Eo -- "[^[:space:]]+$CSTR" "$1")
         fi
 
-        if [ -n "$linenumbers" ]; then
-            NUM=$((1 + CNT))
-            CSTR="$NUM - $CSTR"
-            CNT=$NUM
-        fi
-
         printf "%s %s\n" "${CSTR}" "${DSTR}" >> "$TMP_FILE"
     done
 
@@ -258,6 +252,16 @@ spatch_exec() {
     if [ -n "$invert" ]; then
         awk '{a[i++]=$0;} END {for (j=i-1; j>=0;) print a[j--];}' \
             "$TMP_FILE" > "$TMP_FILE2"
+        rdr "$TMP_FILE2" "$TMP_FILE"
+    fi
+
+    if [ -n "$linenumbers" ]; then
+        while read -r LINE; do
+            NUM=$((1 + CNT))
+            LINE="$NUM - $LINE"
+            CNT=$NUM
+            printf "%s\n" "${LINE}" >> "$TMP_FILE2"
+        done < "$TMP_FILE"
         rdr "$TMP_FILE2" "$TMP_FILE"
     fi
 
