@@ -306,6 +306,9 @@ main() {
                     if grep_str "target=" "$i"; then
                         target=$(substr_after "=" "$i")
                         target=$(get_fpath "$target")
+                    elif ! grep_str "target " "$i"; then
+                        target=$(substr_after "2" "t" "$i")
+                        target=$(get_fpath "$target")
                     elif [ "$2" ]; then
                         target="$2"
                         target=$(get_fpath "$target")
@@ -321,6 +324,10 @@ main() {
                 if grep_str "t" "$i"; then
                     if grep_str "t=" "$i"; then
                         target=$(substr_after "=" "$i")
+                        target=$(get_fpath "$target")
+                        shift && continue
+                    elif ! grep_str "t " "$i"; then
+                        target=$(substr_after "1" "t" "$i")
                         target=$(get_fpath "$target")
                         shift && continue
                     elif [ "$2" ]; then
