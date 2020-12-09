@@ -173,6 +173,18 @@ spatch_work() {
     rm -rf "$TMP_DIR" && mkdir "$TMP_DIR"
     rm -f "$TMP_FILE"
     rm -f "$TMP_FILE2"
+    cd "$TMP_DIR" || err "Line $LINENO failed" "1"
+
+    if cmd_avail curl; then
+        dw_tool='curl'
+        dw_tool_args='-Of'
+    elif cmd_avail wget; then
+        dw_tool='wget'
+        dw_tool_args=''
+    else
+        spatch_post;
+        err "No file download tool available (curl/wget)" "127"
+    fi
 }
 
 spatch_exec() {
@@ -197,15 +209,7 @@ spatch_exec() {
             fi
         fi
 
-        if cmd_avail curl; then
-            cd "$TMP_DIR" || err "Line $LINENO failed" "1"
-            curl -Of $URL
-        elif cmd_avail wget; then
-            wget -P "$TMP_DIR" $URL
-        else
-            spatch_post;
-            err "No file download tool available (curl/wget)" "127"
-        fi
+        $dw_tool ${dw_tool_args} $URL
 
         if [ $? -ne 0 ]; then
             spatch_post;
