@@ -18,15 +18,13 @@ Options:
   -d, --direct-url           assume URLs are valid patch links even if they do
                              not end with .patch
   -i, --invert-sort          sort from newest to oldest
-  -l, --line-numbers         append line numbers to the final file
+  -l, --line-numbers         append line numbers to the sort output
   -p, --preserve-url         preserve the URLs
   -t, --target-file=PATH     PATH is an absolute or relative location to which
-                             the final file shall be written
-  -T, --timestamp            append timestamp to the final file
+                             the sort output shall be written
+  -T, --timestamp            append timestamp to the sort output
       --help     display this help text and exit
       --         specify end of options
-
-Unless '-t' or '--target-file' is specified, FILE will be overwritten.
 "
 }
 
@@ -261,7 +259,9 @@ spatch_exec() {
     if [ -n "$targetfile" ]; then
         rdr "$TMP_FILE" "$targetfile"
     else
-        rdr "$TMP_FILE" "$1"
+        while read -r LINE; do
+            echo "$LINE"
+        done < "$TMP_FILE"
     fi
 }
 
