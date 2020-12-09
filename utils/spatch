@@ -76,18 +76,28 @@ grep_str() {
 }
 
 # Description:
-# Get substring after specific character(s) in a string
+# Get substring after specific (n)character(s) in a string
 #
 # Parameters:
-# $1 - character(s)
-# $2 - string
+# $1 - (n)
+# $1/$2 - character(s)
+# $2/$3 - string
 #
 # Returns:
-# {string} if $2 = 'str$1string',
+# substring of string,
 # false (1) if error
 #
 substr_after() {
-    i=$(printf "%s" "${2##*$1}")
+    if [ ! "$3" ]; then
+        i=$(printf "%s" "${2##*$1}")
+    else
+        x=0
+        i=$(printf "%s" "$3")
+        until [ $x -eq $1 ]; do
+            i=$(printf "%s" "${i#*$2}")
+            x=$((x + 1))
+        done
+    fi
 
     if [ -n "$i" ]; then
         printf "%s" "${i}"
