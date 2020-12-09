@@ -199,7 +199,7 @@ spatch_exec() {
         URL=$(printf "%s" "$LINE" | grep -Eo '[^[:space:]]+://[^[:space:]]+')
 
         if [ $? -ne 0 ]; then
-            if [ -n "$LINE" ]; then
+            if [ -n "$LINE" ] && [ -n "$verbose" ]; then
                 warn "No URL string (*://*) found in '$LINE'"
             fi
             continue
