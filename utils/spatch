@@ -294,7 +294,7 @@ main() {
 
                 if grep_str "target" "$i"; then
                     if grep_str "target=" "$i"; then
-                        target=$(substr_after "=" "$1")
+                        target=$(substr_after "=" "$i")
                         target=$(get_fpath "$target")
                     elif [ "$2" ]; then
                         target="$2"
@@ -308,22 +308,23 @@ main() {
             "-"*)
                 i=$(substr_after "-" "$1")
 
+                if grep_str "t" "$i"; then
+                    if grep_str "t=" "$i"; then
+                        target=$(substr_after "=" "$i")
+                        target=$(get_fpath "$target")
+                        shift && continue
+                    elif [ "$2" ]; then
+                        target="$2"
+                        target=$(get_fpath "$target")
+                        shift 2 && continue
+                    fi
+                fi
+
                 if grep_str "d" "$i"; then saf4; fi
                 if grep_str "i" "$i"; then saf1; fi
                 if grep_str "l" "$i"; then saf5; fi
                 if grep_str "p" "$i"; then saf2; fi
                 if grep_str "T" "$i"; then saf3; fi
-
-                if grep_str "t" "$i"; then
-                    if grep_str "t=" "$i"; then
-                        target=$(substr_after "=" "$1")
-                        target=$(get_fpath "$target")
-                    elif [ "$2" ]; then
-                        target="$2"
-                        target=$(get_fpath "$target")
-                        shift
-                    fi
-                fi
 
                 shift
             ;;
