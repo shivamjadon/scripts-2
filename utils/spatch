@@ -61,7 +61,7 @@ cmd_avail() {
 #
 grep_str() {
     case "$2" in
-        *"$1"*) return 0 ;;
+        *"$1"*) grepstr=0 && return 0 ;;
     esac
 
     return 1
