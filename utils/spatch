@@ -101,6 +101,32 @@ substr_after() {
 }
 
 # Description:
+# Remove specific character(s) in a string
+#
+# Parameters:
+# $1 - character(s)
+# $2 - string
+#
+# Returns:
+# $2 without $1 characters,
+# $2 if no $1 characters are found
+#
+remchars() {
+    OLD_IFS=$IFS
+
+    IFS=$1
+    set -- $2
+
+    IFS=""
+    set -- $*
+
+    printf "%s\n" "$*"
+
+    IFS=$OLD_IFS
+    unset OLD_IFS
+}
+
+# Description:
 # Convert relative path to absolute path
 #
 # Parameters:
