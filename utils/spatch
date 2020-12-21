@@ -321,6 +321,9 @@ main() {
 
     # Serve the script until no script parameters passed
     while [ "$1" ]; do
+        # Reset variables from previous loop run
+        unset grepstr
+
         case "$1" in
             # Parse specific options first
             "--") shift && break ;;
@@ -329,13 +332,14 @@ main() {
             # Parse options
             "--"*)
                 i=$(substr_after "--" "$1")
+                i=" $i "
 
-                if grep_str "direct-url" "$i"; then saf4; fi
-                if grep_str "invert-sort" "$i"; then saf1; fi
-                if grep_str "line-numbers" "$i"; then saf5; fi
-                if grep_str "preserve-url" "$i"; then saf2; fi
-                if grep_str "timestamp" "$i"; then saf3; fi
-                if grep_str "verbose" "$i"; then saf6; fi
+                if grep_str " direct-url " "$i"; then saf4; fi
+                if grep_str " invert-sort " "$i"; then saf1; fi
+                if grep_str " line-numbers " "$i"; then saf5; fi
+                if grep_str " preserve-url " "$i"; then saf2; fi
+                if grep_str " timestamp " "$i"; then saf3; fi
+                if grep_str " verbose " "$i"; then saf6; fi
 
                 if grep_str "target-file" "$i"; then
                     if grep_str "target-file=" "$i"; then
@@ -351,6 +355,9 @@ main() {
                     fi
                 fi
 
+                if [ ! $grepstr ]; then
+                    warn "Unrecognized option: '$1'"
+                fi
                 shift
             ;;
             "-"*)
@@ -379,6 +386,10 @@ main() {
                 if grep_str "T" "$i"; then saf3; fi
                 if grep_str "v" "$i"; then saf6; fi
 
+                i=$(remchars "dilpTv" "$i")
+                if [ -n "$i" ]; then
+                    warn "Unrecognized option(s): '-$i'"
+                fi
                 shift
             ;;
 
