@@ -28,6 +28,9 @@ Options:
                              output
       --help     display this help text and exit
       --         specify end of options
+
+External utilities dependency:
+awk, cat, cd, cut, date, grep, ls, mkdir, rm, sed, sort.
 "
 }
 
