@@ -38,7 +38,7 @@ awk, cat, cd, cut, date, grep, ls, mkdir, rm, sed, sort.
 # Check command availability
 #
 # Parameters:
-# $1 - command
+# <$1> - command
 #
 # Returns:
 # true (0) if command available,
@@ -56,8 +56,8 @@ cmd_avail() {
 # Check if a substring is present in a string
 #
 # Parameters:
-# $1 - substring
-# $2 - string
+# <$1> - substring
+# <$2> - string
 #
 # Returns:
 # true (0) if substring is present,
@@ -75,9 +75,9 @@ grep_str() {
 # Get substring after specific (n)character(s) in a string
 #
 # Parameters:
-# $1 - (n)
-# $1/$2 - character(s)
-# $2/$3 - string
+# [$1] - (n)
+# <$2> - character(s)
+# <$3> - string
 #
 # Returns:
 # substring of string,
@@ -107,8 +107,8 @@ substr_after() {
 # Remove specific character(s) in a string
 #
 # Parameters:
-# $1 - character(s)
-# $2 - string
+# <$1> - character(s)
+# <$2> - string
 #
 # Returns:
 # $2 without $1 characters,
@@ -133,7 +133,7 @@ remchars() {
 # Convert relative path to absolute path
 #
 # Parameters:
-# $1 - path
+# <$1> - path
 #
 # Returns:
 # absolute path if path was converted,
@@ -152,8 +152,8 @@ get_fpath() {
 # Print error in red and exit
 #
 # Parameters:
-# $1 - error message
-# $2 - exit code
+# <$1> - error message
+# <$2> - exit code
 #
 err() {
     printf "%b" "\033[1;31m"
@@ -168,7 +168,7 @@ err() {
 # Print warn in yellow
 #
 # Parameters:
-# $1 - warn message
+# <$1> - warn message
 #
 warn() {
     printf "%b" "\033[1;33m"
@@ -181,8 +181,8 @@ warn() {
 # Redirect information from source file to target file
 #
 # Parameters:
-# $1 - source file
-# $2 - target file
+# <$1> - source file
+# <$2> - target file
 #
 rdr() {
     rm -f "$2" && cat "$1" > "$2"
