@@ -72,27 +72,75 @@ grep_str() {
 }
 
 # Description:
-# Get substring after specific (n)character(s) in a string
+# Get substring after (from / up to) specific (n)character(s) in a string
 #
 # Parameters:
-# [$1] - (n)
-# <$2> - character(s)
-# <$3> - string
+# [$1] - from (n)
+# <$2> - from character(s)
+# [$3] - up to (n)
+# [$4] - up to character(s)
+# <$5> - string
 #
 # Returns:
 # substring of string,
 # false (1) if error
 #
 substr_after() {
-    if [ ! "$3" ]; then
-        i=$(printf "%s" "${2##*$1}")
-    else
-        x=0
-        i=$(printf "%s" "$3")
+    x=0
+
+    if [ "$5" ]; then
+        i=$(printf "%s" "$5")
         until [ $x -eq $1 ]; do
             i=$(printf "%s" "${i#*$2}")
             x=$((x + 1))
         done
+        x=0
+        ii="$i"
+        until [ $x -eq $3 ]; do
+            i=$(printf "%s" "${i#*$4}")
+            x=$((x + 1))
+        done
+        i=$(printf "%s" "${ii%$i}")
+    elif [ "$4" ]; then
+        i=$(printf "%s" "$4")
+        case "$1" in
+            '' | *[!0-9]*)
+                i=$(printf "%s" "${i##*$1}")
+                ii="$i"
+                until [ $x -eq $2 ]; do
+                    i=$(printf "%s" "${i#*$3}")
+                    x=$((x + 1))
+                done
+                i=$(printf "%s" "${ii%$i}")
+            ;;
+            *)
+                until [ $x -eq $1 ]; do
+                    i=$(printf "%s" "${i#*$2}")
+                    x=$((x + 1))
+                done
+                ii="$i"
+                i=$(printf "%s" "${i##*$3}")
+                i=$(printf "%s" "${ii%$i}")
+            ;;
+        esac
+    elif [ "$3" ]; then
+        i=$(printf "%s" "$3")
+        case "$1" in
+            '' | *[!0-9]*)
+                i=$(printf "%s" "${i##*$1}")
+                ii="$i"
+                i=$(printf "%s" "${i##*$2}")
+                i=$(printf "%s" "${ii%$i}")
+            ;;
+            *)
+                until [ $x -eq $1 ]; do
+                    i=$(printf "%s" "${i#*$2}")
+                    x=$((x + 1))
+                done
+            ;;
+        esac
+    else
+        i=$(printf "%s" "${2##*$1}")
     fi
 
     if [ -n "$i" ]; then
