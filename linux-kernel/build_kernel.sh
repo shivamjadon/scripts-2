@@ -135,7 +135,7 @@
  *
  * SPDX-License-Identifier: GPL-3.0
  *
- * Copyright (C) 2020 Dimitar Yurukov <mscalindt@protonmail.com>
+ * Copyright (C) 2020-2021 Dimitar Yurukov <mscalindt@protonmail.com>
  *
 notice
 
