@@ -30,7 +30,7 @@ Options:
       --         specify end of options
 
 External utilities dependency:
-awk, cat, cd, curl, cut, date, grep, ls, mkdir, rm, sed, sort, wget.
+awk, cat, cd, curl, date, grep, ls, mkdir, rm, sed, sort, wget.
 "
 }
 
@@ -311,8 +311,10 @@ spatch_exec() {
 
     PATCHES="$TMP_DIR/*"
     for PATCH in $PATCHES; do
-        CSTR=$(sed '1q;d' $PATCH | cut -d ' ' -f2)
-        DSTR=$(sed '3q;d' $PATCH | cut -d ' ' -f3,4,5,6)
+        CSTR=$(sed '1q;d' $PATCH)
+        CSTR=$(substr_after "1" " " "1" " " "$CSTR")
+        DSTR=$(sed '3q;d' $PATCH)
+        DSTR=$(substr_after "2" " " "4" " " "$DSTR")
 
         if [ -n "$preserve" ]; then
             CSTR=$(grep -Eo -- "[^[:space:]]+$CSTR" "$1")
