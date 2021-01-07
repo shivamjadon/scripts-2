@@ -72,7 +72,8 @@ grep_str() {
 }
 
 # Description:
-# Get substring after (from / up to) specific (n)character(s) in a string
+# Get substring after (from / up to) specific (n)character(s) in a string,
+# whitespace as a character is also a delimiter
 #
 # Parameters:
 # [$1] - from (n)
@@ -101,6 +102,9 @@ substr_after() {
             x=$((x + 1))
         done
         i=$(printf "%s" "${ii%$i}")
+        case "$4" in
+            " ") i=$(printf "%s" "${i%$4}") ;;
+        esac
     elif [ "$4" ]; then
         i=$(printf "%s" "$4")
         case "$1" in
@@ -123,6 +127,9 @@ substr_after() {
                 i=$(printf "%s" "${ii%$i}")
             ;;
         esac
+        case "$3" in
+            " ") i=$(printf "%s" "${i%$3}") ;;
+        esac
     elif [ "$3" ]; then
         i=$(printf "%s" "$3")
         case "$1" in
@@ -138,6 +145,9 @@ substr_after() {
                     x=$((x + 1))
                 done
             ;;
+        esac
+        case "$2" in
+            " ") i=$(printf "%s" "${i%$2}") ;;
         esac
     else
         i=$(printf "%s" "${2##*$1}")
