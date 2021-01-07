@@ -30,7 +30,7 @@ Options:
       --         specify end of options
 
 External utilities dependency list (for full functionality):
-awk, cat, cd, curl, date, grep, ls, mkdir, rm, sed, sort, wget.
+awk, cat, cd, curl, date, grep, ls, mkdir, rm, sort, wget.
 "
 }
 
@@ -342,9 +342,9 @@ spatch_exec() {
 
     PATCHES="$TMP_DIR/*"
     for PATCH in $PATCHES; do
-        CSTR=$(sed '1q;d' $PATCH)
+        CSTR=$(pline "1" "$PATCH")
         CSTR=$(substr_after "1" " " "1" " " "$CSTR")
-        DSTR=$(sed '3q;d' $PATCH)
+        DSTR=$(pline "3" "$PATCH")
         DSTR=$(substr_after "2" " " "4" " " "$DSTR")
 
         if [ -n "$preserve" ]; then
